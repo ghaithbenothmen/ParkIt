@@ -1,0 +1,48 @@
+# Node.js
+node_modules/
+.env
+package-lock.json
+npm-debug.log
+yarn.lock
+dist/
+build/
+
+# React (Frontend)
+.DS_Store
+.cache/
+public/
+*.log
+.vscode/
+.next/
+out/
+coverage/
+
+# Backend (Express, MongoDB)
+*.log
+logs/
+data/
+dump.rdb
+*.sqlite
+*.sqlite3
+__pycache__/
+.mongod.lock
+*.pid
+
+# ESP32 (PlatformIO, Arduino)
+.pio/
+.pioenvs/
+*.bin
+*.elf
+*.hex
+*.o
+*.pyc
+*.cpp.o
+sdkconfig
+sdkconfig.old
+
+# IDE / Editor Files
+.vscode/
+.idea/
+
+
+
