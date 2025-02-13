@@ -2,19 +2,19 @@
 FROM node:18
 
 # Set the working directory inside the container
-WORKDIR /src
+WORKDIR /app  
 
-# Copy package.json and package-lock.json
+# Copy package.json and package-lock.json first (for caching)
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the frontend code
-COPY . .
+# Copy everything, including public, src, and other necessary files
+COPY . .  
 
 # Expose the port your app runs on
-EXPOSE 3000
+EXPOSE 5173
 
 # Start the React development server
 CMD ["npm", "run", "dev"]
