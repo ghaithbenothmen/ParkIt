@@ -1,0 +1,35 @@
+version: "3"
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "4000:4000"
+    volumes:
+      - "./backend/:/app"
+      - "/app/node_modules"  # Prevents overriding node_modules
+
+  web:
+    build:
+      context: ./frontend/parkit-front
+      dockerfile: Dockerfile
+    container_name: web
+    ports:
+      - "5173:5173"
+    volumes:
+      - "./frontend/parkit-front/:/src"
+      - "/src/node_modules"  # Prevents overriding node_modules
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: parkit
+      MONGO_INITDB_ROOT_PASSWORD: parkit
+    volumes:
+      - db-data:/data/db
+
+volumes:
+  db-data: {}
