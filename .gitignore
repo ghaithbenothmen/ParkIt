@@ -10,7 +10,6 @@ build/
 # React (Frontend)
 .DS_Store
 .cache/
-public/
 *.log
 .vscode/
 .next/
