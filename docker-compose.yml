@@ -21,6 +21,7 @@ services:
     volumes:
       - "./frontend/parkit-front/:/src"
       - "/src/node_modules"  # Prevents overriding node_modules
+      - "./frontend/parkit-front/public:/src/public" 
 
   mongo:
     image: mongo
