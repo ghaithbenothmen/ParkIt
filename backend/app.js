@@ -5,7 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const mongoose = require('mongoose');
 require('dotenv').config(); // Load environment variables from .env file
-var userRoutes = require('./routes/auth.route');
+var authRoutes = require('./routes/auth.route');
+var userRoutes = require('./routes/user.route');
+
 
 
 
@@ -27,7 +29,8 @@ app.get('/', (req, res) => {
   res.send('Backend is running');
 });
 
-app.use('/api/auth', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
