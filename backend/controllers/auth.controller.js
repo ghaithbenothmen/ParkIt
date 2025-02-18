@@ -2,11 +2,10 @@ const User = require("../models/user.model.js");
 const argon2 = require('argon2'); 
 const jwt = require("jsonwebtoken");
 
-
 exports.register = async (req, res) => {
     try {
       const { firstname, lastname, phone, email, password } = req.body;
-  
+
       const userExists = await User.findOne({ email });
       if (userExists) {
         return res.status(400).json({ message: "Email already exists" });
@@ -19,39 +18,45 @@ exports.register = async (req, res) => {
         email,
         password,
       });
-  
+
       await user.save(); 
-  
+
       res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
       console.error("Register Error:", error);
+
+      // Check for validation errors
+      if (error.name === "ValidationError") {
+        const validationErrors = Object.values(error.errors).map(err => err.message);
+        return res.status(400).json({ message: "Validation errors", errors: validationErrors });
+      }
+
+      // General error handling
       res.status(500).json({ message: error.message });
     }
-  };
-
+};
 
 exports.login = async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       const user = await User.findOne({ email });
       if (!user) return res.status(400).json({ message: "Invalid credentials" });
-  
-      
+
       const isMatch = await argon2.verify(user.password, password);
       if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-  
+
       const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-  
+
       res.json({ token, user });
-  
+
     } catch (error) {
       console.error("Error logging in:", error.message);
       res.status(500).json({ message: "Server error" });
     }
-  };
+};
 
-  exports.logout = async (req, res) => {
+exports.logout = async (req, res) => {
     try {
         res.clearCookie("token"); 
         res.status(200).json({ message: "Logout successful" });
@@ -60,8 +65,7 @@ exports.login = async (req, res) => {
     }
 };
 
-
-  exports.getProfile = async (req, res) => {
+exports.getProfile = async (req, res) => {
     try {
       const user = await User.findById(req.user.id).select("-password"); // Exclude password from the response
       if (!user) {
@@ -71,4 +75,4 @@ exports.login = async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  };
+};
