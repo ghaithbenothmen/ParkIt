@@ -30,15 +30,20 @@ const UserSchema = new mongoose.Schema(
     password: { 
       type: String, 
       required: true, 
-      minlength: 8, 
-      maxlength: 20, 
-      match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/,
+      minlength: 8,
+      match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
     },
     role: { 
       type: String, 
       enum: ["user", "admin"], 
       default: "user" 
     },
+    resetToken: { 
+      type: String, default: null
+     },
+    resetTokenExpire: { 
+      type: Date, default: null
+     },
   },
   { timestamps: true }
 );
