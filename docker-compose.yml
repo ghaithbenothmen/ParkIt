@@ -10,6 +10,8 @@ services:
     volumes:
       - "./backend/:/app"
       - "/app/node_modules"  # Prevents overriding node_modules
+    depends_on:
+      - mongo
 
   web:
     build:
@@ -19,9 +21,24 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - "./frontend/parkit-front/:/src"
+      - "./frontend/parkit-front:/app/public"
+      - "/app/node_modules"  # Prevents overriding node_modules
+    depends_on:
+      - api
+
+  backoffice:
+    build:
+      context: ./frontend/parkit-back  # Path to Back Office React app
+      dockerfile: Dockerfile
+    container_name: backoffice
+    ports:
+      - "5174:5174"  # Runs on a different port than Front Office
+    volumes:
+      - "./frontend/parkit-back/:/src"
       - "/src/node_modules"  # Prevents overriding node_modules
-      - "./frontend/parkit-front/public:/src/public" 
+      - "./frontend/parkit-back/public:/src/public"
+    depends_on:
+      - api
 
   mongo:
     image: mongo
