@@ -31,14 +31,21 @@ const UserSchema = new mongoose.Schema(
       type: String, 
       required: true, 
       minlength: 8, 
-      maxlength: 20, 
-      match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/,
+      match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
     },
     role: { 
       type: String, 
       enum: ["user", "admin"], 
       default: "user" 
     },
+    twoFactorCode: {
+      type: String,
+      default: null
+  },
+    twoFactorExpires: {
+      type: Date,
+      default: null
+  }  
   },
   { timestamps: true }
 );
@@ -51,5 +58,7 @@ UserSchema.pre('save', async function (next) {
   this.password = await argon2.hash(this.password);
   next();
 });
+
+
 
 module.exports = mongoose.model("User", UserSchema);

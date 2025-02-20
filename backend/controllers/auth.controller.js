@@ -1,6 +1,8 @@
 const User = require("../models/user.model.js");
 const argon2 = require('argon2'); 
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const { sendEmail } = require("../utils/emailService");
 
 exports.register = async (req, res) => {
     try {
@@ -75,4 +77,60 @@ exports.getProfile = async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
+};
+
+exports.send2FACode = async (req, res) => {
+  try {
+      const { email, password } = req.body;
+      
+      const user = await User.findOne({ email });
+      if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+      const isMatch = await argon2.verify(user.password, password);
+      if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+      // Génération du code 2FA
+      const code = crypto.randomInt(100000, 999999).toString();
+      const expires = new Date(Date.now() + 10 * 60 * 1000); // Expiration en 10 minutes
+
+      user.twoFactorCode = code;
+      user.twoFactorExpires = expires;
+      await user.save();
+
+      // Envoi de l'email avec le code 2FA
+      await sendEmail(user.email, "Votre code de vérification", `Votre code 2FA est : ${code}`);
+
+      res.json({ message: "2FA code sent to your email" });
+
+  } catch (error) {
+      console.error("Error sending 2FA code:", error);
+      res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.verify2FA = async (req, res) => {
+  try {
+      const { code } = req.body;
+
+      // Recherche de l'utilisateur avec un code valide et non expiré
+      const user = await User.findOne({ twoFactorCode: code, twoFactorExpires: { $gt: Date.now() } });
+
+      if (!user) {
+          return res.status(400).json({ message: "Invalid or expired 2FA code" });
+      }
+
+      // Suppression du code après validation
+      user.twoFactorCode = null;
+      user.twoFactorExpires = null;
+      await user.save();
+
+      // Génération du token JWT
+      const authToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+
+      res.json({ token: authToken, user });
+
+  } catch (error) {
+      console.error("Error verifying 2FA:", error);
+      res.status(500).json({ message: "Server error" });
+  }
 };
