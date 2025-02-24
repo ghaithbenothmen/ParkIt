@@ -607,26 +607,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                 </Link>
               </div>
               <ul className="main-nav align-items-lg-center">
-                {type == 1 ? 
-                    <li className="d-none d-lg-block">
-                      <div>
-                        <div className="dropdown">
-                          <Link to="#" className="dropdown-toggle bg-light-300 fw-medium"
-                            data-bs-toggle="dropdown">
-                            <i className="ti ti-layout-grid me-1"></i>Categories
-                          </Link>
-                          <ul className="dropdown-menu">
-                            <li><Link className="dropdown-item" to="#">Construction</Link></li>
-                            <li><Link className="dropdown-item" to="#">Removals</Link></li>
-                            <li><Link className="dropdown-item" to="#">Interior</Link></li>
-                          </ul>
-                        </div>
-                      </div>
-                      
-                    </li>
-                    :
-                    <></>        
-                }
+      
                 
                 {header_data.map((item: any, index: number) => {
                   return (
@@ -642,7 +623,8 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                             to={''}
                             onClick={() => (item.showAsTab = !item.showAsTab)}
                           >
-                            {item.tittle} <i className="fas fa-chevron-down" />
+                            {item.tittle} 
+                            {item.tittle !== 'Home' && <i className="fas fa-chevron-down" />}
                           </Link>
                           <ul
                             className={`submenu ${
