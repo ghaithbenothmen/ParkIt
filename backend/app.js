@@ -7,13 +7,13 @@ const mongoose = require('mongoose');
 require('dotenv').config(); // Load environment variables from .env file
 var authRoutes = require('./routes/auth.route');
 var userRoutes = require('./routes/user.route');
-
+const cors = require('cors');
 
 
 
 var app = express();
 
-
+app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -47,6 +47,11 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
+});
+
+
 
 
 
