@@ -9,19 +9,22 @@ services:
       - "4000:3000"
     volumes:
       - "./backend/:/app"
-      - "/app/node_modules"  # Prevents overriding node_modules
+      - "/app/node_modules"  # Préserve node_modules
+    depends_on:
+      - mongo
 
   web:
     build:
-      context: ./frontend/parkit-front
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: web
     ports:
-      - "5173:5173"
+      - "3000:3000"  # Modifier en 3000 pour create-react-app
     volumes:
-      - "./frontend/parkit-front/:/src"
-      - "/src/node_modules"  # Prevents overriding node_modules
-      - "./frontend/parkit-front/public:/src/public" 
+      - "./frontend:/app"
+      - "/app/node_modules"  # Préserver node_modules
+    depends_on:
+      - api
 
   mongo:
     image: mongo
