@@ -92,11 +92,11 @@ const FeatureSection = () => {
         >
           <div className="section-header text-center">
             <h2 className="mb-1">
-              Our Featured <span className="text-linear-primary">Services</span>
+              Our Featured <span className="text-linear-primary">Parkings</span>
             </h2>
             <p className="sub-title">
-              Each listing is designed to be clear and concise, providing
-              customers
+            Each parking spot is designed to be clear and concise,
+             providing users with all the necessary details to make an informed decision.
             </p>
           </div>
         </div>
@@ -113,7 +113,7 @@ const FeatureSection = () => {
                         <div className="slide-images" key={index}>
                 <Link to={routes.serviceDetails1}>
                   <ImageWithBasePath
-                    src={`assets/img/services/${img.Image}`}
+                    src={`assets/img/parking.jpg`}
                     className="img-fluid"
                     alt="img"
                   />

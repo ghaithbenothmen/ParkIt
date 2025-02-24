@@ -12,19 +12,15 @@ const BussinessWithUs = () => {
         <div className="col-md-6 wow fadeInUp" data-wow-delay="0.2s">
           <div className="section-header mb-md-0 mb-4">
             <h2 className="text-white display-4">
-              Add Services &amp; Grow your{" "}
-              <span className="text-linear-primary">business with us</span>
+              Add Your profile &amp; Cars{" "}
+              <span className="text-linear-primary">find the perfect parking spot</span>
             </h2>
             <p className="text-light">
-              A versatile platform that connects you with local professionals
-              across various categories, from home services like plumbing and
-              electrical work to personal services like photography and
-              tutoring.
+            A versatile platform that connects you with local parking spaces across various categories, from residential parking 
+            spots and garages to commercial parking areas and event spaces.
             </p>
-            <Link to="#" className="btn btn-linear-primary">
-              <i className="ti ti-user-filled me-2" />
-              Join Us
-            </Link>
+            <Link className="btn btn-linear-primary" to="#" data-bs-toggle="modal" data-bs-target="#register-modal">
+          <i className="ti ti-user-filled me-2"></i>Join Us</Link>
           </div>
         </div>
         <div
@@ -33,7 +29,7 @@ const BussinessWithUs = () => {
         >
           <div className="business-img">
             <ImageWithBasePath
-              src="assets/img/business.jpg"
+              src="assets/img/full-parkit.png"
               className="img-fluid"
               alt="img"
             />

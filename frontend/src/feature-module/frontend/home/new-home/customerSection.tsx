@@ -55,8 +55,8 @@ const CustomerSection = () => {
               <span className="text-linear-primary">Customers</span>
             </h2>
             <p className="sub-title">
-              Each listing is designed to be clear and concise, providing
-              customers
+            Each parking spot is designed to be clear and concise, providing users 
+            with all the necessary details to make an informed decision.
             </p>
           </div>
         </div>
@@ -72,14 +72,13 @@ const CustomerSection = () => {
           </div>
           <h5 className="mb-2">Quality of work was excellent</h5>
           <p className="mb-4">
-            “ I had a great experience with ABC Electrical on the Services. The
-            electrician arrived on time!!!“
+            “ I had a great experience with ABC Parking on the Services.“
           </p>
           <div className="d-flex align-items-center justify-content-between">
             <div className="d-flex align-items-center overflow-hidden">
               <span className="avatar avatar-lg flex-shrink-0">
                 <ImageWithBasePath
-                  src="assets/img/profiles/avatar-14.jpg"
+                  src="assets/img/user.jpg"
                   className="img-fluid rounded-circle"
                   alt="img"
                 />
@@ -106,7 +105,7 @@ const CustomerSection = () => {
             <div className="d-flex align-items-center overflow-hidden">
               <span className="avatar avatar-lg flex-shrink-0">
                 <ImageWithBasePath
-                  src="assets/img/profiles/avatar-15.jpg"
+                  src="assets/img/user.jpg"
                   className="img-fluid rounded-circle"
                   alt="img"
                 />
@@ -133,7 +132,7 @@ const CustomerSection = () => {
             <div className="d-flex align-items-center overflow-hidden">
               <span className="avatar avatar-lg flex-shrink-0">
                 <ImageWithBasePath
-                  src="assets/img/profiles/avatar-13.jpg"
+                  src="assets/img/user.jpg"
                   className="img-fluid rounded-circle"
                   alt="img"
                 />
@@ -160,7 +159,7 @@ const CustomerSection = () => {
             <div className="d-flex align-items-center overflow-hidden">
               <span className="avatar avatar-lg flex-shrink-0">
                 <ImageWithBasePath
-                  src="assets/img/profiles/avatar-12.jpg"
+                  src="assets/img/user.jpg"
                   className="img-fluid rounded-circle"
                   alt="img"
                 />
