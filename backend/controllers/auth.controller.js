@@ -112,9 +112,17 @@ exports.requestPasswordReset = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: user.email,
       subject: "Password Reset Request",
-      html: `<p>You requested a password reset. Click the link below to reset your password:</p>
-             <a href="${resetLink}">Reset Password</a>
-             <p>This link will expire in 10 minutes.</p>`,
+      html: `
+          <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+            <h1 style="color: #333;">Reset Your Password</h1>
+            <p style="color: #555;">You requested a password reset. Click the button below to reset your password:</p>
+            <a href="${resetLink}" style="display: inline-block; background-color: #007bff; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;">Reset Password</a>
+            <p style="color: #999; font-size: 14px;">This link will expire in 10 minutes.</p>
+            <p style="color: #777; font-size: 12px;">If you did not request this, please ignore this email or contact support.</p>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 12px;">&copy; 2025 Your Company. All rights reserved.</p>
+          </div>
+            `,
     };
 
     await transporter.sendMail(mailOptions);
