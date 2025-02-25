@@ -12,7 +12,12 @@ var userRoutes = require('./routes/user.route');
 
 
 var app = express();
-
+const cors = require("cors");
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: 'GET,POST,PUT,DELETE',
+  allowedHeaders: 'Content-Type,Authorization'
+}));
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -47,6 +52,8 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
 
 
 

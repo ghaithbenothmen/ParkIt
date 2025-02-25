@@ -99,15 +99,15 @@ exports.requestPasswordReset = async (req, res) => {
 
     // Generate a reset token
     const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1d", 
+      expiresIn: "10m", // 10 minutes
     });
 
     user.resetToken = resetToken;
-    user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+    user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
     // Send the reset link via email
-    const resetLink = `http://localhost:4000/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:4000/api/auth/reset-password?token=${resetToken}`;
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: user.email,
@@ -119,7 +119,7 @@ exports.requestPasswordReset = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ message: "Password reset link sent to your email" });
+    res.status(200).json({ message: "Password reset link sent to your email", resetLink });
   } catch (error) {
     console.error("Request Password Reset Error:", error);
     res.status(500).json({ message: "Server error" });
@@ -128,15 +128,20 @@ exports.requestPasswordReset = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
+    const { newPassword } = req.body;
+    const { token } = req.query; 
+
+    if (!token) {
+      return res.status(400).json({ message: "Token is required" });
+    }
 
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findOne({
       _id: decoded.id,
-      resetToken: token,
-      resetTokenExpire: { $gt: Date.now() }, 
+      resetToken: token, 
+      resetTokenExpire: { $gt: Date.now() },
     });
 
     if (!user) {

@@ -19,7 +19,6 @@ coverage/
 # Backend (Express, MongoDB)
 *.log
 logs/
-data/
 dump.rdb
 *.sqlite
 *.sqlite3
