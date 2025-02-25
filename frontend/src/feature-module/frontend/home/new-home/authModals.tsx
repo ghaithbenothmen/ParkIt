@@ -1,60 +1,157 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
-import { Link } from 'react-router-dom'
+import { Link , useNavigate} from 'react-router-dom'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import { InputOtp } from 'primereact/inputotp';
 import axios, { AxiosError } from "axios";
+import {register, login } from '../../../../services/authService';
+import  { Modal } from 'bootstrap';
+
 
 const AuthModals = () => {
-    const [token, setTokens] = useState<any>();
-    const [token2, setTokens2] = useState<any>();
-    const [password, setPassword] = useState('');
-    const [email, setEmail] = useState('');
-    const [otp, setOtp] = useState('');
-    const [showOtpModal, setShowOtpModal] = useState(false);
-    const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [firstname, setFirstName] = useState('')
+  const [lastname, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
   const [passwordResponce, setPasswordResponce] = useState({
-    passwordResponceText: "Use 8 or more characters with a mix of letters, number's symbols.",
-    passwordResponceKey: '',
-  });
+    passwordResponceText: 'Use 8 or more characters with a mix of letters, numbers, and symbols.',
+    passwordResponceKey: ''
+  })
+
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+const [successMessage, setSuccessMessage] = useState('');
+
+  const [registerError, setRegisterError] = useState('')
+  const navigate = useNavigate() // Using react-router's useNavigate for redirection
 
   const onChangePassword = (password: string) => {
-    setPassword(password);
+    setPassword(password)
     if (password.match(/^$|\s+/)) {
       setPasswordResponce({
         passwordResponceText: 'Whitespaces are not allowed',
-        passwordResponceKey: '',
-      });
+        passwordResponceKey: ''
+      })
     } else if (password.length === 0) {
       setPasswordResponce({
         passwordResponceText: '',
-        passwordResponceKey: '',
-      });
+        passwordResponceKey: ''
+      })
     } else if (password.length < 8) {
       setPasswordResponce({
         passwordResponceText: 'Weak. Must contain at least 8 characters',
-        passwordResponceKey: '0',
-      });
+        passwordResponceKey: '0'
+      })
     } else if (
       password.search(/[a-z]/) < 0 ||
       password.search(/[A-Z]/) < 0 ||
       password.search(/[0-9]/) < 0
     ) {
       setPasswordResponce({
-        passwordResponceText:
-          'Average. Must contain at least 1 upper case and number',
-        passwordResponceKey: '1',
-      });
+        passwordResponceText: 'Average. Must contain at least 1 upper case and number',
+        passwordResponceKey: '1'
+      })
     } else if (password.search(/(?=.*?[#?!@$%^&*-])/) < 0) {
       setPasswordResponce({
         passwordResponceText: 'Almost. Must contain a special symbol',
-        passwordResponceKey: '2',
-      });
+        passwordResponceKey: '2'
+      })
     } else {
       setPasswordResponce({
         passwordResponceText: 'Awesome! You have a secure password.',
-        passwordResponceKey: '3',
+        passwordResponceKey: '3'
+      })
+    }
+  }
+
+
+  
+  const [emailError, setEmailError] = useState('');
+ 
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  const validateEmail = (email: string) => {
+    if (!email) {
+      setEmailError("Email is required");
+    } else if (!emailRegex.test(email)) {
+      setEmailError("Invalid email format");
+    } else {
+      setEmailError('');
+    }
+  };
+  
+   
+  const handleRegisterSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+  
+    const userData = { firstname, lastname, email, phone, password };
+  
+    try {
+      const data = await register(userData);
+      console.log('Registration successful:', data);
+  
+      // Set registration success state
+      setRegistrationSuccess(true);
+      setSuccessMessage('Registration successful! Please log in.');
+  
+      // Close the registration modal
+      const registerModal = document.getElementById('register-modal');
+      if (registerModal) {
+        const bsRegisterModal = Modal.getInstance(registerModal);
+        bsRegisterModal?.hide();
+      }
+  
+      // Show the login modal
+      const loginModal = document.getElementById('login-modal');
+      if (loginModal) {
+        const bsLoginModal = new Modal(loginModal);
+        bsLoginModal.show();
+      }
+    } catch (error: any) {
+      console.error('Error during registration:', error);
+      setRegisterError(error.message);
+    }
+  };
+  useEffect(() => {
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) {
+      loginModal.addEventListener('hidden.bs.modal', () => {
+        setRegistrationSuccess(false);
+        setSuccessMessage('');
       });
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate email and password before submitting
+    validateEmail(email);
+
+    if (emailError || password.length < 8) {
+      return;
+    }
+
+    try {
+      const data = await login(email, password);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Close the modal
+      const modal = document.getElementById("login-modal");
+      if (modal) {
+        const bsModal = Modal.getInstance(modal);
+        bsModal?.hide();
+      }
+
+      // Ensure modal backdrop is removed
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+      document.body.classList.remove("modal-open");
+
+      navigate("/providers/dashboard");
+    } catch (err: any) {
+      setError(err);
     }
   };
 
@@ -64,7 +161,6 @@ const AuthModals = () => {
     try {
       const response = await axios.post('http://localhost:4000/api/auth/send-2fa', { email, password });
       alert(response.data.message); // Message de confirmation
-      setShowOtpModal(true); // Ouvre la modal OTP
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const errorMessage = axiosError.response?.data?.message || 'Erreur lors de l\'envoi du code';
@@ -116,7 +212,7 @@ const handleLogin = async (e: React.FormEvent) => {
   tabIndex={-1}
   data-bs-backdrop="static"
   aria-hidden="true"
-  style={{ display: showOtpModal ? 'block' : 'none' }}
+  
 >
   <div className="modal-dialog modal-dialog-centered">
     <div className="modal-content">
@@ -125,7 +221,7 @@ const handleLogin = async (e: React.FormEvent) => {
           to="#"
           data-bs-dismiss="modal"
           aria-label="Close"
-          onClick={() => setShowOtpModal(false)}
+         
         >
           <i className="ti ti-circle-x-filled fs-20" />
         </Link>
@@ -139,8 +235,6 @@ const handleLogin = async (e: React.FormEvent) => {
           <div className="mb-3">
             <label className="form-label">OTP Code</label>
             <InputOtp
-              value={otp}
-              onChange={(e) => setOtp(String(e.value || ''))}
               integerOnly
               length={6}
             />
@@ -180,20 +274,29 @@ const handleLogin = async (e: React.FormEvent) => {
           </Link>
         </div>
         <div className="modal-body p-4">
-          <form >
+          <form onSubmit={handleLogin}>
             <div className="text-center mb-3">
               <h3 className="mb-2">Welcome</h3>
               <p>Enter your credentials to access your account</p>
             </div>
+        
+          {registrationSuccess && (
+            <div className="alert alert-success">{successMessage}</div>
+          )}
+            {error && <div className="alert alert-danger">{error}</div>}
             <div className="mb-3">
               <label className="form-label">Email</label>
               <input
-  type="text"
-  className="form-control"
-  value={email}
-  onChange={(e) => setEmail(e.target.value)} // Assurez-vous que cette ligne est présente
-  required
-/>
+                    type="email"
+                    className="form-control"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      validateEmail(e.target.value);
+                    }}
+                    required
+                  />
+                  {emailError && <small className="form-text text-muted">{emailError}</small>}
             </div>
             <div className="mb-3">
               <div className="d-flex align-items-center justify-content-between flex-wrap">
@@ -208,12 +311,13 @@ const handleLogin = async (e: React.FormEvent) => {
                 </Link>
               </div>
               <input
-  type="password"
-  className="form-control"
-  value={password}
-  onChange={(e) => setPassword(e.target.value)} // Assurez-vous que cette ligne est présente
-  required
-/>
+                    type="password"
+                    className="form-control"
+                    value={password}
+                    onChange={(e) => onChangePassword(e.target.value)}
+                    required
+                  />
+                 
             </div>
             <div className="mb-3">
               <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
@@ -243,8 +347,8 @@ const handleLogin = async (e: React.FormEvent) => {
             </div>
             <div className="mb-3">
             <button
-  type="button"
-  data-bs-dismiss="modal"
+  type="submit"
+
   className="btn btn-lg btn-linear-primary w-100"
   onClick={handleSend2FA} // Assurez-vous que cette ligne est présente
 >
@@ -254,7 +358,6 @@ const handleLogin = async (e: React.FormEvent) => {
               to="#"
               data-bs-dismiss="modal"
               aria-label="Close"
-              onClick={() => setShowOtpModal(false)}
             >
               <i className="ti ti-circle-x-filled fs-20" />
             </Link>
@@ -309,138 +412,106 @@ const handleLogin = async (e: React.FormEvent) => {
   {/* /Login Modal */}
   {/* Register Modal */}
   <div
-    className="modal fade"
-    id="register-modal"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <form action="#">
-            <div className="text-center mb-3">
-              <h3 className="mb-2">Registration</h3>
-              <p>Enter your credentials to access your account</p>
+        className="modal fade"
+        id="register-modal"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
             </div>
-            <div className="mb-3">
-              <label className="form-label">First Name</label>
-              <input type="text" className="form-control" />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input type="email" className="form-control" />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Phone Number</label>
-              <input
-                className="form-control"
-                id="phone"
-                name="phone"
-                type="text"
-              />
-            </div>
-            <div className="mb-3">
-              <div className="d-flex align-items-center justify-content-between flex-wrap">
-                <label className="form-label">Password</label>
-                <p className="text-gray-6 fw-medium  mb-1">
-                  Must be 8 Characters at Least
-                </p>
-              </div>
-              <input type="password" className="form-control" />
-            </div>
-            <div className="mb-3">
-              <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    defaultValue=""
-                    id="remember_me"
-                  />
-                  <label className="form-check-label" htmlFor="remember_me">
-                    I agree to{" "}
-                    <Link
-                      to="#"
-                      className="text-primary text-decoration-underline"
-                    >
-                      Terms of use
-                    </Link>{" "}
-                    &amp;{" "}
-                    <Link
-                      to="#"
-                      className="text-primary text-decoration-underline"
-                    >
-                      Privacy policy
-                    </Link>
-                  </label>
+            <div className="modal-body p-4">
+              <form onSubmit={handleRegisterSubmit}>
+                <div className="text-center mb-3">
+                  <h3 className="mb-2">Registration</h3>
+                  <p>Enter your credentials to access your account</p>
                 </div>
-              </div>
+                <div className="mb-3">
+                  <label className="form-label">First Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={firstname}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Last Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={lastname}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Phone</label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    value={password}
+                    onChange={(e) => onChangePassword(e.target.value)}
+                  />
+                  {passwordResponce.passwordResponceKey && (
+                    <small className="form-text text-muted">
+                      {passwordResponce.passwordResponceText}
+                    </small>
+                  )}
+                </div>
+                {registerError && (
+                  <div className="alert alert-danger">{registerError}</div>
+                )}
+                <div className="mb-3">
+                  <button type="submit" className="btn btn-lg btn-linear-primary w-100">
+                    Register
+                  </button>
+                </div>
+                <div className="d-flex justify-content-center">
+                  <p>
+                    Already have an account?{" "}
+                    <Link
+                      to="#"
+                      className="text-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#login-modal"
+                    >
+                      Sign In
+                    </Link>
+                  </p>
+                </div>
+              </form>
             </div>
-            <div className="mb-3">
-              <button
-                type="button"
-                data-bs-toggle="modal"
-                data-bs-target="#login-modal"
-                className="btn btn-lg btn-linear-primary w-100"
-              >
-                Sign Up
-              </button>
-            </div>
-            <div className="login-or mb-3">
-              <span className="span-or">Or sign up with </span>
-            </div>
-            <div className="d-flex align-items-center mb-3">
-              <Link
-                to="#"
-                className="btn btn-light flex-fill d-flex align-items-center justify-content-center me-3"
-              >
-                <ImageWithBasePath
-                  src="assets/img/icons/google-icon.svg"
-                  className="me-2"
-                  alt="Img"
-                />
-                Google
-              </Link>
-              <Link
-                to="#"
-                className="btn btn-light flex-fill d-flex align-items-center justify-content-center"
-              >
-                <ImageWithBasePath
-                  src="assets/img/icons/fb-icon.svg"
-                  className="me-2"
-                  alt="Img"
-                />
-                Facebook
-              </Link>
-            </div>
-            <div className=" d-flex justify-content-center">
-              <p>
-                Already have a account?{" "}
-                <Link
-                  to="#"
-                  className="text-primary"
-                  data-bs-target="#login-modal"
-                  data-bs-toggle="modal"
-                >
-                  Sign In
-                </Link>
-              </p>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+
   {/* /Register Modal */}
   {/* Forgot Modal */}
   <div
@@ -531,7 +602,7 @@ const handleLogin = async (e: React.FormEvent) => {
             </div>
             <div className="text-center otp-input">
               <div className="d-flex align-items-center justify-content-center mb-3">
-              <InputOtp value={token} onChange={(e) => setTokens(e.value)} integerOnly/>
+              
               </div>
               <div>
                 <div className="badge bg-danger-transparent mb-3">
@@ -593,7 +664,7 @@ const handleLogin = async (e: React.FormEvent) => {
             </div>
             <div className="text-center otp-input">
               <div className="d-flex align-items-center justify-content-center mb-3">
-              <InputOtp value={token2} onChange={(e) => setTokens2(e.value)} integerOnly/>
+              
               </div>
               <div>
                 <div className="badge bg-danger-transparent mb-3">

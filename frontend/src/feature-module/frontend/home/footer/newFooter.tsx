@@ -273,7 +273,7 @@ const NewFooter = () => {
             <div className="col-md-12">
               <div className="d-flex align-items-center justify-content-between flex-wrap">
                 <p className="mb-2">
-                  Copyright © 2024 - All Rights Reserved Truelysell
+                  Copyright © 2025 - All Rights Reserved Pakit
                 </p>
                 <ul className="menu-links mb-2">
                   <li>
