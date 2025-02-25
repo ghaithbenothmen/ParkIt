@@ -1,12 +1,18 @@
 import React, { useState } from 'react'
+import { useNavigate } from "react-router-dom";
 import { Link } from 'react-router-dom'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import { InputOtp } from 'primereact/inputotp';
+import axios, { AxiosError } from "axios";
 
 const AuthModals = () => {
     const [token, setTokens] = useState<any>();
     const [token2, setTokens2] = useState<any>();
     const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [otp, setOtp] = useState('');
+    const [showOtpModal, setShowOtpModal] = useState(false);
+    const navigate = useNavigate();
   const [passwordResponce, setPasswordResponce] = useState({
     passwordResponceText: "Use 8 or more characters with a mix of letters, number's symbols.",
     passwordResponceKey: '',
@@ -51,8 +57,109 @@ const AuthModals = () => {
       });
     }
   };
+
+  // Fonction pour envoyer le code 2FA
+  const handleSend2FA = async () => {
+    console.log("handleSend2FA appelé"); // Ajoutez ce log
+    try {
+      const response = await axios.post('http://localhost:4000/api/auth/send-2fa', { email, password });
+      alert(response.data.message); // Message de confirmation
+      setShowOtpModal(true); // Ouvre la modal OTP
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const errorMessage = axiosError.response?.data?.message || 'Erreur lors de l\'envoi du code';
+      alert(errorMessage);
+      console.error("Erreur de connexion:", axiosError.response?.data || axiosError.message);
+    }
+  };
+
+// Fonction pour vérifier le code OTP
+const handleVerify2FA = async () => {
+  try {
+    const response = await axios.post('http://localhost:4000/api/auth/verify-2fa', { code: otp });
+    localStorage.setItem('token', response.data.token);
+    alert('Connexion réussie!');
+    navigate('/admin/dashboard'); // Redirection vers le dashboard
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    const errorMessage = axiosError.response?.data?.message || 'Code incorrect';
+    alert(errorMessage);
+    console.error("Erreur de connexion:", axiosError.response?.data || axiosError.message);
+  }
+};
+
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const response = await axios.post("http://localhost:4000/api/auth/login", {
+      email,
+      password,
+    });
+
+    console.log("Réponse du serveur:", response.data);
+    alert("Connexion réussie !");
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+        const errorMessage = axiosError.response?.data?.message || 'Code incorrect';
+        alert(errorMessage);
+        console.error("Erreur de connexion:", axiosError.response?.data || axiosError.message);
+  }
+};
+
   return (
     <>
+  {/* OTP Modal */}
+<div
+  className="modal fade"
+  id="otp-modal"
+  tabIndex={-1}
+  data-bs-backdrop="static"
+  aria-hidden="true"
+  style={{ display: showOtpModal ? 'block' : 'none' }}
+>
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content">
+      <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+        <Link
+          to="#"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+          onClick={() => setShowOtpModal(false)}
+        >
+          <i className="ti ti-circle-x-filled fs-20" />
+        </Link>
+      </div>
+      <div className="modal-body p-4">
+        <form>
+          <div className="text-center mb-3">
+            <h3 className="mb-2">OTP Verification</h3>
+            <p>Enter the OTP sent to your email</p>
+          </div>
+          <div className="mb-3">
+            <label className="form-label">OTP Code</label>
+            <InputOtp
+              value={otp}
+              onChange={(e) => setOtp(String(e.value || ''))}
+              integerOnly
+              length={6}
+            />
+          </div>
+          <div className="mb-3">
+            <button
+              type="button"
+              className="btn btn-lg btn-linear-primary w-100"
+              onClick={handleVerify2FA}
+            >
+              Verify OTP
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{/* /OTP Modal */}
   {/* Login Modal */}
   <div
     className="modal fade"
@@ -79,8 +186,14 @@ const AuthModals = () => {
               <p>Enter your credentials to access your account</p>
             </div>
             <div className="mb-3">
-              <label className="form-label">User Name</label>
-              <input type="text" className="form-control" />
+              <label className="form-label">Email</label>
+              <input
+  type="text"
+  className="form-control"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)} // Assurez-vous que cette ligne est présente
+  required
+/>
             </div>
             <div className="mb-3">
               <div className="d-flex align-items-center justify-content-between flex-wrap">
@@ -94,7 +207,13 @@ const AuthModals = () => {
                   Forgot Password?
                 </Link>
               </div>
-              <input type="password" className="form-control" />
+              <input
+  type="password"
+  className="form-control"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)} // Assurez-vous que cette ligne est présente
+  required
+/>
             </div>
             <div className="mb-3">
               <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
@@ -123,13 +242,23 @@ const AuthModals = () => {
               </div>
             </div>
             <div className="mb-3">
-              <button
-                type="button"
-                data-bs-dismiss="modal"
-                className="btn btn-lg btn-linear-primary w-100"
-              >
-                Sign In
-              </button>
+            <button
+  type="button"
+  data-bs-dismiss="modal"
+  className="btn btn-lg btn-linear-primary w-100"
+  onClick={handleSend2FA} // Assurez-vous que cette ligne est présente
+>
+  Sign In
+</button>
+            <Link
+              to="#"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+              onClick={() => setShowOtpModal(false)}
+            >
+              <i className="ti ti-circle-x-filled fs-20" />
+            </Link>
+           
             </div>
             <div className="login-or mb-3">
               <span className="span-or">Or sign in with </span>

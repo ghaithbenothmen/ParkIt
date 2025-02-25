@@ -81,33 +81,38 @@ exports.getProfile = async (req, res) => {
 
 exports.send2FACode = async (req, res) => {
   try {
-      const { email, password } = req.body;
-      
-      const user = await User.findOne({ email });
-      if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    console.log("Début de send2FACode");
+    const { email, password } = req.body;
 
-      const isMatch = await argon2.verify(user.password, password);
-      if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("Utilisateur non trouvé");
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-      // Génération du code 2FA
-      const code = crypto.randomInt(100000, 999999).toString();
-      const expires = new Date(Date.now() + 10 * 60 * 1000); // Expiration en 10 minutes
+    const isMatch = await argon2.verify(user.password, password);
+    if (!isMatch) {
+      console.log("Mot de passe incorrect");
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-      user.twoFactorCode = code;
-      user.twoFactorExpires = expires;
-      await user.save();
+    const code = crypto.randomInt(100000, 999999).toString();
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
 
-      // Envoi de l'email avec le code 2FA
-      await sendEmail(user.email, "Votre code de vérification", `Votre code 2FA est : ${code}`);
+    user.twoFactorCode = code;
+    user.twoFactorExpires = expires;
+    await user.save();
 
-      res.json({ message: "2FA code sent to your email" });
+    console.log("Envoi de l'e-mail...");
+    await sendEmail(user.email, "Votre code de vérification", `Votre code 2FA est : ${code}`);
 
+    console.log("Code 2FA envoyé avec succès");
+    res.json({ message: "2FA code sent to your email" });
   } catch (error) {
-      console.error("Error sending 2FA code:", error);
-      res.status(500).json({ message: "Server error" });
+    console.error("Erreur dans send2FACode:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 exports.verify2FA = async (req, res) => {
   try {
       const { code } = req.body;
@@ -134,3 +139,5 @@ exports.verify2FA = async (req, res) => {
       res.status(500).json({ message: "Server error" });
   }
 };
+
+

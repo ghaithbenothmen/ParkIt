@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 require('dotenv').config(); // Load environment variables from .env file
 var authRoutes = require('./routes/auth.route');
 var userRoutes = require('./routes/user.route');
+const cors = require('cors'); // Importer le package cors
+
 
 
 
@@ -22,7 +24,18 @@ app.use(cookieParser());
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
+app.use(cors({
+  origin: 'http://localhost:3000', // Autoriser les requêtes depuis ce domaine
+  credentials: true,
+}));
+app.post('/api/auth/send-2fa', (req, res) => {
+  // Votre logique de traitement ici
+  res.json({ message: 'Code 2FA envoyé' });
+});
 
+app.listen(4000, () => {
+  console.log('Serveur backend en écoute sur le port 4000');
+});
 
 // Routes
 app.get('/', (req, res) => {
@@ -31,6 +44,10 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+
+
+// Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
