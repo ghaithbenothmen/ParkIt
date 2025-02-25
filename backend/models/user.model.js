@@ -3,6 +3,7 @@ const argon2 = require("argon2");
 
 const UserSchema = new mongoose.Schema(
   {
+    image:  String,
     firstname: { 
       type: String, 
       required: true, 
@@ -17,7 +18,7 @@ const UserSchema = new mongoose.Schema(
     },
     phone: { 
       type: String, 
-      required: true, 
+      /* required: true, */ 
       unique: true,
       match: [/^(2|5|9)\d{7}$/, 'Please enter a valid Tunisian mobile phone number.']
     },
@@ -29,13 +30,11 @@ const UserSchema = new mongoose.Schema(
     },
     password: { 
       type: String, 
-      required: true, 
+      required: false, 
       minlength: 8, 
       maxlength: 20, 
       match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/,
     },
-
-    image:  String,
     role: { 
       type: String, 
       enum: ["user", "admin"], 

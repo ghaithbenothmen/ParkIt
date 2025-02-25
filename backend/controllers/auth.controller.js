@@ -102,7 +102,7 @@ exports.googleAuth = async (req, res, next) => {
       let user = await User.findOne({ email });
 
       if (!user) {
-          user = await User.create({ name, email, image: picture });
+          user = await User.create({ firstname: name.split(' ')[0],lastname: name.split(' ')[1] || '', email, image: picture });
           console.log("New user created:", user);
       } else {
           console.log("Existing user found:", user);
@@ -111,7 +111,7 @@ exports.googleAuth = async (req, res, next) => {
       const { _id } = user;
       
       const token = jwt.sign({ _id, email }, process.env.JWT_SECRET, {
-          expiresIn: process.env.JWT_TIMEOUT || 36000,
+          expiresIn: process.env.JWT_TIMEOUT || 3600,
       });
 
       console.log("Generated JWT Token:", token);

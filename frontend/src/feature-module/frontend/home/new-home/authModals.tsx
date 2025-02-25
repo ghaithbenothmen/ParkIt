@@ -1,13 +1,43 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect  } from 'react'
 import { Link } from 'react-router-dom'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import { InputOtp } from 'primereact/inputotp';
+import { useNavigate } from 'react-router-dom';
+import { useGoogleLogin } from "@react-oauth/google";
+import { googleAuth } from "../../../../api";
+import axios from 'axios';
+
 
 const AuthModals = () => {
+  const navigate = useNavigate();
+	const responseGoogle = async (authResult: any) => {
+		try {
+			if (authResult.code) {
+				const result = await googleAuth(authResult.code);
+				const {email, name, image} = result.data.user;
+				const token = result.data.token;
+				const obj = {email,name, token, image};
+				console.log("hellooo"+result);
+				localStorage.setItem('user-info',JSON.stringify(obj));
+				navigate('/admin/dashboard');
+			} 
+		} catch (e) {
+			console.log('Error while Google Login...', e);
+		}
+	};
+
+	const googleLogin = useGoogleLogin({
+		onSuccess: responseGoogle,
+		onError: responseGoogle,
+		flow: "auth-code",
+	});
+  
+
+
     const [token, setTokens] = useState<any>();
     const [token2, setTokens2] = useState<any>();
     const [password, setPassword] = useState('');
-  const [passwordResponce, setPasswordResponce] = useState({
+    const [passwordResponce, setPasswordResponce] = useState({
     passwordResponceText: "Use 8 or more characters with a mix of letters, number's symbols.",
     passwordResponceKey: '',
   });
@@ -50,6 +80,7 @@ const AuthModals = () => {
         passwordResponceKey: '3',
       });
     }
+
   };
   return (
     <>
@@ -137,6 +168,7 @@ const AuthModals = () => {
             <div className="d-flex align-items-center mb-3">
               <Link
                 to="#"
+                onClick={googleLogin}
                 className="btn btn-light flex-fill d-flex align-items-center justify-content-center me-3"
               >
                 <ImageWithBasePath
