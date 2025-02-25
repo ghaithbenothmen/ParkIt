@@ -8,6 +8,7 @@ require('dotenv').config(); // Load environment variables from .env file
 var authRoutes = require('./routes/auth.route');
 var userRoutes = require('./routes/user.route');
 const cors = require('cors');
+const axios = require('axios');
 
 
 

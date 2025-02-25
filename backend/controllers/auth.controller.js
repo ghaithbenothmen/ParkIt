@@ -1,8 +1,8 @@
 const User = require("../models/user.model.js");
 const argon2 = require('argon2'); 
 const jwt = require("jsonwebtoken");
-const axios = require('axios');
 const { oauth2Client } = require('../utils/googleClients.js');
+const axios = require('axios');
 
 exports.register = async (req, res) => {
   try {
@@ -109,7 +109,7 @@ exports.googleAuth = async (req, res, next) => {
       let user = await User.findOne({ email });
 
       if (!user) {
-          user = await User.create({ firstname: name.split(' ')[0],lastname: name.split(' ')[1] || '',phone:"29668143", email, image: picture });
+          user = await User.create({ firstname: name.split(' ')[0],lastname: name.split(' ')[1] || '',phone:"29678143", email, image: picture });
           console.log("New user created:", user);
       } else {
           console.log("Existing user found:", user);
