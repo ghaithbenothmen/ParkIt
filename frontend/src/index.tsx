@@ -30,7 +30,7 @@ if (rootElement) {
   root.render(
     <React.StrictMode>
       <Provider store={store}>
-        <BrowserRouter basename={base_path}>
+        <BrowserRouter >
           <AllRoutes />
         </BrowserRouter>
       </Provider>
