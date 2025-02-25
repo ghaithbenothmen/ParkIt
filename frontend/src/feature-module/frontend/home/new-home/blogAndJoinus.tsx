@@ -51,10 +51,10 @@ const BlogAndJoinus = () => {
         <div className="col-md-6 wow fadeInUp" data-wow-delay="0.2s">
           <div className="section-header mb-md-0 mb-3">
             <p className="sub-title fw-medium text-light mb-1">
-              Become a Provider
+              Become a Parkit Member
             </p>
             <h2 className="text-white">
-              Post your service{" "}
+              Find A Spot{" "}
               <span className="text-linear-primary">in a minute</span>
             </h2>
           </div>
@@ -63,10 +63,8 @@ const BlogAndJoinus = () => {
           className="col-md-6 text-md-end wow fadeInUp"
           data-wow-delay="0.2s"
         >
-          <Link to="#" className="btn btn-linear-primary">
-            <i className="ti ti-user-filled me-2" />
-            Join Us
-          </Link>
+          <Link className="btn btn-linear-primary" data-bs-toggle="modal" data-bs-target="#register-modal">
+          <i className="ti ti-user-filled me-2"></i>Join Us</Link>
         </div>
       </div>
     </div>
@@ -97,11 +95,11 @@ const BlogAndJoinus = () => {
           <div className="section-header text-center">
             <h2 className="mb-1">
               Checkout our Recent{" "}
-              <span className="text-linear-primary">Blogs</span>
+              <span className="text-linear-primary">Parkings</span>
             </h2>
             <p className="sub-title">
-              Each listing is designed to be clear and concise, providing
-              customers
+            Each parking spot is designed to be clear and concise, providing users 
+            with all the necessary details to make an informed decision.
             </p>
           </div>
         </div>
@@ -111,7 +109,7 @@ const BlogAndJoinus = () => {
           <div className="blog-img">
             <Link to={routes.blogDetails}>
               <ImageWithBasePath
-                src="assets/img/blogs/blog-01.jpg"
+                src="assets/img/parking.jpg"
                 className="img-fluid"
                 alt="img"
               />
@@ -140,7 +138,7 @@ const BlogAndJoinus = () => {
           <div className="blog-img">
             <Link to={routes.blogDetails}>
               <ImageWithBasePath
-                src="assets/img/blogs/blog-02.jpg"
+                src="assets/img/parking.jpg"
                 className="img-fluid"
                 alt="img"
               />
@@ -172,7 +170,7 @@ const BlogAndJoinus = () => {
           <div className="blog-img">
             <Link to={routes.blogDetails}>
               <ImageWithBasePath
-                src="assets/img/blogs/blog-03.jpg"
+                src="assets/img/parking.jpg"
                 className="img-fluid"
                 alt="img"
               />
@@ -200,7 +198,7 @@ const BlogAndJoinus = () => {
           <div className="blog-img">
             <Link to={routes.blogDetails}>
               <ImageWithBasePath
-                src="assets/img/blogs/blog-04.jpg"
+                src="assets/img/parking.jpg"
                 className="img-fluid"
                 alt="img"
               />
@@ -232,7 +230,7 @@ const BlogAndJoinus = () => {
           <div className="blog-img">
             <Link to={routes.blogDetails}>
               <ImageWithBasePath
-                src="assets/img/blogs/blog-05.jpg"
+                src="assets/img/parking.jpg"
                 className="img-fluid"
                 alt="img"
               />

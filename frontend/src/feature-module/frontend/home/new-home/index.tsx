@@ -7,13 +7,9 @@ import { all_routes } from '../../../../core/data/routes/all_routes'
 import FeatureSection from './feature-section'
 import PopularSection from './popular-section'
 import WorkSection from './workSection'
-import PreferredSection from './preferredSection'
-import ProviderSection from './provider-section'
-import RateServiceSection from './rateServiceSection'
 import CustomerSection from './customerSection'
 import BlogAndJoinus from './blogAndJoinus'
 import BussinessWithUs from './bussinessWithUs'
-import ServiceCities from './serviceCities'
 import HomeHeader from '../header/home-header'
 import NewFooter from '../footer/newFooter'
 import AuthModals from './authModals'
@@ -36,11 +32,11 @@ const NewHome = () => {
               data-wow-delay=".25s"
             >
               <h1 className="mb-2">
-                Connect with Nearby Top-rated{" "}
-                <span className="typed" data-type-text="Carpenters" >Professionals</span>
+                Find the perfect parking{" "}
+                <span className="typed" data-type-text="Carpenters" >spot</span>
               </h1>
               <p className="mb-3 sub-title">
-                We can connect you to the right Service, first time and every
+                We can help you find the right spot, fast , effortless, save your
                 time.
               </p>
               <div className="banner-form bg-white border mb-3">
@@ -87,34 +83,34 @@ const NewHome = () => {
                   to={routes.search}
                   className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
                 >
-                  Plumber
+                  Malls
                 </Link>
                 <Link
                   to={routes.search}
                   className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
                 >
-                  Interior
+                  Hospitals
                 </Link>
                 <Link
                   to={routes.search}
                   className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
                 >
-                  Nail Technicians
+                  Airports
                 </Link>
               </div>
               <div className="d-flex align-items-center flex-wrap banner-info">
                 <div className="d-flex align-items-center me-4 mt-4">
                   <ImageWithBasePath src="assets/img/icons/success-01.svg" alt="icon" />
                   <div className="ms-2">
-                    <h6>215,292 +</h6>
-                    <p>Verified Providers</p>
+                    <h6>215 +</h6>
+                    <p>Verified Parkings</p>
                   </div>
                 </div>
                 <div className="d-flex align-items-center me-4 mt-4">
                   <ImageWithBasePath src="assets/img/icons/success-02.svg" alt="icon" />
                   <div className="ms-2">
                     <h6>90,000+</h6>
-                    <p>Services Completed</p>
+                    <p>Reservation Completed</p>
                   </div>
                 </div>
                 <div className="d-flex align-items-center me-4 mt-4">
@@ -154,7 +150,7 @@ const NewHome = () => {
           <span className="me-2">
             <ImageWithBasePath src="assets/img/icons/tick-banner.svg" alt="" />
           </span>
-          <p className="fs-12 text-dark mb-0">300 Booking Completed</p>
+          <p className="fs-12 text-dark mb-0">300 Reservation Completed</p>
           <i className="border-edge" />
         </div>
         <ImageWithBasePath src="assets/img/bg/bg-03.svg" alt="img" className="shape-03" />
@@ -175,11 +171,11 @@ const NewHome = () => {
           <div className="section-header text-center">
             <h2 className="mb-1">
               Explore our{" "}
-              <span className="text-linear-primary">Categories</span>
+              <span className="text-linear-primary">Parkings</span>
             </h2>
             <p className="sub-title">
-              Service categories help organize and structure the offerings on a
-              marketplace, making it easier for users to find what they need.
+            Parking categories help organize and structure the available parking options on the app,
+             making it easier for users to find a spot that suits their needs.
             </p>
           </div>
         </div>
@@ -197,8 +193,8 @@ const NewHome = () => {
                 alt="img"
               />
             </div>
-            <h6 className="fs-14 mb-1">Construction</h6>
-            <p className="fs-14 mb-0">9874 Listings</p>
+            <h6 className="fs-14 mb-1">Street Parking</h6>
+            <p className="fs-14 mb-0">900+</p>
             <Link
               to={routes.categories}
               className="link-primary text-decoration-underline fs-14"
@@ -219,8 +215,8 @@ const NewHome = () => {
                 alt="img"
               />
             </div>
-            <h6 className="fs-14 mb-1">Removals</h6>
-            <p className="fs-14 mb-0">787 Listings</p>
+            <h6 className="fs-14 mb-1">Covered Parking</h6>
+            <p className="fs-14 mb-0">787+</p>
             <Link
               to={routes.categories}
               className="link-primary text-decoration-underline fs-14"
@@ -241,8 +237,8 @@ const NewHome = () => {
                 alt="img"
               />
             </div>
-            <h6 className="fs-14 mb-1">Cleaning</h6>
-            <p className="fs-14 mb-0">2357 Listings</p>
+            <h6 className="fs-14 mb-1">VIP Parking</h6>
+            <p className="fs-14 mb-0">235</p>
             <Link
               to={routes.categories}
               className="link-primary text-decoration-underline fs-14"
@@ -263,30 +259,8 @@ const NewHome = () => {
                 alt="img"
               />
             </div>
-            <h6 className="fs-14 mb-1">Computer Service</h6>
-            <p className="fs-14 mb-0">1260 Listings</p>
-            <Link
-              to={routes.categories}
-              className="link-primary text-decoration-underline fs-14"
-            >
-              View All
-            </Link>
-          </div>
-        </div>
-        <div className="col d-flex">
-          <div
-            className="category-item text-center flex-fill wow fadeInUp"
-            data-wow-delay="0.2s"
-          >
-            <div className="mx-auto mb-3">
-              <ImageWithBasePath
-                src="assets/img/icons/category-05.svg"
-                className="img-fluid"
-                alt="img"
-              />
-            </div>
-            <h6 className="fs-14 mb-1">Electrical</h6>
-            <p className="fs-14 mb-0">4546 Listings</p>
+            <h6 className="fs-14 mb-1">Handicap Accessible Parking</h6>
+            <p className="fs-14 mb-0">1260</p>
             <Link
               to={routes.categories}
               className="link-primary text-decoration-underline fs-14"
@@ -307,8 +281,8 @@ const NewHome = () => {
                 alt="img"
               />
             </div>
-            <h6 className="fs-14 mb-1">Man &amp; Van</h6>
-            <p className="fs-14 mb-0">2546 Listings</p>
+            <h6 className="fs-14 mb-1">Monthly Parking</h6>
+            <p className="fs-14 mb-0">2546</p>
             <Link
               to={routes.categories}
               className="link-primary text-decoration-underline fs-14"
@@ -329,137 +303,13 @@ const NewHome = () => {
                 alt="img"
               />
             </div>
-            <h6 className="fs-14 mb-1">Deliveries</h6>
-            <p className="fs-14 mb-0">4547 Listings</p>
+            <h6 className="fs-14 mb-1">Hourly Parking</h6>
+            <p className="fs-14 mb-0">4547</p>
             <Link
               to={routes.categories}
               className="link-primary text-decoration-underline fs-14"
             >
               View All
-            </Link>
-          </div>
-        </div>
-        <div className="col d-flex">
-          <div
-            className="category-item text-center flex-fill wow fadeInUp"
-            data-wow-delay="0.2s"
-          >
-            <div className="mx-auto mb-3">
-              <ImageWithBasePath
-                src="assets/img/icons/category-08.svg"
-                className="img-fluid"
-                alt="img"
-              />
-            </div>
-            <h6 className="fs-14 mb-1">Mobile Barber</h6>
-            <p className="fs-14 mb-0">4787 Listings</p>
-            <Link
-              to={routes.categories}
-              className="link-primary text-decoration-underline fs-14"
-            >
-              View All
-            </Link>
-            <span className="badge bg-success">New</span>
-          </div>
-        </div>
-        <div className="col d-flex">
-          <div
-            className="category-item text-center flex-fill wow fadeInUp"
-            data-wow-delay="0.2s"
-          >
-            <div className="mx-auto mb-3">
-              <ImageWithBasePath
-                src="assets/img/icons/category-09.svg"
-                className="img-fluid"
-                alt="img"
-              />
-            </div>
-            <h6 className="fs-14 mb-1">Interior</h6>
-            <p className="fs-14 mb-0">1457 Listings</p>
-            <Link
-              to={routes.categories}
-              className="link-primary text-decoration-underline fs-14"
-            >
-              View All
-            </Link>
-          </div>
-        </div>
-        <div className="col d-flex">
-          <div
-            className="category-item text-center flex-fill wow fadeInUp"
-            data-wow-delay="0.2s"
-          >
-            <div className="mx-auto mb-3">
-              <ImageWithBasePath
-                src="assets/img/icons/category-10.svg"
-                className="img-fluid"
-                alt="img"
-              />
-            </div>
-            <h6 className="fs-14 mb-1">Plumbing</h6>
-            <p className="fs-14 mb-0">4157 Listings</p>
-            <Link
-              to={routes.categories}
-              className="link-primary text-decoration-underline fs-14"
-            >
-              View All
-            </Link>
-          </div>
-        </div>
-        <div className="col d-flex">
-          <div
-            className="category-item text-center flex-fill wow fadeInUp"
-            data-wow-delay="0.2s"
-          >
-            <div className="mx-auto mb-3">
-              <ImageWithBasePath
-                src="assets/img/icons/category-11.svg"
-                className="img-fluid"
-                alt="img"
-              />
-            </div>
-            <h6 className="fs-14 mb-1">Nail Technicians</h6>
-            <p className="fs-14 mb-0">5477 Listings</p>
-            <Link
-              to={routes.categories}
-              className="link-primary text-decoration-underline fs-14"
-            >
-              View All
-            </Link>
-          </div>
-        </div>
-        <div className="col d-flex">
-          <div
-            className="category-item text-center flex-fill wow fadeInUp"
-            data-wow-delay="0.2s"
-          >
-            <div className="mx-auto mb-3">
-              <ImageWithBasePath
-                src="assets/img/icons/category-12.svg"
-                className="img-fluid"
-                alt="img"
-              />
-            </div>
-            <h6 className="fs-14 mb-1">Hair Dressers</h6>
-            <p className="fs-14 mb-0">7457 Listings</p>
-            <Link
-              to={routes.categories}
-              className="link-primary text-decoration-underline fs-14"
-            >
-              View All
-            </Link>
-          </div>
-        </div>
-      </div>
-      <div className="row">
-        <div className="col-md-12">
-          <div
-            className="text-center view-all wow fadeInUp"
-            data-wow-delay="0.2s"
-          >
-            <Link to={routes.categories} className="btn btn-dark">
-              View All
-              <i className="ti ti-arrow-right ms-2" />
             </Link>
           </div>
         </div>
@@ -470,13 +320,9 @@ const NewHome = () => {
   <FeatureSection/>
   <PopularSection/>
   <WorkSection/>
-  <PreferredSection/>
-  <ProviderSection/>
-  <RateServiceSection/>
   <CustomerSection/>
   <BlogAndJoinus/>
   <BussinessWithUs/>
-  <ServiceCities/>
   <NewFooter/>
 </>
 <AuthModals/>

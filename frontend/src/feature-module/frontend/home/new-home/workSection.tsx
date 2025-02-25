@@ -12,12 +12,12 @@ const WorkSection = () => {
           <div className="col-md-12 wow fadeInUp" data-wow-delay="0.2s">
             <div className="section-header text-center">
               <h2 className="text-white">
-                How Truelysell{" "}
+                How ParkIt{" "}
                 <span className="text-linear-primary">Works</span>
               </h2>
               <p className="text-light">
-                Each listing is designed to be clear and concise, providing
-                customers
+              Each parking spot is designed to be clear and concise, providing 
+              users with all the necessary details to make an informed decision.
               </p>
             </div>
           </div>
@@ -28,10 +28,10 @@ const WorkSection = () => {
               <div className="mb-3">
                 <ImageWithBasePath src="assets/img/icons/work-01.svg" alt="img" />
               </div>
-              <h6 className="text-white mb-2">1. Post a Service</h6>
+              <h6 className="text-white mb-2">1. Create account</h6>
               <p>
-                After you post a job, our matching system identifies and alerts
-                relevant Provider, who can then express interest in your job.
+                The first step to use ParkIt is to create an account 
+                login with your credentials and add the necessary information.
               </p>
             </div>
           </div>
@@ -41,11 +41,11 @@ const WorkSection = () => {
                 <ImageWithBasePath src="assets/img/icons/work-01.svg" alt="img" />
               </div>
               <h6 className="text-white mb-2">
-                2. Getting Booked &amp; Job done
+                2. Explore Parkings
               </h6>
               <p>
-                After you post a job, our matching system identifies and alerts
-                relevant Provider, who can then express interest in your job.
+                After Logging in , you can explore the parkings i the erea you searched for ,
+                select the parking you need and reserve a spot to park .
               </p>
             </div>
           </div>
@@ -55,11 +55,10 @@ const WorkSection = () => {
                 <ImageWithBasePath src="assets/img/icons/work-03.svg" alt="img" />
               </div>
               <h6 className="text-white mb-2">
-                3. Get Reviewd &amp; Get Leads
+                3. Get to your spot
               </h6>
               <p>
-                After you post a job, our matching system identifies and alerts
-                relevant Provider, who can then express interest in your job.
+                After the reservation , a guide will help you to get to your destined spot .
               </p>
             </div>
           </div>

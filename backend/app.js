@@ -12,6 +12,12 @@ const cors = require('cors');
 
 
 var app = express();
+const cors = require("cors");
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: 'GET,POST,PUT,DELETE',
+  allowedHeaders: 'Content-Type,Authorization'
+}));
 
 app.use(cors());
 app.use(logger('dev'));
@@ -50,6 +56,8 @@ app.use(function(err, req, res, next) {
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
 });
+
+
 
 
 

@@ -186,7 +186,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />
@@ -249,7 +249,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />
@@ -312,7 +312,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />
@@ -375,7 +375,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />
@@ -438,7 +438,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />
@@ -501,7 +501,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />
@@ -564,7 +564,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />
@@ -627,7 +627,7 @@ const PopularSection = () => {
                               <div className="slide-images" key={index}>
                                 <Link to={routes.serviceDetails1}>
                                   <ImageWithBasePath
-                                    src={`assets/img/services/${img.Image}`}
+                                    src={`assets/img/parking.jpg`}
                                     className="img-fluid"
                                     alt="img"
                                   />

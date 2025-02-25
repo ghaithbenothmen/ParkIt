@@ -30,10 +30,9 @@ const UserSchema = new mongoose.Schema(
     },
     password: { 
       type: String, 
-      required: false, 
-      minlength: 8, 
-      maxlength: 20, 
-      match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/,
+      required: true, 
+      minlength: 8,  
+      match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
     },
     role: { 
       type: String, 
