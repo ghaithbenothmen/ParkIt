@@ -4,23 +4,18 @@ import ProviderAddon from './provider-addon/provider-addon';
 import ConnectedApp from './settings/connected-app';
 import Verification from './settings/verification';
 import ProviderEditService from './provider-edit-service/provider-edit-service';
-import ProviderHoliday from './provider-holiday/provider-holiday';
+
 import ProviderNotification from './settings/provider-notification';
-import ProviderOffer from './provider-offer/provider-offer';
-import ProviderEarnings from './provider-earnings/provider-earning';
+
 import ProviderDeviceManagement from './settings/provider-device-management';
 import ProviderLoginActivity from './settings/provider-login-activity';
 import ProviderAvailability from './provider-availability/provider-availability';
 import ProviderBookDetails from './provider-book-details/provider-book-details';
 import ProviderBooking from './provider-booking/provider-booking';
 
-import ProviderCoupons from './provider-coupons/provider-coupons';
+
 import ProviderAppointmentSettings from './settings/provider-appointment-settings';
 import ProviderConnectedApps from './settings/provider-connected-apps';
-
-import ProviderSubscription from './provider-subscription/provider-subscription';
-import ProviderPayout from './provider-payout/provider-payout';
-import ProviderReview from './provider-review/provider-review';
 import ProviderSecuritySettings from './settings/provider-security-settings';
 
 import ProviderServices from './provider-service/provider-service';
@@ -32,16 +27,10 @@ import ProviderSocialProfile from './settings/provider-social-profile';
 import ProviderDashboard from './dashboard/dashboard';
 import ProviderSignupPayment from './authentication/provider-signup-payment';
 import ProviderSignupSubscription from './authentication/provider-signup-subscription';
-import AddSubscription from './add-subscription/add-subscription';
-import StaffList from './staff/staffList';
-import StaffGrid from './staff/staffGrid';
-import StaffDetails from './staff/staffDetails';
 import CustomerDetails from './customer/customerDetails';
 import CustomerList from './customer/customerList';
 import CustomerGrid from './customer/customerGrid';
-import ProviderTransaction from './provider-payout/providerTransaction';
-import ProviderLeaveHistory from './provider-holiday/provider-leave-history';
-import ProviderEnquiry from './provider-enquiry/provider-enquiry';
+
 
 const ProvidersRoutes = () => {
   const all_providers_routes = [
@@ -57,42 +46,15 @@ const ProvidersRoutes = () => {
       element: <ProviderEditService />,
       route: Route,
     },
-    {
-      path: '/provider-holiday',
-      name: 'provider-holiday',
-      element: <ProviderHoliday />,
-      route: Route,
-    },
-    {
-      path: '/leave-history',
-      name: 'leave-history',
-      element: <ProviderLeaveHistory />,
-      route: Route,
-    },
-    {
-      path: '/provider-enquiry',
-      name: 'provider-enquiry',
-      element: <ProviderEnquiry />,
-      route: Route,
-    },
+    
+    
     {
       path: '/settings/provider-notification',
       name: 'provider-notification',
       element: <ProviderNotification />,
       route: Route,
     },
-    {
-      path: '/provider-offer',
-      name: 'provider-offer',
-      element: <ProviderOffer />,
-      route: Route,
-    },
-    {
-      path: '/provider-earnings',
-      name: 'provider-earnings',
-      element: <ProviderEarnings />,
-      route: Route,
-    },
+   
     {
       path: '/settings/provider-login-activity',
       name: 'ProviderLoginActivity',
@@ -151,13 +113,6 @@ const ProvidersRoutes = () => {
       element: <ProviderBooking />,
       route: Route,
     },
- 
-    {
-      path: '/provider-coupons',
-      name: 'provider-coupons',
-      element: <ProviderCoupons />,
-      route: Route,
-    },
     {
       path: '/dashboard',
       name: 'provider-dashboard',
@@ -208,41 +163,6 @@ const ProvidersRoutes = () => {
       route: Route,
     },
     {
-      path: '/provider-subscription',
-      name: 'provider-social-profile',
-      element: <ProviderSubscription />
-    },
-    {
-      path: '/provider-payout',
-      name: 'provider-payout',
-      element: <ProviderPayout />,
-      route: Route,
-    },
-    {
-      path: '/provider-review',
-      name: 'provider-review',
-      element: <ProviderReview />,
-      route: Route,
-    },
-    {
-      path: '/staff/staff-list',
-      name: 'staff-list',
-      element: <StaffList />,
-      route: Route,
-    },
-    {
-      path: '/staff/staff-grid',
-      name: 'staff-grid',
-      element: <StaffGrid />,
-      route: Route,
-    },
-    {
-      path: '/staff/staff-details',
-      name: 'staff-details',
-      element: <StaffDetails />,
-      route: Route,
-    },
-    {
       path: '/customer/customer-details',
       name: 'customer-details',
       element: <CustomerDetails />,
@@ -260,12 +180,7 @@ const ProvidersRoutes = () => {
       element: <CustomerGrid />,
       route: Route,
     },
-    {
-      path: '/provider-transaction',
-      name: 'provider-transaction',
-      element: <ProviderTransaction/>,
-      route: Route,
-    },
+
     {
       path: '/settings/provider-security-settings',
       name: 'provider-security-settings',
@@ -296,12 +211,7 @@ const ProvidersRoutes = () => {
       element: <ProviderSecuritySettings />,
       route: Route,
     },
-    {
-      path: '/providers/add-subscription',
-      name: 'add-subscription',
-      element: <AddSubscription />,
-      route: Route,
-    },
+
     {
       path: '*',
       name: 'NotFound',

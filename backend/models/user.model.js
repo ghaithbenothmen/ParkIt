@@ -38,6 +38,14 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "admin"], 
       default: "user" 
     },
+    twoFactorSecret: { 
+      type: String, 
+      default: null 
+    }, // ✅ Ajout de cette propriété
+    twoFactorEnabled: { 
+      type: Boolean, 
+      default: false 
+    },
     twoFactorCode: {
       type: String,
       default: null

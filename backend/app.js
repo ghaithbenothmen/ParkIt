@@ -14,12 +14,7 @@ const cors = require('cors'); // Importer le package cors
 
 
 var app = express();
-const cors = require("cors");
-app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: 'GET,POST,PUT,DELETE',
-  allowedHeaders: 'Content-Type,Authorization'
-}));
+
 
 
 app.use(logger('dev'));
@@ -34,10 +29,7 @@ app.use(cors({
   origin: 'http://localhost:3000', // Autoriser les requêtes depuis ce domaine
   credentials: true,
 }));
-app.post('/api/auth/send-2fa', (req, res) => {
-  // Votre logique de traitement ici
-  res.json({ message: 'Code 2FA envoyé' });
-});
+
 
 app.listen(4000, () => {
   console.log('Serveur backend en écoute sur le port 4000');

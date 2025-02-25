@@ -1,99 +1,97 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from "react-router-dom";
-import { Link , useNavigate} from 'react-router-dom'
-import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { InputOtp } from 'primereact/inputotp';
-import axios, { AxiosError } from "axios";
-import {register, login } from '../../../../services/authService';
-import  { Modal } from 'bootstrap';
-
+import axios, { AxiosError } from 'axios';
+import { register, login } from '../../../../services/authService';
+import { Modal } from 'bootstrap';
 
 const AuthModals = () => {
-  const [error, setError] = useState("");
-  const [firstname, setFirstName] = useState('')
-  const [lastname, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
+  const [error, setError] = useState('');
+  const [firstname, setFirstName] = useState('');
+  const [lastname, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [passwordResponce, setPasswordResponce] = useState({
     passwordResponceText: 'Use 8 or more characters with a mix of letters, numbers, and symbols.',
-    passwordResponceKey: ''
-  })
+    passwordResponceKey: '',
+  });
 
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
 
-  const [registerError, setRegisterError] = useState('')
-  const navigate = useNavigate() // Using react-router's useNavigate for redirection
+  const [registerError, setRegisterError] = useState('');
+  const navigate = useNavigate();
 
   const onChangePassword = (password: string) => {
-    setPassword(password)
+    setPassword(password);
     if (password.match(/^$|\s+/)) {
       setPasswordResponce({
         passwordResponceText: 'Whitespaces are not allowed',
-        passwordResponceKey: ''
-      })
+        passwordResponceKey: '',
+      });
     } else if (password.length === 0) {
       setPasswordResponce({
         passwordResponceText: '',
-        passwordResponceKey: ''
-      })
+        passwordResponceKey: '',
+      });
     } else if (password.length < 8) {
       setPasswordResponce({
         passwordResponceText: 'Weak. Must contain at least 8 characters',
-        passwordResponceKey: '0'
-      })
-    } else if (
-      password.search(/[a-z]/) < 0 ||
-      password.search(/[A-Z]/) < 0 ||
-      password.search(/[0-9]/) < 0
-    ) {
+        passwordResponceKey: '0',
+      });
+    } else if (password.search(/[a-z]/) < 0 || password.search(/[A-Z]/) < 0 || password.search(/[0-9]/) < 0) {
       setPasswordResponce({
         passwordResponceText: 'Average. Must contain at least 1 upper case and number',
-        passwordResponceKey: '1'
-      })
+        passwordResponceKey: '1',
+      });
     } else if (password.search(/(?=.*?[#?!@$%^&*-])/) < 0) {
       setPasswordResponce({
         passwordResponceText: 'Almost. Must contain a special symbol',
-        passwordResponceKey: '2'
-      })
+        passwordResponceKey: '2',
+      });
     } else {
       setPasswordResponce({
         passwordResponceText: 'Awesome! You have a secure password.',
-        passwordResponceKey: '3'
-      })
+        passwordResponceKey: '3',
+      });
     }
-  }
+  };
 
-
-  
   const [emailError, setEmailError] = useState('');
- 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const validateEmail = (email: string) => {
     if (!email) {
-      setEmailError("Email is required");
+      setEmailError('Email is required');
     } else if (!emailRegex.test(email)) {
-      setEmailError("Invalid email format");
+      setEmailError('Invalid email format');
     } else {
       setEmailError('');
     }
   };
-  
-   
+
   const handleRegisterSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
   
     const userData = { firstname, lastname, email, phone, password };
   
     try {
-      const data = await register(userData);
-      console.log('Registration successful:', data);
+      const response = await register(userData);
+      console.log('Registration successful:', response);
   
       // Set registration success state
       setRegistrationSuccess(true);
       setSuccessMessage('Registration successful! Please log in.');
+  
+      // Set the QR code URL
+      setQrCodeUrl(response.qrCode);
+  
+      // Show the QR code modal
+      setShowQRCodeModal(true);
   
       // Close the registration modal
       const registerModal = document.getElementById('register-modal');
@@ -102,17 +100,36 @@ const [successMessage, setSuccessMessage] = useState('');
         bsRegisterModal?.hide();
       }
   
-      // Show the login modal
-      const loginModal = document.getElementById('login-modal');
-      if (loginModal) {
-        const bsLoginModal = new Modal(loginModal);
-        bsLoginModal.show();
-      }
     } catch (error: any) {
       console.error('Error during registration:', error);
       setRegisterError(error.message);
     }
   };
+
+  const [twoFACode, setTwoFACode] = useState('');
+
+  const handleVerify2FA = async () => {
+    try {
+      console.log("Verifying 2FA code for email:", email);
+  
+      const response = await axios.post('http://localhost:4000/api/auth/verify-2fa', {
+        email, // Assurez-vous que l'email est correctement défini
+        code: twoFACode,
+      });
+  
+      console.log("2FA verification response:", response.data);
+  
+      localStorage.setItem('token', response.data.token);
+      alert('2FA verification successful!');
+      navigate('/providers/dashboard');
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      const errorMessage = axiosError.response?.data?.message || 'Invalid 2FA code';
+      alert(errorMessage);
+      console.error("2FA verification error:", axiosError.response?.data || axiosError.message);
+    }
+  };
+
   useEffect(() => {
     const loginModal = document.getElementById('login-modal');
     if (loginModal) {
@@ -135,158 +152,175 @@ const [successMessage, setSuccessMessage] = useState('');
 
     try {
       const data = await login(email, password);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
       // Close the modal
-      const modal = document.getElementById("login-modal");
+      const modal = document.getElementById('register-modal');
       if (modal) {
         const bsModal = Modal.getInstance(modal);
         bsModal?.hide();
       }
 
       // Ensure modal backdrop is removed
-      document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
-      document.body.classList.remove("modal-open");
-
-      navigate("/providers/dashboard");
+      document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+      document.body.classList.remove('modal-open');
+      navigate('/providers/dashboard');
     } catch (err: any) {
       setError(err);
     }
   };
 
-  // Fonction pour envoyer le code 2FA
   const handleSend2FA = async () => {
-    console.log("handleSend2FA appelé"); // Ajoutez ce log
+    console.log('handleSend2FA appelé');
     try {
       const response = await axios.post('http://localhost:4000/api/auth/send-2fa', { email, password });
-      alert(response.data.message); // Message de confirmation
+      alert(response.data.message);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      const errorMessage = axiosError.response?.data?.message || 'Erreur lors de l\'envoi du code';
+      const errorMessage = axiosError.response?.data?.message || "Erreur lors de l'envoi du code";
       alert(errorMessage);
-      console.error("Erreur de connexion:", axiosError.response?.data || axiosError.message);
+      console.error('Erreur de connexion:', axiosError.response?.data || axiosError.message);
     }
   };
 
-// Fonction pour vérifier le code OTP
-const handleVerify2FA = async () => {
-  try {
-    const response = await axios.post('http://localhost:4000/api/auth/verify-2fa', { code: otp });
-    localStorage.setItem('token', response.data.token);
-    alert('Connexion réussie!');
-    navigate('/admin/dashboard'); // Redirection vers le dashboard
-  } catch (error) {
-    const axiosError = error as AxiosError<{ message: string }>;
-    const errorMessage = axiosError.response?.data?.message || 'Code incorrect';
-    alert(errorMessage);
-    console.error("Erreur de connexion:", axiosError.response?.data || axiosError.message);
-  }
-};
-
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  try {
-    const response = await axios.post("http://localhost:4000/api/auth/login", {
-      email,
-      password,
-    });
-
-    console.log("Réponse du serveur:", response.data);
-    alert("Connexion réussie !");
-  } catch (error) {
-    const axiosError = error as AxiosError<{ message: string }>;
-        const errorMessage = axiosError.response?.data?.message || 'Code incorrect';
-        alert(errorMessage);
-        console.error("Erreur de connexion:", axiosError.response?.data || axiosError.message);
-  }
-};
-
   return (
     <>
-  {/* OTP Modal */}
-<div
-  className="modal fade"
-  id="otp-modal"
-  tabIndex={-1}
-  data-bs-backdrop="static"
-  aria-hidden="true"
-  
->
-  <div className="modal-dialog modal-dialog-centered">
-    <div className="modal-content">
-      <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-        <Link
-          to="#"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-         
+      {/* QR Code Modal */}
+      {showQRCodeModal && (
+        <div
+          className="modal fade show"
+          id="qr-code-modal"
+          tabIndex={-1}
+          style={{ display: 'block' }}
+          aria-hidden="true"
         >
-          <i className="ti ti-circle-x-filled fs-20" />
-        </Link>
-      </div>
-      <div className="modal-body p-4">
-        <form>
-          <div className="text-center mb-3">
-            <h3 className="mb-2">OTP Verification</h3>
-            <p>Enter the OTP sent to your email</p>
-          </div>
-          <div className="mb-3">
-            <label className="form-label">OTP Code</label>
-            <InputOtp
-              integerOnly
-              length={6}
-            />
-          </div>
-          <div className="mb-3">
-            <button
-              type="button"
-              className="btn btn-lg btn-linear-primary w-100"
-              onClick={handleVerify2FA}
-            >
-              Verify OTP
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-{/* /OTP Modal */}
-  {/* Login Modal */}
-  <div
-    className="modal fade"
-    id="login-modal"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <form onSubmit={handleLogin}>
-            <div className="text-center mb-3">
-              <h3 className="mb-2">Welcome</h3>
-              <p>Enter your credentials to access your account</p>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+                <Link
+                  to="#"
+                  onClick={() => setShowQRCodeModal(false)}
+                  aria-label="Close"
+                >
+                  <i className="ti ti-circle-x-filled fs-20" />
+                </Link>
+              </div>
+              <div className="modal-body p-4">
+                <div className="text-center mb-3">
+                  <h3 className="mb-2">Scan QR Code</h3>
+                  <p>Scan the QR code below with your authenticator app.</p>
+                </div>
+                <div className="mb-3 text-center">
+                  {qrCodeUrl && <img src={qrCodeUrl} alt="QR Code" />}
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Enter 2FA Code</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter 6-digit code"
+                    value={twoFACode}
+                    onChange={(e) => setTwoFACode(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-lg btn-linear-primary w-100"
+                    onClick={handleVerify2FA}
+                  >
+                    Verify 2FA Code
+                  </button>
+                </div>
+              </div>
             </div>
-        
-          {registrationSuccess && (
-            <div className="alert alert-success">{successMessage}</div>
-          )}
-            {error && <div className="alert alert-danger">{error}</div>}
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input
+          </div>
+        </div>
+      )}
+      {/* /QR Code Modal */}
+
+      {/* OTP Modal */}
+      <div
+        className="modal fade"
+        id="otp-modal"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
+            </div>
+            <div className="modal-body p-4">
+              <form>
+                <div className="text-center mb-3">
+                  <h3 className="mb-2">OTP Verification</h3>
+                  <p>Enter the OTP sent to your email</p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">OTP Code</label>
+                  <InputOtp
+                    integerOnly
+                    length={6}
+                  />
+                </div>
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-lg btn-linear-primary w-100"
+                    onClick={handleVerify2FA}
+                  >
+                    Verify OTP
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* /OTP Modal */}
+
+      {/* Login Modal */}
+      <div
+        className="modal fade"
+        id="login-modal"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
+            </div>
+            <div className="modal-body p-4">
+              <form onSubmit={handleLogin}>
+                <div className="text-center mb-3">
+                  <h3 className="mb-2">Welcome</h3>
+                  <p>Enter your credentials to access your account</p>
+                </div>
+
+                {registrationSuccess && (
+                  <div className="alert alert-success">{successMessage}</div>
+                )}
+                {error && <div className="alert alert-danger">{error}</div>}
+                <div className="mb-3">
+                  <label className="form-label">Email</label>
+                  <input
                     type="email"
                     className="form-control"
                     value={email}
@@ -297,121 +331,119 @@ const handleLogin = async (e: React.FormEvent) => {
                     required
                   />
                   {emailError && <small className="form-text text-muted">{emailError}</small>}
-            </div>
-            <div className="mb-3">
-              <div className="d-flex align-items-center justify-content-between flex-wrap">
-                <label className="form-label">Password</label>
-                <Link
-                  to="#"
-                  className="text-primary fw-medium text-decoration-underline mb-1 fs-14"
-                  data-bs-toggle="modal"
-                  data-bs-target="#forgot-modal"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
-              <input
+                </div>
+                <div className="mb-3">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap">
+                    <label className="form-label">Password</label>
+                    <Link
+                      to="#"
+                      className="text-primary fw-medium text-decoration-underline mb-1 fs-14"
+                      data-bs-toggle="modal"
+                      data-bs-target="#forgot-modal"
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <input
                     type="password"
                     className="form-control"
                     value={password}
                     onChange={(e) => onChangePassword(e.target.value)}
                     required
                   />
-                 
-            </div>
-            <div className="mb-3">
-              <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    defaultValue=""
-                    id="remembers_me"
-                  />
-                  <label className="form-check-label" htmlFor="remembers_me">
-                    Remember Me
-                  </label>
                 </div>
-                <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    defaultValue=""
-                    id="otp_signin"
-                  />
-                  <label className="form-check-label" htmlFor="otp_signin">
-                    Sign in with OTP
-                  </label>
+                <div className="mb-3">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        defaultValue=""
+                        id="remembers_me"
+                      />
+                      <label className="form-check-label" htmlFor="remembers_me">
+                        Remember Me
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        defaultValue=""
+                        id="otp_signin"
+                      />
+                      <label className="form-check-label" htmlFor="otp_signin">
+                        Sign in with OTP
+                      </label>
+                    </div>
+                  </div>
                 </div>
-              </div>
+                <div className="mb-3">
+                  <button
+                    type="submit"
+                    className="btn btn-lg btn-linear-primary w-100"
+                    onClick={handleSend2FA}
+                  >
+                    Sign In
+                  </button>
+                  <Link
+                    to="#"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  >
+                    <i className="ti ti-circle-x-filled fs-20" />
+                  </Link>
+                </div>
+                <div className="login-or mb-3">
+                  <span className="span-or">Or sign in with </span>
+                </div>
+                <div className="d-flex align-items-center mb-3">
+                  <Link
+                    to="#"
+                    className="btn btn-light flex-fill d-flex align-items-center justify-content-center me-3"
+                  >
+                    <ImageWithBasePath
+                      src="assets/img/icons/google-icon.svg"
+                      className="me-2"
+                      alt="Img"
+                    />
+                    Google
+                  </Link>
+                  <Link
+                    to="#"
+                    className="btn btn-light flex-fill d-flex align-items-center justify-content-center"
+                  >
+                    <ImageWithBasePath
+                      src="assets/img/icons/fb-icon.svg"
+                      className="me-2"
+                      alt="Img"
+                    />
+                    Facebook
+                  </Link>
+                </div>
+                <div className="d-flex justify-content-center">
+                  <p>
+                    Don’t have a account?{' '}
+                    <Link
+                      to="#"
+                      className="text-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#register-modal"
+                    >
+                      {' '}
+                      Join us Today
+                    </Link>
+                  </p>
+                </div>
+              </form>
             </div>
-            <div className="mb-3">
-            <button
-  type="submit"
-
-  className="btn btn-lg btn-linear-primary w-100"
-  onClick={handleSend2FA} // Assurez-vous que cette ligne est présente
->
-  Sign In
-</button>
-            <Link
-              to="#"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            >
-              <i className="ti ti-circle-x-filled fs-20" />
-            </Link>
-           
-            </div>
-            <div className="login-or mb-3">
-              <span className="span-or">Or sign in with </span>
-            </div>
-            <div className="d-flex align-items-center mb-3">
-              <Link
-                to="#"
-                className="btn btn-light flex-fill d-flex align-items-center justify-content-center me-3"
-              >
-                <ImageWithBasePath
-                  src="assets/img/icons/google-icon.svg"
-                  className="me-2"
-                  alt="Img"
-                />
-                Google
-              </Link>
-              <Link
-                to="#"
-                className="btn btn-light flex-fill d-flex align-items-center justify-content-center"
-              >
-                <ImageWithBasePath
-                  src="assets/img/icons/fb-icon.svg"
-                  className="me-2"
-                  alt="Img"
-                />
-                Facebook
-              </Link>
-            </div>
-            <div className="d-flex justify-content-center">
-              <p>
-                Don’t have a account?{" "}
-                <Link
-                  to="#"
-                  className="text-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#register-modal"
-                >
-                  {" "}
-                  Join us Today
-                </Link>
-              </p>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-  {/* /Login Modal */}
-  {/* Register Modal */}
-  <div
+      {/* /Login Modal */}
+
+      {/* Register Modal */}
+      <div
         className="modal fade"
         id="register-modal"
         tabIndex={-1}
@@ -495,7 +527,7 @@ const handleLogin = async (e: React.FormEvent) => {
                 </div>
                 <div className="d-flex justify-content-center">
                   <p>
-                    Already have an account?{" "}
+                    Already have an account?{' '}
                     <Link
                       to="#"
                       className="text-primary"
@@ -511,318 +543,320 @@ const handleLogin = async (e: React.FormEvent) => {
           </div>
         </div>
       </div>
+      {/* /Register Modal */}
 
-  {/* /Register Modal */}
-  {/* Forgot Modal */}
-  <div
-    className="modal fade"
-    id="forgot-modal"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <form action="#">
-            <div className="text-center mb-3">
-              <h3 className="mb-2">Forgot Password?</h3>
-              <p>
-                Enter your email, we will send you a otp to reset your password.
-              </p>
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input type="email" className="form-control" />
-            </div>
-            <div className="mb-3">
-              <button
-                type="button"
-                className="btn btn-lg btn-linear-primary w-100"
-                data-bs-toggle="modal"
-                data-bs-target="#otp-email-modal"
-              >
-                Submit
-              </button>
-            </div>
-            <div className=" d-flex justify-content-center">
-              <p>
-                Remember Password?{" "}
-                <Link
-                  to="#"
-                  className="text-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#login-modal"
-                >
-                  Sign In
-                </Link>
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  {/* /Forgot Modal */}
-  {/* Email otp Modal */}
-  <div
-    className="modal fade"
-    id="otp-email-modal"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <form action="#" className="digit-group">
-            <div className="text-center mb-3">
-              <h3 className="mb-2">Email OTP Verification</h3>
-              <p className="fs-14">
-                OTP sent to your Email Address ending ******doe@example.com
-              </p>
-            </div>
-            <div className="text-center otp-input">
-              <div className="d-flex align-items-center justify-content-center mb-3">
-              
-              </div>
-              <div>
-                <div className="badge bg-danger-transparent mb-3">
-                  <p className="d-flex align-items-center ">
-                    <i className="ti ti-clock me-1" />
-                    09:59
-                  </p>
-                </div>
-                <div className="mb-3 d-flex justify-content-center">
-                  <p>
-                    Didn&apos;t get the OTP?{" "}
-                    <Link to="#" className="text-primary">
-                      Resend OTP
-                    </Link>
-                  </p>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    className="btn btn-lg btn-linear-primary w-100"
-                    data-bs-toggle="modal"
-                    data-bs-target="#otp-phone-modal"
-                  >
-                    Verify &amp; Proceed
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  {/* /Email otp Modal */}
-  {/* Phone otp Modal */}
-  <div
-    className="modal fade"
-    id="otp-phone-modal"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <form action="#" className="digit-group">
-            <div className="text-center mb-3">
-              <h3 className="mb-2">Phone OTP Verification</h3>
-              <p>OTP sent to your mobile number ending&nbsp;******9575</p>
-            </div>
-            <div className="text-center otp-input">
-              <div className="d-flex align-items-center justify-content-center mb-3">
-              
-              </div>
-              <div>
-                <div className="badge bg-danger-transparent mb-3">
-                  <p className="d-flex align-items-center ">
-                    <i className="ti ti-clock me-1" />
-                    09:59
-                  </p>
-                </div>
-                <div className="mb-3 d-flex justify-content-center">
-                  <p>
-                    Didn&apos;t get the OTP?{" "}
-                    <Link to="#" className="text-primary">
-                      Resend OTP
-                    </Link>
-                  </p>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    className="btn btn-lg btn-linear-primary w-100"
-                    data-bs-toggle="modal"
-                    data-bs-target="#reset-password"
-                  >
-                    Verify &amp; Proceed
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  {/* /Phone otp Modal */}
-  {/* Reset password Modal */}
-  <div
-    className="modal fade"
-    id="reset-password"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <div className="text-center mb-3">
-            <h3 className="mb-2">Reset Password</h3>
-            <p className="fs-14">
-              Your new password must be different from previous used passwords.
-            </p>
-          </div>
-          <form action="#">
-            <div className="input-block mb-3">
-              <div className="mb-3">
-                <label className="form-label">New Password</label>
-                <div className="pass-group" id="passwordInput">
-                  <input type="password" value={password} onChange={(e) => onChangePassword(e.target.value)} className="form-control pass-input" />
-                </div>
-              </div>
-              <div
-                      className={`password-strength d-flex ${
-                        passwordResponce.passwordResponceKey === '0'
-                          ? 'poor-active'
-                          : passwordResponce.passwordResponceKey === '1'
-                          ? 'avg-active'
-                          : passwordResponce.passwordResponceKey === '2'
-                          ? 'strong-active'
-                          : passwordResponce.passwordResponceKey === '3'
-                          ? 'heavy-active'
-                          : ''
-                      }`}
-                      id="passwordStrength"
-                    >
-                      <span id="poor" className="active" />
-                      <span id="weak" className="active" />
-                      <span id="strong" className="active" />
-                      <span id="heavy" className="active" />
-                    </div>
-              <div id="passwordInfo" className="mb-2" />
-              <p className="fs-12">
-              {passwordResponce.passwordResponceText}
-              </p>
-            </div>
-            <div className="mb-3">
-              <div className="d-flex align-items-center justify-content-between flex-wrap">
-                <label className="form-label">Confirm Password</label>
-              </div>
-              <input type="password" className="form-control" />
-            </div>
-            <div>
-              <button
-                type="button"
-                className="btn btn-lg btn-linear-primary w-100"
-                data-bs-toggle="modal"
-                data-bs-target="#success_modal"
-              >
-                Save Change
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  {/* /Reset password Modal */}
-  {/* success message Modal */}
-  <div
-    className="modal fade"
-    id="success-modal"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <div className="text-center">
-            <span className="success-check mb-3 mx-auto">
-              <i className="ti ti-check" />
-            </span>
-            <h4 className="mb-2">Success</h4>
-            <p>Your new password has been successfully saved</p>
-            <div>
-              <button
-                type="button"
+      {/* Forgot Modal */}
+      <div
+        className="modal fade"
+        id="forgot-modal"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
                 data-bs-dismiss="modal"
-                className="btn btn-lg btn-linear-primary w-100"
+                aria-label="Close"
               >
-                Back to Sign In
-              </button>
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
+            </div>
+            <div className="modal-body p-4">
+              <form action="#">
+                <div className="text-center mb-3">
+                  <h3 className="mb-2">Forgot Password?</h3>
+                  <p>
+                    Enter your email, we will send you a otp to reset your password.
+                  </p>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Email</label>
+                  <input type="email" className="form-control" />
+                </div>
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-lg btn-linear-primary w-100"
+                    data-bs-toggle="modal"
+                    data-bs-target="#otp-email-modal"
+                  >
+                    Submit
+                  </button>
+                </div>
+                <div className=" d-flex justify-content-center">
+                  <p>
+                    Remember Password?{' '}
+                    <Link
+                      to="#"
+                      className="text-primary"
+                      data-bs-toggle="modal"
+                      data-bs-target="#login-modal"
+                    >
+                      Sign In
+                    </Link>
+                  </p>
+                </div>
+              </form>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  {/* /success message Modal */}
-</>
+      {/* /Forgot Modal */}
 
-  )
-}
+      {/* Email otp Modal */}
+      <div
+        className="modal fade"
+        id="otp-email-modal"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
+            </div>
+            <div className="modal-body p-4">
+              <form action="#" className="digit-group">
+                <div className="text-center mb-3">
+                  <h3 className="mb-2">Email OTP Verification</h3>
+                  <p className="fs-14">
+                    OTP sent to your Email Address ending ******doe@example.com
+                  </p>
+                </div>
+                <div className="text-center otp-input">
+                  <div className="d-flex align-items-center justify-content-center mb-3"></div>
+                  <div>
+                    <div className="badge bg-danger-transparent mb-3">
+                      <p className="d-flex align-items-center ">
+                        <i className="ti ti-clock me-1" />
+                        09:59
+                      </p>
+                    </div>
+                    <div className="mb-3 d-flex justify-content-center">
+                      <p>
+                        Didn&apos;t get the OTP?{' '}
+                        <Link to="#" className="text-primary">
+                          Resend OTP
+                        </Link>
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        className="btn btn-lg btn-linear-primary w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#otp-phone-modal"
+                      >
+                        Verify &amp; Proceed
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* /Email otp Modal */}
 
-export default AuthModals
+      {/* Phone otp Modal */}
+      <div
+        className="modal fade"
+        id="otp-phone-modal"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
+            </div>
+            <div className="modal-body p-4">
+              <form action="#" className="digit-group">
+                <div className="text-center mb-3">
+                  <h3 className="mb-2">Phone OTP Verification</h3>
+                  <p>OTP sent to your mobile number ending&nbsp;******9575</p>
+                </div>
+                <div className="text-center otp-input">
+                  <div className="d-flex align-items-center justify-content-center mb-3"></div>
+                  <div>
+                    <div className="badge bg-danger-transparent mb-3">
+                      <p className="d-flex align-items-center ">
+                        <i className="ti ti-clock me-1" />
+                        09:59
+                      </p>
+                    </div>
+                    <div className="mb-3 d-flex justify-content-center">
+                      <p>
+                        Didn&apos;t get the OTP?{' '}
+                        <Link to="#" className="text-primary">
+                          Resend OTP
+                        </Link>
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        className="btn btn-lg btn-linear-primary w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#reset-password"
+                      >
+                        Verify &amp; Proceed
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* /Phone otp Modal */}
+
+      {/* Reset password Modal */}
+      <div
+        className="modal fade"
+        id="reset-password"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
+            </div>
+            <div className="modal-body p-4">
+              <div className="text-center mb-3">
+                <h3 className="mb-2">Reset Password</h3>
+                <p className="fs-14">
+                  Your new password must be different from previous used passwords.
+                </p>
+              </div>
+              <form action="#">
+                <div className="input-block mb-3">
+                  <div className="mb-3">
+                    <label className="form-label">New Password</label>
+                    <div className="pass-group" id="passwordInput">
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => onChangePassword(e.target.value)}
+                        className="form-control pass-input"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className={`password-strength d-flex ${
+                      passwordResponce.passwordResponceKey === '0'
+                        ? 'poor-active'
+                        : passwordResponce.passwordResponceKey === '1'
+                        ? 'avg-active'
+                        : passwordResponce.passwordResponceKey === '2'
+                        ? 'strong-active'
+                        : passwordResponce.passwordResponceKey === '3'
+                        ? 'heavy-active'
+                        : ''
+                    }`}
+                    id="passwordStrength"
+                  >
+                    <span id="poor" className="active" />
+                    <span id="weak" className="active" />
+                    <span id="strong" className="active" />
+                    <span id="heavy" className="active" />
+                  </div>
+                  <div id="passwordInfo" className="mb-2" />
+                  <p className="fs-12">{passwordResponce.passwordResponceText}</p>
+                </div>
+                <div className="mb-3">
+                  <div className="d-flex align-items-center justify-content-between flex-wrap">
+                    <label className="form-label">Confirm Password</label>
+                  </div>
+                  <input type="password" className="form-control" />
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    className="btn btn-lg btn-linear-primary w-100"
+                    data-bs-toggle="modal"
+                    data-bs-target="#success_modal"
+                  >
+                    Save Change
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* /Reset password Modal */}
+
+      {/* success message Modal */}
+      <div
+        className="modal fade"
+        id="success-modal"
+        tabIndex={-1}
+        data-bs-backdrop="static"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+              <Link
+                to="#"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              >
+                <i className="ti ti-circle-x-filled fs-20" />
+              </Link>
+            </div>
+            <div className="modal-body p-4">
+              <div className="text-center">
+                <span className="success-check mb-3 mx-auto">
+                  <i className="ti ti-check" />
+                </span>
+                <h4 className="mb-2">Success</h4>
+                <p>Your new password has been successfully saved</p>
+                <div>
+                  <button
+                    type="button"
+                    data-bs-dismiss="modal"
+                    className="btn btn-lg btn-linear-primary w-100"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* /success message Modal */}
+    </>
+  );
+};
+
+export default AuthModals;
