@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema(
     },
     phone: { 
       type: String, 
-      /* required: true, */ 
+      required: true,
       unique: true,
       match: [/^(2|5|9)\d{7}$/, 'Please enter a valid Tunisian mobile phone number.']
     },
@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema(
     },
     password: { 
       type: String, 
-      required: true, 
+      /* required: true, */ 
       minlength: 8,  
       match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
     },

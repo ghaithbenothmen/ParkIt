@@ -109,7 +109,7 @@ exports.googleAuth = async (req, res, next) => {
       let user = await User.findOne({ email });
 
       if (!user) {
-          user = await User.create({ firstname: name.split(' ')[0],lastname: name.split(' ')[1] || '', email, image: picture });
+          user = await User.create({ firstname: name.split(' ')[0],lastname: name.split(' ')[1] || '',phone:"29668143", email, image: picture });
           console.log("New user created:", user);
       } else {
           console.log("Existing user found:", user);

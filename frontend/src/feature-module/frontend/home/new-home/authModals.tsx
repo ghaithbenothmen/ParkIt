@@ -20,7 +20,16 @@ const AuthModals = () => {
 				const obj = {email,name, token, image};
 				console.log("hellooo"+result);
 				localStorage.setItem('user-info',JSON.stringify(obj));
-				navigate('/admin/dashboard');
+        const modal = document.getElementById("login-modal");
+      if (modal) {
+        const bsModal = Modal.getInstance(modal);
+        bsModal?.hide();
+      }
+
+      // Ensure modal backdrop is removed
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+      document.body.classList.remove("modal-open");
+				navigate("/providers/dashboard");
 			} 
 		} catch (e) {
 			console.log('Error while Google Login...', e);
