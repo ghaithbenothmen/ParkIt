@@ -107,7 +107,7 @@ exports.requestPasswordReset = async (req, res) => {
     await user.save();
 
     // Send the reset link via email
-    const resetLink = `http://localhost:4000/api/auth/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:3000/react/template/authentication/emailForgetPassword?token=${resetToken}`;
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: user.email,

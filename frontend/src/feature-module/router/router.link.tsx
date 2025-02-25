@@ -31,6 +31,7 @@ import FreeTrail from '../frontend/pages/authentication/free-trail';
 import NewHome from '../frontend/home/new-home';
 import ProviderRegister from '../frontend/pages/authentication/provider-signup';
 import Error500 from '../frontend/pages/Error page/error500';
+import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPassword';
 const routes = all_routes;
 
 const publicRoutes = [
@@ -226,6 +227,12 @@ export const authRoutes = [
     path: '/authentication/error-500',
     name: 'Error500',
     element: <Error500 />,
+    route: Route,
+  },
+  {
+    path: '/authentication/emailForgetPassword',
+    name: 'emailForgetPassword',
+    element: <EmailForgetPassword />,
     route: Route,
   },
 ]
