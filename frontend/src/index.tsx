@@ -13,6 +13,8 @@ import 'aos/dist/aos.css';
 import { base_path } from './environment';
 import AllRoutes from './feature-module/router/router';
 
+
+
 const rootElement = document.getElementById('root');
 // const location = window.location.pathname;
 

@@ -3,37 +3,44 @@ const argon2 = require('argon2');
 const jwt = require("jsonwebtoken");
 
 exports.register = async (req, res) => {
-    try {
-      const { firstname, lastname, phone, email, password } = req.body;
+  try {
+    const { firstname, lastname, phone, email, password } = req.body;
 
-      const userExists = await User.findOne({ email });
-      if (userExists) {
-        return res.status(400).json({ message: "Email already exists" });
-      }
-
-      const user = new User({
-        firstname,
-        lastname,
-        phone,
-        email,
-        password,
-      });
-
-      await user.save(); 
-
-      res.status(201).json({ message: "User registered successfully", user });
-    } catch (error) {
-      console.error("Register Error:", error);
-
-      // Check for validation errors
-      if (error.name === "ValidationError") {
-        const validationErrors = Object.values(error.errors).map(err => err.message);
-        return res.status(400).json({ message: "Validation errors", errors: validationErrors });
-      }
-
-      // General error handling
-      res.status(500).json({ message: error.message });
+    // Check if the email already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "Email already exists" });
     }
+
+    // Check if the phone number already exists
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists) {
+      return res.status(400).json({ message: "Phone number already exists" });
+    }
+
+    const user = new User({
+      firstname,
+      lastname,
+      phone,
+      email,
+      password,
+    });
+
+    await user.save();
+
+    res.status(201).json({ message: "User registered successfully", user });
+  } catch (error) {
+    console.error("Register Error:", error);
+
+    // Handle validation errors
+    if (error.name === "ValidationError") {
+      const validationErrors = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ message: "Validation errors", errors: validationErrors });
+    }
+
+    // General error handling
+    res.status(500).json({ message: error.message });
+  }
 };
 
 exports.login = async (req, res) => {
