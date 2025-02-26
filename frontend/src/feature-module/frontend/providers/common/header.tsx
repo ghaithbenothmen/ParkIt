@@ -74,7 +74,7 @@ const ProviderHeader = () => {
       onMouseEnter={toggle}
       onMouseLeave={toggle2}>
         <Link to={routes.index} className="logo logo-normal">
-          <ImageWithBasePath src="assets/img/logo.svg" alt="Logo" />
+          <ImageWithBasePath src="assets/img/full-parkit.png" alt="Logo" />
         </Link>
         <Link to={routes.index} className="logo-small">
           <ImageWithBasePath src="assets/img/logo-small.svg" alt="Logo" />
@@ -272,7 +272,7 @@ const ProviderHeader = () => {
                         <div className="d-flex">
                           <span className="avatar avatar-lg me-2 flex-shrink-0">
                             <ImageWithBasePath
-                              src="assets/img/profiles/avatar-02.jpg"
+                              src="assets/img/user.jpg"
                               alt="Profile"
                               className="rounded-circle"
                             />
@@ -337,7 +337,7 @@ const ProviderHeader = () => {
               <Link to="#" data-bs-toggle="dropdown">
                 <div className="booking-user d-flex align-items-center">
                   <span className="user-img">
-                    <ImageWithBasePath src="assets/img/profiles/avatar-02.jpg" alt="user" />
+                    <ImageWithBasePath src="assets/img/user.jpg" alt="user" />
                   </span>
                 </div>
               </Link>

@@ -1,9 +1,13 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link , useNavigate} from 'react-router-dom'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import { InputOtp } from 'primereact/inputotp';
+import {register, login } from '../../../../services/authService';
+import  { Modal } from 'bootstrap';
+
 
 const AuthModals = () => {
+  const [error, setError] = useState("");
   const [firstname, setFirstName] = useState('')
   const [lastname, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -13,6 +17,10 @@ const AuthModals = () => {
     passwordResponceText: 'Use 8 or more characters with a mix of letters, numbers, and symbols.',
     passwordResponceKey: ''
   })
+
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+const [successMessage, setSuccessMessage] = useState('');
+
   const [registerError, setRegisterError] = useState('')
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotResponse, setForgotResponse] = useState('');
@@ -58,42 +66,116 @@ const AuthModals = () => {
     }
   }
 
-  const handleRegisterSubmit = async (event: React.FormEvent) => {
-    event.preventDefault() // Prevent default form submission
 
-    const userData = {
-      firstname,
-      lastname,
-      email,
-      phone,
-      password,
+  
+  const [emailError, setEmailError] = useState('');
+ 
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  const validateEmail = (email: string) => {
+    if (!email) {
+      setEmailError("Email is required");
+    } else if (!emailRegex.test(email)) {
+      setEmailError("Invalid email format");
+    } else {
+      setEmailError('');
+    }
+  };
+  
+   
+  const handleRegisterSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+  
+    const userData = { firstname, lastname, email, phone, password };
+  
+    try {
+      const data = await register(userData);
+      console.log('Registration successful:', data);
+  
+      // Set registration success state
+      setRegistrationSuccess(true);
+      setSuccessMessage('Registration successful! Please log in.');
+  
+      // Close the registration modal
+      const registerModal = document.getElementById('register-modal');
+      if (registerModal) {
+        const bsRegisterModal = Modal.getInstance(registerModal);
+        bsRegisterModal?.hide();
+      }
+  
+      // Show the login modal
+      const loginModal = document.getElementById('login-modal');
+      if (loginModal) {
+        const bsLoginModal = new Modal(loginModal);
+        bsLoginModal.show();
+      }
+    } catch (error: any) {
+      console.error('Error during registration:', error);
+      setRegisterError(error.message);
+    }
+  };
+  useEffect(() => {
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) {
+      loginModal.addEventListener('hidden.bs.modal', () => {
+        setRegistrationSuccess(false);
+        setSuccessMessage('');
+      });
+    }
+  }, []);
+
+  const [user, setUser] = useState<{ email: string } | null>(null);
+
+useEffect(() => {
+  // Retrieve user data from localStorage
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
+}, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate email and password before submitting
+    validateEmail(email);
+
+    if (emailError || password.length < 8) {
+      return;
     }
 
     try {
-      const response = await fetch('http://localhost:4000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData), // Send the correct user data
-      })
+      const data = await login(email, password);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+    
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`)
+      // Close the modal
+      const modal = document.getElementById("login-modal");
+      if (modal) {
+        const bsModal = Modal.getInstance(modal);
+        bsModal?.hide();
       }
 
-      const data = await response.json()
-      console.log('Registration successful:', data)
+      // Ensure modal backdrop is removed
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+      document.body.classList.remove("modal-open");
 
-      // Clear the error message if registration is successful
-      setRegisterError('')
-      
-    } catch (error) {
-      console.error('Error during registration:', error)
-      setRegisterError('Registration failed. Please try again.')
-    }
-  }
-  const handleForgotPasswordSubmit = async (event:any) => {
+  const role = data.user?.role || "user"; // Default to 'user' if undefined
+  localStorage.setItem("role", role);
+
+
+  setTimeout(() => {
+    if (role === "user") {
+      navigate("/provider/dashboard");
+    } else {
+      navigate("/admin/dashboard");
+    }}, 100); // Small delay to ensure localStorage is set
+
+} catch (err: any) {
+  setError(err);
+}};
+ const handleForgotPasswordSubmit = async (event:any) => {
     event.preventDefault(); // Empêche la soumission par défaut du formulaire
     try {
       const response = await fetch('http://localhost:4000/api/auth/request-reset', {
@@ -139,14 +221,29 @@ const AuthModals = () => {
           </Link>
         </div>
         <div className="modal-body p-4">
-          <form >
+          <form onSubmit={handleLogin}>
             <div className="text-center mb-3">
               <h3 className="mb-2">Welcome</h3>
               <p>Enter your credentials to access your account</p>
             </div>
+        
+          {registrationSuccess && (
+            <div className="alert alert-success">{successMessage}</div>
+          )}
+            {error && <div className="alert alert-danger">{error}</div>}
             <div className="mb-3">
-              <label className="form-label">User Name</label>
-              <input type="text" className="form-control" />
+              <label className="form-label">Email</label>
+              <input
+                    type="email"
+                    className="form-control"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      validateEmail(e.target.value);
+                    }}
+                    required
+                  />
+                  {emailError && <small className="form-text text-muted">{emailError}</small>}
             </div>
             <div className="mb-3">
               <div className="d-flex align-items-center justify-content-between flex-wrap">
@@ -160,7 +257,14 @@ const AuthModals = () => {
                   Forgot Password?
                 </Link>
               </div>
-              <input type="password" className="form-control" />
+              <input
+                    type="password"
+                    className="form-control"
+                    value={password}
+                    onChange={(e) => onChangePassword(e.target.value)}
+                    required
+                  />
+                 
             </div>
             <div className="mb-3">
               <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
@@ -190,8 +294,8 @@ const AuthModals = () => {
             </div>
             <div className="mb-3">
               <button
-                type="button"
-                data-bs-dismiss="modal"
+                type="submit"
+              
                 className="btn btn-lg btn-linear-primary w-100"
               >
                 Sign In

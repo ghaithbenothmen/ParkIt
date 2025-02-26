@@ -16,9 +16,17 @@ exports.register = async (req, res) => {
   try {
     const { firstname, lastname, phone, email, password } = req.body;
 
+
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "Email already exists" });
+    }
+
+
+    // Check if the phone number already exists
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists) {
+      return res.status(400).json({ message: "Phone number already exists" });
     }
 
     const user = new User({
@@ -35,7 +43,7 @@ exports.register = async (req, res) => {
   } catch (error) {
     console.error("Register Error:", error);
 
-    // Check for validation errors
+
     if (error.name === "ValidationError") {
       const validationErrors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ message: "Validation errors", errors: validationErrors });
