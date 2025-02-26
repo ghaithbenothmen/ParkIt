@@ -1,6 +1,8 @@
 const User = require("../models/user.model.js");
 const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
+const speakeasy = require("speakeasy");
+const QRCode = require("qrcode");
 
 const axios = require('axios');
 const { oauth2Client } = require('../utils/googleClients.js');
@@ -28,26 +30,44 @@ exports.register = async (req, res) => {
     }
 
 
-    // Check if the phone number already exists
     const phoneExists = await User.findOne({ phone });
     if (phoneExists) {
       return res.status(400).json({ message: "Phone number already exists" });
     }
 
+    // Hash du mot de passe
+    const hashedPassword = await argon2.hash(password);
+
+    // Génération du secret 2FA
+    const secret = speakeasy.generateSecret({
+      name: `MyApp (${email})`,
+    });
+
+    // Création de l'utilisateur avec le secret 2FA
     const user = new User({
       firstname,
       lastname,
       phone,
       email,
-      password,
+      password: hashedPassword,
+      twoFactorSecret: secret.base32, // Assurez-vous que ce champ est bien enregistré
+      twoFactorEnabled: true, // Activez la 2FA
     });
 
     await user.save();
 
-    res.status(201).json({ message: "User registered successfully", user });
+    // Génération du QR code
+    const otpauth_url = secret.otpauth_url;
+    const qrCodeDataURL = await QRCode.toDataURL(otpauth_url);
+
+    // Réponse avec le QR code
+    res.status(201).json({
+      message: "User registered successfully",
+      user,
+      qrCode: qrCodeDataURL,
+    });
   } catch (error) {
     console.error("Register Error:", error);
-
 
     if (error.name === "ValidationError") {
       const validationErrors = Object.values(error.errors).map((err) => err.message);
@@ -55,6 +75,7 @@ exports.register = async (req, res) => {
     }
 
     // General error handling
+
     res.status(500).json({ message: error.message });
   }
 };
@@ -62,6 +83,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
@@ -143,9 +165,11 @@ exports.requestPasswordReset = async (req, res) => {
     res.status(200).json({ message: "Password reset link sent to your email", resetLink });
   } catch (error) {
     console.error("Request Password Reset Error:", error);
+
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 exports.googleAuth = async (req, res, next) => {
@@ -228,6 +252,43 @@ exports.resetPassword = async (req, res) => {
     if (error.name === "TokenExpiredError") {
       return res.status(400).json({ message: "Token has expired" });
     }
+    res.status(500).json({ message: "Server error" });
+
+  }
+};
+
+exports.verify2FA = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    // Recherchez l'utilisateur par email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Vérifiez que l'utilisateur a un secret 2FA configuré
+    if (!user.twoFactorSecret) {
+      return res.status(400).json({ message: "2FA not set up for this user" });
+    }
+
+    // Vérifiez le code 2FA
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: "base32",
+      token: code,
+    });
+
+    if (!verified) {
+      return res.status(400).json({ message: "Invalid 2FA code" });
+    }
+
+    // Générez un token JWT
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+    res.json({ token, user });
+  } catch (error) {
+    console.error("Error verifying 2FA:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

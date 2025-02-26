@@ -40,12 +40,31 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "admin"], 
       default: "user" 
     },
+
+    twoFactorSecret: { 
+      type: String, 
+      default: null 
+    }, // ✅ Ajout de cette propriété
+    twoFactorEnabled: { 
+      type: Boolean, 
+      default: false 
+    },
+    twoFactorCode: {
+      type: String,
+      default: null
+  },
+    twoFactorExpires: {
+      type: Date,
+      default: null
+  }  
+
     resetToken: { 
       type: String, default: null
      },
     resetTokenExpire: { 
       type: Date, default: null
      },
+
   },
   { timestamps: true }
 );
@@ -58,5 +77,7 @@ UserSchema.pre('save', async function (next) {
   this.password = await argon2.hash(this.password);
   next();
 });
+
+
 
 module.exports = mongoose.model("User", UserSchema);

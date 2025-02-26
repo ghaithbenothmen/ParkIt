@@ -13,6 +13,7 @@ import ProviderBookDetails from './provider-book-details/provider-book-details';
 import ProviderBooking from './provider-booking/provider-booking';
 
 
+
 import ProviderSecuritySettings from './settings/provider-security-settings';
 
 import ProviderServices from './provider-service/provider-service';
@@ -44,7 +45,6 @@ const ProvidersRoutes = () => {
       element: <ProviderEditService />,
       route: Route,
     },
-
 
     {
       path: '/settings/provider-login-activity',
@@ -94,7 +94,6 @@ const ProvidersRoutes = () => {
       element: <ProviderBooking />,
       route: Route,
     },
- 
 
     {
       path: '/dashboard',
