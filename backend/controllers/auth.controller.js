@@ -133,7 +133,6 @@ exports.requestPasswordReset = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 exports.resetPassword = async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -142,12 +141,8 @@ exports.resetPassword = async (req, res) => {
     if (!token) {
       return res.status(400).json({ message: "Token is required" });
     }
-
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    
     const user = await User.findOne({
-      _id: decoded.id,
       resetToken: token, 
       resetTokenExpire: { $gt: Date.now() },
     });
@@ -156,10 +151,8 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    const hashedPassword = await argon2.hash(newPassword);
-
-    // Update the user's password and clear the reset token
-    user.password = hashedPassword;
+    // Ne pas hacher ici, car le middleware pre-save le fera automatiquement
+    user.password = newPassword; 
     user.resetToken = null;
     user.resetTokenExpire = null;
     await user.save();
@@ -167,9 +160,6 @@ exports.resetPassword = async (req, res) => {
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     console.error("Reset Password Error:", error);
-    if (error.name === "TokenExpiredError") {
-      return res.status(400).json({ message: "Token has expired" });
-    }
     res.status(500).json({ message: "Server error" });
   }
 };
