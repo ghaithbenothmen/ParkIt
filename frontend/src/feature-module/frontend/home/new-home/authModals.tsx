@@ -1,31 +1,74 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState  } from 'react'
 import { Link , useNavigate} from 'react-router-dom'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import { InputOtp } from 'primereact/inputotp';
+import { useGoogleLogin } from "@react-oauth/google";
+import { googleAuth } from "../../../../api";
+import axios from 'axios';
 import {register, login } from '../../../../services/authService';
 import  { Modal } from 'bootstrap';
 
 
 const AuthModals = () => {
+  const navigate = useNavigate();
+	const responseGoogle = async (authResult: any) => {
+		try {
+			if (authResult.code) {
+				const result = await googleAuth(authResult.code);
+				const {email, name, image} = result.data.user;
+				const token = result.data.token;
+				const obj = {email,name, token, image};
+				console.log("hellooo"+result);
+				localStorage.setItem('user-info',JSON.stringify(obj));
+        const modal = document.getElementById("login-modal");
+      if (modal) {
+        const bsModal = Modal.getInstance(modal);
+        bsModal?.hide();
+      }
+
+      // Ensure modal backdrop is removed
+      document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
+      document.body.classList.remove("modal-open");
+				navigate("/providers/dashboard");
+			} 
+		} catch (e) {
+			console.log('Error while Google Login...', e);
+		}
+	};
+
+	const googleLogin = useGoogleLogin({
+		onSuccess: responseGoogle,
+		onError: responseGoogle,
+		flow: "auth-code",
+	});
+  
+
+
+    const [token, setTokens] = useState<any>();
+    const [token2, setTokens2] = useState<any>();
+    const [password, setPassword] = useState('');
+    const [passwordResponce, setPasswordResponce] = useState({
+    passwordResponceText: "Use 8 or more characters with a mix of letters, number's symbols.",
+    passwordResponceKey: '',
+  });
+
   const [error, setError] = useState("");
   const [firstname, setFirstName] = useState('')
   const [lastname, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-  const [passwordResponce, setPasswordResponce] = useState({
-    passwordResponceText: 'Use 8 or more characters with a mix of letters, numbers, and symbols.',
-    passwordResponceKey: ''
-  })
+
 
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 const [successMessage, setSuccessMessage] = useState('');
 
   const [registerError, setRegisterError] = useState('')
+
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotResponse, setForgotResponse] = useState('');
 
   const navigate = useNavigate() // Using react-router's useNavigate for redirection
+
 
   const onChangePassword = (password: string) => {
     setPassword(password)
@@ -307,6 +350,7 @@ useEffect(() => {
             <div className="d-flex align-items-center mb-3">
               <Link
                 to="#"
+                onClick={googleLogin}
                 className="btn btn-light flex-fill d-flex align-items-center justify-content-center me-3"
               >
                 <ImageWithBasePath

@@ -1,6 +1,10 @@
 const User = require("../models/user.model.js");
 const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
+
+const axios = require('axios');
+const { oauth2Client } = require('../utils/googleClients.js');
+
 const nodemailer = require("nodemailer");
 
 // Configure the transporter object for sending emails
@@ -11,6 +15,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD, 
   },
 });
+
 
 exports.register = async (req, res) => {
   try {
@@ -139,6 +144,51 @@ exports.requestPasswordReset = async (req, res) => {
   } catch (error) {
     console.error("Request Password Reset Error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.googleAuth = async (req, res, next) => {
+  const code = req.query.code;
+  console.log("Received Authorization Code:", code); // Log received code
+
+  try {
+      if (!code) {
+          console.error("Error: Authorization code is missing");
+          return res.status(400).json({ message: "Authorization code is required" });
+      }
+
+      const googleRes = await oauth2Client.getToken(code);
+      console.log("Google Token Response:", googleRes.tokens);
+
+      oauth2Client.setCredentials(googleRes.tokens);
+      const userRes = await axios.get(
+          `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
+      );
+      console.log("Google User Info:", userRes.data);
+
+      const { email, name, picture } = userRes.data;
+      let user = await User.findOne({ email });
+
+      if (!user) {
+          user = await User.create({ firstname: name.split(' ')[0],lastname: name.split(' ')[1] || '',phone:"29668143", email, image: picture });
+          console.log("New user created:", user);
+      } else {
+          console.log("Existing user found:", user);
+      }
+
+      const { _id } = user;
+      
+      const token = jwt.sign({ _id, email }, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_TIMEOUT || 3600,
+      });
+
+      console.log("Generated JWT Token:", token);
+
+      res.status(200).json({ message: "success", token, user });
+  } catch (err) {
+      console.error("Google Auth Error:", err); // Log any error
+      res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

@@ -44,7 +44,7 @@ const ProvidersRoutes = () => {
       element: <ProviderEditService />,
       route: Route,
     },
-   
+
 
     {
       path: '/settings/provider-login-activity',
@@ -134,7 +134,7 @@ const ProvidersRoutes = () => {
       element: <ProviderSocialProfile />,
       route: Route,
     },
-   
+
     {
       path: '/customer/customer-details',
       name: 'customer-details',
@@ -153,7 +153,7 @@ const ProvidersRoutes = () => {
       element: <CustomerGrid />,
       route: Route,
     },
-    
+
     {
       path: '/settings/provider-security-settings',
       name: 'provider-security-settings',
@@ -184,7 +184,7 @@ const ProvidersRoutes = () => {
       element: <ProviderSecuritySettings />,
       route: Route,
     },
-    
+
     {
       path: '*',
       name: 'NotFound',

@@ -31,7 +31,13 @@ import FreeTrail from '../frontend/pages/authentication/free-trail';
 import NewHome from '../frontend/home/new-home';
 import ProviderRegister from '../frontend/pages/authentication/provider-signup';
 import Error500 from '../frontend/pages/Error page/error500';
+
+import { element } from 'prop-types';
+import GoogleCallback from '../admin/authentication/GoogleCallback';
+import {api} from "../../api"
+
 import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPassword';
+
 const routes = all_routes;
 
 const publicRoutes = [
@@ -40,6 +46,13 @@ const publicRoutes = [
     name: 'home-one',
     element: <HomeOne />,
     route: Route,
+  },
+  {
+    path: '/react/template/auth/google/callback',
+    name:'google',
+    element: <GoogleCallback/>,
+    route: Route
+
   },
   {
     path: routes.index,

@@ -7,7 +7,12 @@ router.post("/register", userController.register);
 router.post("/login", userController.login);
 router.get("/profile", authMiddleware, userController.getProfile);
 router.post("/logout", userController.logout);
+
+router.get("/google", userController.googleAuth);
+router.post("/google", userController.googleAuth);
+
 router.post("/request-reset", userController.requestPasswordReset);
 router.post("/reset-password", userController.resetPassword);
+
 
 module.exports = router;
