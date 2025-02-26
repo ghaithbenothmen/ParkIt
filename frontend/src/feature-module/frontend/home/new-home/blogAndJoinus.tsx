@@ -63,8 +63,8 @@ const BlogAndJoinus = () => {
           className="col-md-6 text-md-end wow fadeInUp"
           data-wow-delay="0.2s"
         >
-          <Link className="btn btn-linear-primary" data-bs-toggle="modal" data-bs-target="#register-modal">
-          <i className="ti ti-user-filled me-2"></i>Join Us</Link>
+   {/*        <Link className="btn btn-linear-primary" data-bs-toggle="modal" data-bs-target="#register-modal">
+          <i className="ti ti-user-filled me-2"></i>Join Us</Link> */}
         </div>
       </div>
     </div>
