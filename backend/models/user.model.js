@@ -56,7 +56,7 @@ const UserSchema = new mongoose.Schema(
     twoFactorExpires: {
       type: Date,
       default: null
-  }  
+  }  ,
 
     resetToken: { 
       type: String, default: null

@@ -144,7 +144,17 @@ const AuthModals = () => {
       });
 
       localStorage.setItem('token', response.data.token);
-      alert('2FA verification successful!');
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      //alert('2FA verification successful!');
+      const modal = document.getElementById('register-modal');
+      if (modal) {
+        const bsModal = Modal.getInstance(modal);
+        bsModal?.hide();
+      }
+      
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+      document.body.classList.remove('modal-open');
       navigate('/providers/dashboard');
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -187,17 +197,7 @@ const AuthModals = () => {
     }
   };
 
-  const handleSend2FA = async () => {
-    try {
-      const response = await axios.post('http://localhost:4000/api/auth/send-2fa', { email, password });
-      alert(response.data.message);
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      const errorMessage = axiosError.response?.data?.message || 'Error sending 2FA code';
-      alert(errorMessage);
-      console.error('Login error:', axiosError.response?.data || axiosError.message);
-    }
-  };
+  
 
   const handleForgotPasswordSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -373,7 +373,7 @@ const AuthModals = () => {
                   </div>
                 </div>
                 <div className="mb-3">
-                  <button type="submit" className="btn btn-lg btn-linear-primary w-100" onClick={handleSend2FA}>
+                  <button type="submit" className="btn btn-lg btn-linear-primary w-100" >
                     Sign In
                   </button>
                 </div>
