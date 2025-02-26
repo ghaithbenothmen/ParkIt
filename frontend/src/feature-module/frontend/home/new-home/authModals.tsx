@@ -63,7 +63,12 @@ const AuthModals = () => {
 const [successMessage, setSuccessMessage] = useState('');
 
   const [registerError, setRegisterError] = useState('')
-  
+
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotResponse, setForgotResponse] = useState('');
+
+  const navigate = useNavigate() // Using react-router's useNavigate for redirection
+
 
   const onChangePassword = (password: string) => {
     setPassword(password)
@@ -162,6 +167,16 @@ const [successMessage, setSuccessMessage] = useState('');
     }
   }, []);
 
+  const [user, setUser] = useState<{ email: string } | null>(null);
+
+useEffect(() => {
+  // Retrieve user data from localStorage
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
+}, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -176,6 +191,7 @@ const [successMessage, setSuccessMessage] = useState('');
       const data = await login(email, password);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+    
 
       // Close the modal
       const modal = document.getElementById("login-modal");
@@ -188,11 +204,44 @@ const [successMessage, setSuccessMessage] = useState('');
       document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
       document.body.classList.remove("modal-open");
 
-      navigate("/providers/dashboard");
-    } catch (err: any) {
-      setError(err);
+  const role = data.user?.role || "user"; // Default to 'user' if undefined
+  localStorage.setItem("role", role);
+
+
+  setTimeout(() => {
+    if (role === "user") {
+      navigate("/provider/dashboard");
+    } else {
+      navigate("/admin/dashboard");
+    }}, 100); // Small delay to ensure localStorage is set
+
+} catch (err: any) {
+  setError(err);
+}};
+ const handleForgotPasswordSubmit = async (event:any) => {
+    event.preventDefault(); // Empêche la soumission par défaut du formulaire
+    try {
+      const response = await fetch('http://localhost:4000/api/auth/request-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotEmail }), // Envoyer l'email
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      setForgotResponse(data.message); // Message de succès ou d'erreur
+    } catch (error) {
+      console.error('Error during password reset request:', error);
+      setForgotResponse('Failed to send password reset email. Please try again.');
     }
   };
+  
+
   return (
     <>
   {/* Login Modal */}
@@ -447,65 +496,51 @@ const [successMessage, setSuccessMessage] = useState('');
 
   {/* /Register Modal */}
   {/* Forgot Modal */}
-  <div
-    className="modal fade"
-    id="forgot-modal"
-    tabIndex={-1}
-    data-bs-backdrop="static"
-    aria-hidden="true"
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link
-            to="#"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <form action="#">
-            <div className="text-center mb-3">
-              <h3 className="mb-2">Forgot Password?</h3>
-              <p>
-                Enter your email, we will send you a otp to reset your password.
-              </p>
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Email</label>
-              <input type="email" className="form-control" />
-            </div>
-            <div className="mb-3">
-              <button
-                type="button"
-                className="btn btn-lg btn-linear-primary w-100"
-                data-bs-toggle="modal"
-                data-bs-target="#otp-email-modal"
-              >
-                Submit
-              </button>
-            </div>
-            <div className=" d-flex justify-content-center">
-              <p>
-                Remember Password?{" "}
-                <Link
-                  to="#"
-                  className="text-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#login-modal"
-                >
-                  Sign In
-                </Link>
-              </p>
-            </div>
-          </form>
-        </div>
+<div
+  className="modal fade"
+  id="forgot-modal"
+  tabIndex={-1}
+  data-bs-backdrop="static"
+  aria-hidden="true"
+>
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content">
+      <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+        <Link to="#" data-bs-dismiss="modal" aria-label="Close">
+          <i className="ti ti-circle-x-filled fs-20" />
+        </Link>
+      </div>
+      <div className="modal-body p-4">
+        <form onSubmit={handleForgotPasswordSubmit}>
+          <div className="text-center mb-3">
+            <h3 className="mb-2">Forgot Password</h3>
+            <p>Please enter your email to receive a password reset link.</p>
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-control"
+              value={forgotEmail}
+              onChange={(e) => setForgotEmail(e.target.value)}
+              required
+            />
+          </div>
+          {forgotResponse && (
+            <div className="alert alert-info">{forgotResponse}</div>
+          )}
+          <div className="mb-3">
+            <button type="submit" className="btn btn-lg btn-linear-primary w-100">
+              Send Reset Link
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
-  {/* /Forgot Modal */}
+</div>
+{/* /Forgot Modal */}
+
   {/* Email otp Modal */}
   <div
     className="modal fade"
