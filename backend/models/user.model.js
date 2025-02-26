@@ -3,7 +3,7 @@ const argon2 = require("argon2");
 
 const UserSchema = new mongoose.Schema(
   {
-    image:  String,
+
     firstname: { 
       type: String, 
       required: true, 
@@ -40,6 +40,10 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "admin"], 
       default: "user" 
     },
+
+    
+    image: { type: String, default: "" }, 
+    isActive: { type: Boolean, required: true },
 
     twoFactorSecret: { 
       type: String, 

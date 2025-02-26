@@ -22,14 +22,14 @@ exports.getUserById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
-
 exports.updateUser = async (req, res) => {
     try {
         const { firstname, lastname, phone, email,role } = req.body;
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
+
             { firstname, lastname, phone, email,role },
+
             { new: true, runValidators: true }
         ).select("-password");
 

@@ -1,6 +1,12 @@
 const User = require("../models/user.model.js");
 const argon2 = require("argon2");
 const jwt = require("jsonwebtoken");
+
+const nodemailer = require("nodemailer");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
 
@@ -19,77 +25,125 @@ const transporter = nodemailer.createTransport({
 });
 
 
+
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "user_images",
+    format: async (req, file) => "jpg",
+    public_id: (req, file) => Date.now() + "-" + file.originalname,
+  },
+});
+const upload = multer({ storage }).single("image");
 exports.register = async (req, res) => {
-  try {
-    const { firstname, lastname, phone, email, password } = req.body;
-
-
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "Email already exists" });
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Image upload failed", error: err.message });
     }
+    try {
+      const { firstname, lastname, phone, email, password } = req.body;
 
+      const userExists = await User.findOne({ email });
+      if (userExists) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
 
-    const phoneExists = await User.findOne({ phone });
-    if (phoneExists) {
-      return res.status(400).json({ message: "Phone number already exists" });
+      const phoneExists = await User.findOne({ phone });
+      if (phoneExists) {
+        return res.status(400).json({ message: "Phone number already exists" });
+      }
+
+      // Hash the password
+      const hashedPassword = await argon2.hash(password);
+
+      // Generate 2FA secret
+      const secret = speakeasy.generateSecret({
+        name: `MyApp (${email})`,
+      });
+
+      // Create the user with 2FA secret
+      const user = new User({
+        firstname,
+        lastname,
+        phone,
+        email,
+        password: hashedPassword,
+        twoFactorSecret: secret.base32,
+        twoFactorEnabled: true,
+        isActive: false, // Account activation feature
+        image: req.file ? req.file.path : null, // Image upload feature
+      });
+
+      await user.save();
+
+      // Generate activation token
+      const activationToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "24h" }
+      );
+
+      const activationLink = `http://localhost:3000/api/auth/verify/${activationToken}`;
+
+      // Send activation email
+      const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: user.email,
+        subject: "Account Activation",
+        html: `<p>Click <a href="${activationLink}">here</a> to activate your account.</p>`,
+      };
+
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.log("Error sending email:", err);
+        } else {
+          console.log("Activation email sent:", info.response);
+        }
+      });
+
+      // Generate QR code for 2FA
+      const otpauth_url = secret.otpauth_url;
+      const qrCodeDataURL = await QRCode.toDataURL(otpauth_url);
+
+      res.status(201).json({
+        message: "User registered. Check your email to activate your account.",
+        qrCode: qrCodeDataURL,
+        imagePath: user.image,
+      });
+    } catch (error) {
+      console.error("Register Error:", error);
+      res.status(500).json({ message: error.message });
     }
-
-    // Hash du mot de passe
-    const hashedPassword = await argon2.hash(password);
-
-    // Génération du secret 2FA
-    const secret = speakeasy.generateSecret({
-      name: `MyApp (${email})`,
-    });
-
-    // Création de l'utilisateur avec le secret 2FA
-    const user = new User({
-      firstname,
-      lastname,
-      phone,
-      email,
-      password: hashedPassword,
-      twoFactorSecret: secret.base32, // Assurez-vous que ce champ est bien enregistré
-      twoFactorEnabled: true, // Activez la 2FA
-    });
-
-    await user.save();
-
-    // Génération du QR code
-    const otpauth_url = secret.otpauth_url;
-    const qrCodeDataURL = await QRCode.toDataURL(otpauth_url);
-
-    // Réponse avec le QR code
-    res.status(201).json({
-      message: "User registered successfully",
-      user,
-      qrCode: qrCodeDataURL,
-    });
-  } catch (error) {
-    console.error("Register Error:", error);
-
-    if (error.name === "ValidationError") {
-      const validationErrors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({ message: "Validation errors", errors: validationErrors });
-    }
-
-    // General error handling
-
-    res.status(500).json({ message: error.message });
-  }
+  });
 };
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
+    // Check if the account is activated
+    if (!user.isActive) {
+      return res.status(400).json({ message: "Account is not activated. Please check your email." });
+    }
+
     const isMatch = await argon2.verify(user.password, password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+    // If 2FA is enabled, require 2FA verification
+    if (user.twoFactorEnabled) {
+      return res.status(200).json({ message: "2FA required", user });
+    }
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
@@ -101,6 +155,50 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.verifyActivation = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(400).json({ message: "Invalid token or user not found." });
+    }
+
+    user.isActive = true;
+    await user.save();
+
+    res.status(200).json({ message: "Account successfully activated." });
+  } catch (error) {
+    console.error("Error verifying account:", error);
+    res.status(400).json({ message: "Invalid or expired activation token." });
+  }
+};
+
+
+exports.logout = async (req, res) => {
+  try {
+    res.clearCookie("token"); 
+    res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password"); // Exclude password from the response
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 exports.logout = async (req, res) => {
   try {
@@ -292,3 +390,4 @@ exports.verify2FA = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
