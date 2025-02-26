@@ -13,7 +13,6 @@ const QRCode = require("qrcode");
 const axios = require('axios');
 const { oauth2Client } = require('../utils/googleClients.js');
 
-const nodemailer = require("nodemailer");
 
 // Configure the transporter object for sending emails
 const transporter = nodemailer.createTransport({
