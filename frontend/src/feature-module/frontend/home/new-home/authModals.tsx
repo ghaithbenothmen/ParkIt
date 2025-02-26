@@ -67,8 +67,7 @@ const [successMessage, setSuccessMessage] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotResponse, setForgotResponse] = useState('');
 
-  const navigate = useNavigate() // Using react-router's useNavigate for redirection
-
+ 
 
   const onChangePassword = (password: string) => {
     setPassword(password)
