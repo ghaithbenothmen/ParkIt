@@ -121,6 +121,16 @@ const [successMessage, setSuccessMessage] = useState('');
     }
   }, []);
 
+  const [user, setUser] = useState<{ email: string } | null>(null);
+
+useEffect(() => {
+  // Retrieve user data from localStorage
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) {
+    setUser(JSON.parse(storedUser));
+  }
+}, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -135,6 +145,7 @@ const [successMessage, setSuccessMessage] = useState('');
       const data = await login(email, password);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+    
 
       // Close the modal
       const modal = document.getElementById("login-modal");
@@ -147,10 +158,21 @@ const [successMessage, setSuccessMessage] = useState('');
       document.querySelectorAll(".modal-backdrop").forEach(backdrop => backdrop.remove());
       document.body.classList.remove("modal-open");
 
-      navigate("/providers/dashboard");
-    } catch (err: any) {
-      setError(err);
+  const role = data.user?.role || "user"; // Default to 'user' if undefined
+  localStorage.setItem("role", role);
+
+
+  setTimeout(() => {
+    if (role === "user") {
+      navigate("/provider/dashboard");
+    } else {
+      navigate("/admin/dashboard");
     }
+  }, 100); // Small delay to ensure localStorage is set
+
+} catch (err: any) {
+  setError(err);
+}
   };
   return (
     <>

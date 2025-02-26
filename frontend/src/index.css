@@ -4,6 +4,20 @@
 @import 'react-phone-input-2/lib/style.css';
 @import 'primereact/resources/themes/lara-light-indigo/theme.css';
 
+.logout-button {
+  padding: 10px 20px;
+  background-color: #f44336; /* Red background */
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+}
+
+.logout-button:hover {
+  background-color: #e57373; /* Lighter red on hover */
+}
+
 .select.p-dropdown {
   border: 1px solid #d9d9d9;
   height: 40px;

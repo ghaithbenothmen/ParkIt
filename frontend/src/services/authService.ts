@@ -49,4 +49,23 @@ export const login = async (email: string, password: string) => {
   } catch (error: any) {
     throw new Error('Login failed. Please check your credentials and try again.');
   }
+
+  
+};
+
+export const logout = async () => {
+  try {
+    const response = await fetch(`${API_URL}/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+  } catch (error: any) {
+    throw new Error(error.message || 'Logout failed');
+  }
 };
