@@ -1,11 +1,10 @@
 import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom';
 import ProviderAddon from './provider-addon/provider-addon';
-import ConnectedApp from './settings/connected-app';
+
 import Verification from './settings/verification';
 import ProviderEditService from './provider-edit-service/provider-edit-service';
 
-import ProviderNotification from './settings/provider-notification';
 
 import ProviderDeviceManagement from './settings/provider-device-management';
 import ProviderLoginActivity from './settings/provider-login-activity';
@@ -14,8 +13,7 @@ import ProviderBookDetails from './provider-book-details/provider-book-details';
 import ProviderBooking from './provider-booking/provider-booking';
 
 
-import ProviderAppointmentSettings from './settings/provider-appointment-settings';
-import ProviderConnectedApps from './settings/provider-connected-apps';
+
 import ProviderSecuritySettings from './settings/provider-security-settings';
 
 import ProviderServices from './provider-service/provider-service';
@@ -27,6 +25,7 @@ import ProviderSocialProfile from './settings/provider-social-profile';
 import ProviderDashboard from './dashboard/dashboard';
 import ProviderSignupPayment from './authentication/provider-signup-payment';
 import ProviderSignupSubscription from './authentication/provider-signup-subscription';
+
 import CustomerDetails from './customer/customerDetails';
 import CustomerList from './customer/customerList';
 import CustomerGrid from './customer/customerGrid';
@@ -46,15 +45,7 @@ const ProvidersRoutes = () => {
       element: <ProviderEditService />,
       route: Route,
     },
-    
-    
-    {
-      path: '/settings/provider-notification',
-      name: 'provider-notification',
-      element: <ProviderNotification />,
-      route: Route,
-    },
-   
+
     {
       path: '/settings/provider-login-activity',
       name: 'ProviderLoginActivity',
@@ -62,12 +53,7 @@ const ProvidersRoutes = () => {
       route: Route,
     },
     
-    {
-      path: '/settings/connected-app',
-      name: 'connected-app',
-      element: <ConnectedApp />,
-      route: Route,
-    },
+ 
     {
       path: '/settings/verification',
       name: 'verfication',
@@ -89,12 +75,7 @@ const ProvidersRoutes = () => {
       name: 'provider-plan',
       element: <ProviderPlan />,
     },
-    {
-      path: '/settings/provider-appointment-settings',
-      name: 'provider-appointment-settings',
-      element: <ProviderAppointmentSettings />,
-      route: Route,
-    },
+
     {
       path: '/provider-availability',
       name: 'provider-availability',
@@ -113,6 +94,7 @@ const ProvidersRoutes = () => {
       element: <ProviderBooking />,
       route: Route,
     },
+
     {
       path: '/dashboard',
       name: 'provider-dashboard',
@@ -126,18 +108,7 @@ const ProvidersRoutes = () => {
       route: Route,
     },
     
-    {
-      path: '/settings/provider-appointment-settings',
-      name: 'provider-appointment-settings',
-      element: <ProviderAppointmentSettings />,
-      route: Route,
-    },
-    {
-      path: '/settings/provider-connected-apps',
-      name: 'provider-connected-apps',
-      element: <ProviderConnectedApps />,
-      route: Route,
-    },
+    
     {
       path: '/authentication/provider-signup',
       name: 'provider-signup',
@@ -162,6 +133,7 @@ const ProvidersRoutes = () => {
       element: <ProviderSocialProfile />,
       route: Route,
     },
+
     {
       path: '/customer/customer-details',
       name: 'customer-details',

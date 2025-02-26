@@ -12,6 +12,7 @@ import store from './core/data/redux/store';
 import 'aos/dist/aos.css';
 import { base_path } from './environment';
 import AllRoutes from './feature-module/router/router';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 
 
@@ -31,11 +32,13 @@ if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <React.StrictMode>
+      <GoogleOAuthProvider clientId={"198801170360-1m8sop4r23hle1a8de8v09fi8c053o56.apps.googleusercontent.com" }>
       <Provider store={store}>
         <BrowserRouter >
           <AllRoutes />
         </BrowserRouter>
       </Provider>
+      </GoogleOAuthProvider>
     </React.StrictMode>,
   );
 } else {
