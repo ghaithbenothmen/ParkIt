@@ -43,9 +43,10 @@ const ProviderSidebar = () => {
 
 const logout = () => {
 
-  localStorage.removeItem('token');
-
-
+/*   localStorage.removeItem('token');
+localStorage.removeItem('user');
+localStorage.removeItem('role'); */
+localStorage.clear();
   window.location.href = '/home'; 
 };
 

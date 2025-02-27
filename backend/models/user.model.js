@@ -16,11 +16,12 @@ const UserSchema = new mongoose.Schema(
       minlength: 2, 
       maxlength: 50 
     },
-    phone: { 
-      type: String, 
-      required: true,
-      unique: true,
-      match: [/^(2|5|9)\d{7}$/, 'Please enter a valid Tunisian mobile phone number.']
+    phone: {
+      type: String,
+      required: function () {
+        return this.authUser === "local"; // Phone is required only for local users
+      },
+      match: [/^(2|5|9)\d{7}$/, "Please enter a valid Tunisian mobile phone number."],
     },
     email: { 
       type: String, 
@@ -30,7 +31,9 @@ const UserSchema = new mongoose.Schema(
     },
     password: { 
       type: String, 
-      /* required: true, */ 
+      required: function () {
+        return this.authUser === "local"; // Password is required only for local users
+      },
       minlength: 8,  
 
       match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
@@ -40,7 +43,7 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "admin"], 
       default: "user" 
     },
-
+    authUser: { type: String, enum: ["local", "google"], default: "local" }, // Track authentication provider
     
     image: { type: String, default: "" }, 
     isActive: { type: Boolean, required: true },
@@ -74,13 +77,13 @@ const UserSchema = new mongoose.Schema(
 );
 
 
-UserSchema.pre('save', async function (next) {
+/* UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   
   this.password = await argon2.hash(this.password);
   next();
-});
+}); */
 
 
 

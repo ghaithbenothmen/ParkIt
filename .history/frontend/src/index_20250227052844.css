@@ -4,26 +4,6 @@
 @import 'react-phone-input-2/lib/style.css';
 @import 'primereact/resources/themes/lara-light-indigo/theme.css';
 
-.password-validation-feedback {
-  margin-top: 10px;
-}
-
-.validation-rule {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 14px;
-  margin-bottom: 5px;
-}
-
-.validation-rule.valid {
-  color: green;
-}
-
-.validation-rule.invalid {
-  color: red;
-}
-
 .logout-button {
   padding: 10px 20px;
   background-color: #f44336; /* Red background */

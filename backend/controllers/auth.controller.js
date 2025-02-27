@@ -41,14 +41,17 @@ const storage = new CloudinaryStorage({
     public_id: (req, file) => Date.now() + "-" + file.originalname,
   },
 });
+
+
 const upload = multer({ storage }).single("image");
+
 exports.register = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ message: "Image upload failed", error: err.message });
     }
     try {
-      const { firstname, lastname, phone, email, password } = req.body;
+      const { firstname, lastname, phone, email, password, enable2FA } = req.body;
 
       const userExists = await User.findOne({ email });
       if (userExists) {
@@ -60,25 +63,44 @@ exports.register = async (req, res) => {
         return res.status(400).json({ message: "Phone number already exists" });
       }
 
+        // Validate password
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+          return res.status(400).json({
+            message:
+              "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+          });
+        }
+
       // Hash the password
       const hashedPassword = await argon2.hash(password);
 
-      // Generate 2FA secret
-      const secret = speakeasy.generateSecret({
-        name: `MyApp (${email})`,
-      });
+      let twoFactorSecret = null;
+      let qrCodeUrl = null;
 
-      // Create the user with 2FA secret
+      if (enable2FA) {
+        // Generate 2FA secret
+        const secret = speakeasy.generateSecret({
+          name: `ParkIt (${email})`,
+        });
+
+        twoFactorSecret = secret.base32;
+
+        // Generate QR code for 2FA
+        qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+      }
+
+      // Create the user
       const user = new User({
         firstname,
         lastname,
         phone,
         email,
         password: hashedPassword,
-        twoFactorSecret: secret.base32,
-        twoFactorEnabled: true,
-        isActive: false, // Account activation feature
-        image: req.file ? req.file.path : null, // Image upload feature
+        isActive: false,
+        twoFactorSecret,
+        twoFactorEnabled: enable2FA || false,
+        authUser: "local", // Set authentication provider to "local"
       });
 
       await user.save();
@@ -108,14 +130,10 @@ exports.register = async (req, res) => {
         }
       });
 
-      // Generate QR code for 2FA
-      const otpauth_url = secret.otpauth_url;
-      const qrCodeDataURL = await QRCode.toDataURL(otpauth_url);
-
       res.status(201).json({
         message: "User registered. Check your email to activate your account.",
-        qrCode: qrCodeDataURL,
-        imagePath: user.image,
+        qrCodeUrl,
+        twoFactorSecret,
       });
     } catch (error) {
       console.error("Register Error:", error);
@@ -129,21 +147,32 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     // Check if the account is activated
     if (!user.isActive) {
       return res.status(400).json({ message: "Account is not activated. Please check your email." });
     }
 
+    // Check the authentication provider
+    if (user.authUser === "google") {
+      return res.status(400).json({ message: "Please log in with Google" });
+    }
+
+    // Verify the password for regular users
     const isMatch = await argon2.verify(user.password, password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
     // If 2FA is enabled, require 2FA verification
     if (user.twoFactorEnabled) {
       return res.status(200).json({ message: "2FA required", user });
     }
 
+    // Generate a JWT token
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
@@ -269,47 +298,51 @@ exports.requestPasswordReset = async (req, res) => {
 
 
 
-exports.googleAuth = async (req, res, next) => {
+exports.googleAuth = async (req, res) => {
   const code = req.query.code;
-  console.log("Received Authorization Code:", code); // Log received code
+
+  if (!code) {
+    return res.status(400).json({ message: "Authorization code is required" });
+  }
 
   try {
-      if (!code) {
-          console.error("Error: Authorization code is missing");
-          return res.status(400).json({ message: "Authorization code is required" });
-      }
+    // Exchange the authorization code for tokens
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
 
-      const googleRes = await oauth2Client.getToken(code);
-      console.log("Google Token Response:", googleRes.tokens);
+    // Fetch user info from Google
+    const { data } = await axios.get(
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${tokens.access_token}`
+    );
 
-      oauth2Client.setCredentials(googleRes.tokens);
-      const userRes = await axios.get(
-          `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
-      );
-      console.log("Google User Info:", userRes.data);
+    const { email, name, picture } = data;
 
-      const { email, name, picture } = userRes.data;
-      let user = await User.findOne({ email });
+    // Check if the user already exists
+    let user = await User.findOne({ email });
 
-      if (!user) {
-          user = await User.create({ firstname: name.split(' ')[0],lastname: name.split(' ')[1] || '',phone:"29668143", email, image: picture });
-          console.log("New user created:", user);
-      } else {
-          console.log("Existing user found:", user);
-      }
-
-      const { _id } = user;
-      
-      const token = jwt.sign({ _id, email }, process.env.JWT_SECRET, {
-          expiresIn: process.env.JWT_TIMEOUT || 3600,
+    if (!user) {
+      // Create a new user
+      user = await User.create({
+        firstname: name.split(" ")[0],
+        lastname: name.split(" ")[1] || "",
+        phone: null, // Default phone number for Google users
+        email,
+        password: null, // No password for Google-authenticated users
+        image: picture,
+        isActive: true, // Automatically activate Google-authenticated users
+        authUser: "google", // Set authentication provider to "google"
       });
+    }
 
-      console.log("Generated JWT Token:", token);
+    // Generate a JWT token
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+    });
 
-      res.status(200).json({ message: "success", token, user });
-  } catch (err) {
-      console.error("Google Auth Error:", err); // Log any error
-      res.status(500).json({ message: "Internal Server Error" });
+    res.status(200).json({ message: "Google authentication successful", token, user });
+  } catch (error) {
+    console.error("Google Auth Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -354,39 +387,79 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-exports.verify2FA = async (req, res) => {
+exports.enable2FA = async (req, res) => {
   try {
-    const { email, code } = req.body;
+    const { email } = req.body;
 
-    // Recherchez l'utilisateur par email
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Vérifiez que l'utilisateur a un secret 2FA configuré
-    if (!user.twoFactorSecret) {
-      return res.status(400).json({ message: "2FA not set up for this user" });
+    // Generate 2FA secret
+    const secret = speakeasy.generateSecret({
+      name: `ParkIt (${user.email})`,
+    });
+
+    user.twoFactorSecret = secret.base32;
+    user.twoFactorEnabled = true;
+    await user.save();
+
+    // Generate QR code for 2FA
+    const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+    res.status(200).json({ qrCodeUrl, twoFactorSecret: secret.base32 });
+  } catch (error) {
+    console.error("Enable 2FA Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.verify2FA = async (req, res) => {
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    return res.status(400).json({ message: "Email and 2FA code are required" });
+  }
+
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Vérifiez le code 2FA
+    // Check if 2FA is enabled for the user
+    if (!user.twoFactorEnabled || !user.twoFactorSecret) {
+      return res.status(400).json({ message: "2FA is not enabled for this user" });
+    }
+
+    // Verify the 2FA code
     const verified = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
       encoding: "base32",
       token: code,
+      window: 1, // Allow a 30-second window for code validation
     });
+    console.log("2FA Verification Result:", verified);
+    console.log("2FA Verification Code:", code);
+    console.log("2FA user:", user);
+    console.log("2FA Secret:", user.twoFactorSecret);
 
     if (!verified) {
       return res.status(400).json({ message: "Invalid 2FA code" });
     }
 
-    // Générez un token JWT
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // Generate a JWT token
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+    });
 
-    res.json({ token, user });
+    res.status(200).json({ message: "2FA verification successful", token, user });
   } catch (error) {
-    console.error("Error verifying 2FA:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("2FA Verification Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
