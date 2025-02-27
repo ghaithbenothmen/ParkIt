@@ -8,6 +8,19 @@
   margin-top: 10px;
 }
 
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Augmente l'espace entre l'icône et le texte */
+  font-size: 16px;
+  text-decoration: none;
+  color: #333;
+  padding: 10px;
+}
+.menu-item svg {
+  flex-shrink: 0;
+}
+
 .validation-rule {
   display: flex;
   align-items: center;

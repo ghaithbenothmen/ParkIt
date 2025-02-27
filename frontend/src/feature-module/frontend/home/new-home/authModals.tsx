@@ -277,7 +277,7 @@ useEffect(() => {
       localStorage.setItem('role', role);
 
       setTimeout(() => {
-        navigate(role === 'user' ? '/provider/dashboard' : '/admin/dashboard');
+        navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
       }, 100);
     } catch (error: any) {
       setError(error.message);
