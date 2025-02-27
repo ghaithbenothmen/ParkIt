@@ -7,6 +7,8 @@ import { googleAuth } from '../../../../api';
 import axios, { AxiosError } from 'axios';
 import { register, login } from '../../../../services/authService';
 import { Modal } from 'bootstrap';
+import { Eye, EyeOff } from 'lucide-react';
+
 
 interface User {
   email: string;
@@ -38,6 +40,7 @@ const AuthModals = () => {
   const [user, setUser] = useState<User | null>(null);
   const [show2FAPopup, setShow2FAPopup] = useState<boolean>(false);
   const [showPhoneModal, setShowPhoneModal] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -51,13 +54,13 @@ const AuthModals = () => {
   });
 
 
-useEffect(() => {
-  // Retrieve user info from localStorage
-  const storedUser = localStorage.getItem('user');
-  if (storedUser) {
-    setUser(JSON.parse(storedUser));
-  }
-}, []);
+  useEffect(() => {
+    // Retrieve user info from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const responseGoogle = async (authResult: any) => {
     try {
@@ -65,7 +68,7 @@ useEffect(() => {
         const result = await googleAuth(authResult.code);
         const { email, name, image } = result.data.user;
         const token = result.data.token;
-  
+
         // Save user info in localStorage
         localStorage.setItem('user', JSON.stringify({ email, name, image, token }));
         setEmail(email);
@@ -73,21 +76,21 @@ useEffect(() => {
         const response = await axios.post('http://localhost:4000/api/users/check', {
           email,
         });
-  
+
         if (!response.data.hasPhone) {
           setShowPhoneModal(true); // Show the phone number modal
         } else {
           // Proceed to the dashboard
           navigate('/providers/dashboard');
         }
-  
+
         // Close the login modal
         const modal = document.getElementById('login-modal');
         if (modal) {
           const bsModal = Modal.getInstance(modal);
           bsModal?.hide();
         }
-  
+
         document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
         document.body.classList.remove('modal-open');
       }
@@ -254,7 +257,9 @@ useEffect(() => {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     validateEmail(email);
-
+    console.log('email', email);
+    console.log('password', password
+    );
     if (error || password.length < 8) {
       return;
     }
@@ -277,7 +282,7 @@ useEffect(() => {
       localStorage.setItem('role', role);
 
       setTimeout(() => {
-        navigate(role === 'user' ? '/provider/dashboard' : '/admin/dashboard');
+        navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
       }, 100);
     } catch (error: any) {
       setError(error.message);
@@ -326,86 +331,100 @@ useEffect(() => {
     }
   }, []);
 
+  const handleSkip2FA = () => {
+    // Hide the 2FA popup
+    setShow2FAPopup(false);
+
+    // Remove the modal backdrop
+    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+
+    // Remove the 'modal-open' class from the body
+    document.body.classList.remove('modal-open');
+
+    navigate('/home');
+
+  };
+
   return (
     <>
-{showPhoneModal && (
-  <>
-    {/* Semi-transparent backdrop */}
-    <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
+      {showPhoneModal && (
+        <>
+          {/* Semi-transparent backdrop */}
+          <div className="modal-backdrop fade show" style={{ zIndex: 1040 }}></div>
 
-    {/* Phone number modal */}
-    <div className="modal fade show" id="phone-modal" tabIndex={-1} style={{ display: 'block', zIndex: 1050 }} aria-hidden="true">
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-            <Link to="#" onClick={() => setShowPhoneModal(false)} aria-label="Close">
-              <i className="ti ti-circle-x-filled fs-20" />
-            </Link>
+          {/* Phone number modal */}
+          <div className="modal fade show" id="phone-modal" tabIndex={-1} style={{ display: 'block', zIndex: 1050 }} aria-hidden="true">
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+                  <Link to="#" onClick={() => setShowPhoneModal(false)} aria-label="Close">
+                    <i className="ti ti-circle-x-filled fs-20" />
+                  </Link>
+                </div>
+                <div className="modal-body p-4">
+                  <div className="text-center mb-3">
+                    <h3 className="mb-2">Enter Your Phone Number</h3>
+                    <p>Please provide your phone number to proceed.</p>
+                  </div>
+                  {/* Display backend or validation errors here */}
+                  {error && <div className="alert alert-danger">{error}</div>}
+                  <div className="mb-3">
+                    <label className="form-label">Phone Number</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(e.target.value);
+                        setError(''); // Clear error when user types
+                      }}
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <button
+                      type="button"
+                      className="btn btn-lg btn-linear-primary w-100"
+                      onClick={async () => {
+                        try {
+                          // Frontend validation for Tunisian phone number format
+                          const tunisiaPhoneRegex = /^(2|5|9)\d{7}$/;
+                          if (!tunisiaPhoneRegex.test(phone)) {
+                            setError('Invalid Tunisian phone number format.');
+                            return;
+                          }
+
+                          // Call the backend to update the phone number
+                          const response = await axios.post('http://localhost:4000/api/users/update-phone', {
+                            email, // Use the email from state
+                            phone,
+                          });
+
+                          // If successful, close the modal and proceed to the dashboard
+                          if (response.status === 200) {
+                            setShowPhoneModal(false);
+                            navigate('/providers/dashboard');
+                          }
+                        } catch (error) {
+                          // Handle backend errors
+                          if (axios.isAxiosError(error)) {
+                            const backendError = error.response?.data?.message || 'Failed to update phone number. Please try again.';
+                            setError(backendError);
+                          } else {
+                            setError('An unexpected error occurred. Please try again.');
+                          }
+                        }
+                      }}
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="modal-body p-4">
-            <div className="text-center mb-3">
-              <h3 className="mb-2">Enter Your Phone Number</h3>
-              <p>Please provide your phone number to proceed.</p>
-            </div>
-            {/* Display backend or validation errors here */}
-            {error && <div className="alert alert-danger">{error}</div>}
-            <div className="mb-3">
-              <label className="form-label">Phone Number</label>
-              <input
-                type="tel"
-                className="form-control"
-                value={phone}
-                onChange={(e) => {
-                  setPhone(e.target.value);
-                  setError(''); // Clear error when user types
-                }}
-                placeholder="Enter your phone number"
-              />
-            </div>
-            <div className="mb-3">
-              <button
-                type="button"
-                className="btn btn-lg btn-linear-primary w-100"
-                onClick={async () => {
-                  try {
-                    // Frontend validation for Tunisian phone number format
-                    const tunisiaPhoneRegex = /^(2|5|9)\d{7}$/;
-                    if (!tunisiaPhoneRegex.test(phone)) {
-                      setError('Invalid Tunisian phone number format.');
-                      return;
-                    }
-
-                    // Call the backend to update the phone number
-                    const response = await axios.post('http://localhost:4000/api/users/update-phone', {
-                      email, // Use the email from state
-                      phone,
-                    });
-
-                    // If successful, close the modal and proceed to the dashboard
-                    if (response.status === 200) {
-                      setShowPhoneModal(false);
-                      navigate('/providers/dashboard');
-                    }
-                  } catch (error) {
-                    // Handle backend errors
-                    if (axios.isAxiosError(error)) {
-                      const backendError = error.response?.data?.message || 'Failed to update phone number. Please try again.';
-                      setError(backendError);
-                    } else {
-                      setError('An unexpected error occurred. Please try again.');
-                    }
-                  }
-                }}
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </>
-)}
+        </>
+      )}
       {show2FAPopup && (
         <div className="modal fade show" id="2fa-popup-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
           <div className="modal-dialog modal-dialog-centered">
@@ -446,10 +465,7 @@ useEffect(() => {
                   <button
                     type="button"
                     className="btn btn-lg btn-linear-secondary w-100"
-                    onClick={() => {
-                      setShow2FAPopup(false); // Close the popup
-                      navigate('/login'); // Redirect to login
-                    }}
+                    onClick={handleSkip2FA}
                   >
                     Skip for Now
                   </button>
@@ -566,13 +582,22 @@ useEffect(() => {
                       Forgot Password?
                     </Link>
                   </div>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={password}
-                    onChange={(e) => onChangePassword(e.target.value)}
-                    required
-                  />
+                  <div className="input-group">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="form-control"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 <div className="mb-3">
                   <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-2">
@@ -675,15 +700,26 @@ useEffect(() => {
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Password</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={password}
-                    onChange={(e) => onChangePassword(e.target.value)}
-                    required
-                  />
-                  <PasswordValidationFeedback />
+                  <div className="input-group">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="form-control"
+                      value={password}
+                      onChange={(e) => onChangePassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+               
+                 
+                  </div>
                 </div>
+                <PasswordValidationFeedback />
                 {registerError && <div className="alert alert-danger">{registerError}</div>}
                 <div className="mb-3">
                   <button type="submit" className="btn btn-lg btn-linear-primary w-100">
