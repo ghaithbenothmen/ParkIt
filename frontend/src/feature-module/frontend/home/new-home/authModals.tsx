@@ -177,7 +177,7 @@ const AuthModals = () => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
-      const modal = document.getElementById('register-modal');
+      const modal = document.getElementById('login-modal');
       if (modal) {
         const bsModal = Modal.getInstance(modal);
         bsModal?.hide();

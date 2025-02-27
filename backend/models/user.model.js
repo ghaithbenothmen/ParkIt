@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema(
     },
     password: { 
       type: String, 
-      /* required: true, */ 
+      required: true, 
       minlength: 8,  
 
       match: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
@@ -43,7 +43,7 @@ const UserSchema = new mongoose.Schema(
 
     
     image: { type: String, default: "" }, 
-    isActive: { type: Boolean, required: true },
+    isActive: { type: Boolean},
 
     twoFactorSecret: { 
       type: String, 
@@ -53,14 +53,7 @@ const UserSchema = new mongoose.Schema(
       type: Boolean, 
       default: false 
     },
-    twoFactorCode: {
-      type: String,
-      default: null
-  },
-    twoFactorExpires: {
-      type: Date,
-      default: null
-  }  ,
+
 
     resetToken: { 
       type: String, default: null
@@ -74,14 +67,14 @@ const UserSchema = new mongoose.Schema(
 );
 
 
-UserSchema.pre('save', async function (next) {
+/* UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   
   this.password = await argon2.hash(this.password);
   next();
 });
-
+ */
 
 
 module.exports = mongoose.model("User", UserSchema);

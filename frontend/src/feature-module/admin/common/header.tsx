@@ -74,6 +74,12 @@ const AdminHeader = () => {
               View Site
             </Link>
           </li>
+          <li className="nav-item">
+            <Link to={routes.index} target='_blank' className="viewsite">
+              <Icon.Globe className="react-feather-custom me-2"></Icon.Globe>
+              logout
+            </Link>
+          </li>
           <li className="nav-item dropdown has-arrow dropdown-heads flag-nav">
             <Link
               className="nav-link"
