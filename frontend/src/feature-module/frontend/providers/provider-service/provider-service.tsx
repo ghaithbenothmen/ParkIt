@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 const routes = all_routes;
 
-const ProviderServices = () => {
+const ProviderCars = () => {
   return (
     <>
   {/* Page Wrapper */}
@@ -12,7 +12,7 @@ const ProviderServices = () => {
     <div className="content container-fluid">
       <div className="row">
         <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
-          <h5>My Services</h5>
+          <h5>My Cars</h5>
           <div className="d-flex align-items-center">
             <span className="fs-14 me-2">Sort</span>
             <div className="dropdown me-2">
@@ -46,7 +46,7 @@ const ProviderServices = () => {
               className="btn btn-dark d-flex align-items-center"
             >
               <i className="ti ti-circle-plus me-2" />
-              Add Services
+              Add Cars
             </Link>
           </div>
         </div>
@@ -66,7 +66,7 @@ const ProviderServices = () => {
                   aria-selected="true"
                   tabIndex={-1}
                 >
-                  Active Services
+                  Active Cars
                 </Link>
               </li>
               <li>
@@ -80,7 +80,7 @@ const ProviderServices = () => {
                   aria-selected="false"
                   tabIndex={-1}
                 >
-                  Inactive Services
+                  Inactive Cars
                 </Link>
               </li>
             </ul>
@@ -99,7 +99,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-13.jpg"
+                            src="assets/img/land.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -160,7 +160,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-14.jpg"
+                            src="assets/img/land.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -176,7 +176,7 @@ const ProviderServices = () => {
                       <div className="p-3">
                         <h5 className="mb-2 text-truncate">
                           <Link to={routes.serviceDetails1}>
-                            Toughened Glass Fitting Services
+                            Toughened Glass Fitting Cars
                           </Link>
                         </h5>
                         <div className="d-flex justify-content-between align-items-center mb-3">
@@ -223,7 +223,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-15.jpg"
+                            src="assets/img/land.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -286,7 +286,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-16.jpg"
+                            src="assets/img/land.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -347,7 +347,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-17.jpg"
+                            src="assets/img/land.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -408,7 +408,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-18.jpg"
+                            src="assets/img/land.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -436,191 +436,6 @@ const ProviderServices = () => {
                             $10.00{" "}
                             <span className="fs-13 text-gray">
                               <del>$15.00/hr</del>
-                            </span>
-                          </h5>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <div className="d-flex gap-3">
-                            <Link to="#">
-                              <i className="ti ti-edit me-2" />
-                              Edit
-                            </Link>
-                            <Link
-                              to="#"
-                              data-bs-toggle="modal"
-                              data-bs-target="#active"
-                            >
-                              <i className="ti ti-info-circle me-2" />
-                              Inactive
-                            </Link>
-                          </div>
-                          <Link
-                            to="#"
-                            className="btn bg-light"
-                          >
-                            Apply Offer
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-xl-4 col-md-6">
-                  <div className="card p-0">
-                    <div className="card-body p-0">
-                      <div className="img-sec w-100">
-                        <Link to={routes.serviceDetails1}>
-                          <ImageWithBasePath
-                            src="assets/img/providers/provider-19.jpg"
-                            className="img-fluid rounded-top w-100"
-                            alt="img"
-                          />
-                        </Link>
-                        <div className="image-tag d-flex justify-content-end align-items-center">
-                          <span className="trend-tag">Cleaning</span>
-                          <span className="trend-tag-2  d-flex justify-content-center align-items-center rating text-gray">
-                            <i className="fa fa-star filled me-1" />
-                            4.9
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <h5 className="mb-2 text-truncate">
-                          <Link to={routes.serviceDetails1}>
-                            House Cleaning Services
-                          </Link>
-                        </h5>
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <p className="fs-14 mb-0">
-                            <i className="ti ti-map-pin me-2" />
-                            Denver, USA
-                          </p>
-                          <h5>
-                            $15.00{" "}
-                            <span className="fs-13 text-gray">
-                              <del>$20.00/hr</del>
-                            </span>
-                          </h5>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <div className="d-flex gap-3">
-                            <Link to="#">
-                              <i className="ti ti-edit me-2" />
-                              Edit
-                            </Link>
-                            <Link to="#">
-                              <i className="ti ti-info-circle me-2" />
-                              Inactive
-                            </Link>
-                          </div>
-                          <Link
-                            to="#"
-                            className="btn bg-light"
-                          >
-                            Apply Offer
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-xl-4 col-md-6">
-                  <div className="card p-0">
-                    <div className="card-body p-0">
-                      <div className="img-sec w-100">
-                        <Link to={routes.serviceDetails1}>
-                          <ImageWithBasePath
-                            src="assets/img/providers/provider-20.jpg"
-                            className="img-fluid rounded-top w-100"
-                            alt="img"
-                          />
-                        </Link>
-                        <div className="image-tag d-flex justify-content-end align-items-center">
-                          <span className="trend-tag">Painting</span>
-                          <span className="trend-tag-2  d-flex justify-content-center align-items-center rating text-gray">
-                            <i className="fa fa-star filled me-1" />
-                            4.9
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <h5 className="mb-2 text-truncate">
-                          <Link to={routes.serviceDetails1}>
-                            Commercial Wall Painting
-                          </Link>
-                        </h5>
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <p className="fs-14 mb-0">
-                            <i className="ti ti-map-pin me-2" />
-                            Austin, USA
-                          </p>
-                          <h5>
-                            $25.00{" "}
-                            <span className="fs-13 text-gray">
-                              <del>$30.00/hr</del>
-                            </span>
-                          </h5>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <div className="d-flex gap-3">
-                            <Link to="#">
-                              <i className="ti ti-edit me-2" />
-                              Edit
-                            </Link>
-                            <Link
-                              to="#"
-                              data-bs-toggle="modal"
-                              data-bs-target="#active"
-                            >
-                              <i className="ti ti-info-circle me-2" />
-                              Inactive
-                            </Link>
-                          </div>
-                          <Link
-                            to="#"
-                            className="btn bg-light"
-                          >
-                            Apply Offer
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-xl-4 col-md-6">
-                  <div className="card p-0">
-                    <div className="card-body p-0">
-                      <div className="img-sec w-100">
-                        <Link to={routes.serviceDetails1}>
-                          <ImageWithBasePath
-                            src="assets/img/providers/provider-22.jpg"
-                            className="img-fluid rounded-top w-100"
-                            alt="img"
-                          />
-                        </Link>
-                        <div className="image-tag d-flex justify-content-end align-items-center">
-                          <span className="trend-tag">Construction</span>
-                          <span className="trend-tag-2  d-flex justify-content-center align-items-center rating text-gray">
-                            <i className="fa fa-star filled me-1" />
-                            4.9
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <h5 className="mb-2 text-truncate">
-                          <Link to={routes.serviceDetails1}>
-                            Building Construction Services
-                          </Link>
-                        </h5>
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <p className="fs-14 mb-0">
-                            <i className="ti ti-map-pin me-2" />
-                            Houston, USA
-                          </p>
-                          <h5>
-                            $20.00{" "}
-                            <span className="fs-13 text-gray">
-                              <del>$25.00/hr</del>
                             </span>
                           </h5>
                         </div>
@@ -746,7 +561,7 @@ const ProviderServices = () => {
                       <div className="p-3">
                         <h5 className="mb-2 text-truncate">
                           <Link to={routes.serviceDetails1}>
-                            Toughened Glass Fitting Services
+                            Toughened Glass Fitting Cars
                           </Link>
                         </h5>
                         <div className="d-flex justify-content-between align-items-center mb-3">
@@ -864,7 +679,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-16.jpg"
+                            src="assets/img/car.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -929,7 +744,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-17.jpg"
+                            src="assets/img/car.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -994,7 +809,7 @@ const ProviderServices = () => {
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-18.jpg"
+                            src="assets/img/car.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -1055,80 +870,14 @@ const ProviderServices = () => {
                     </div>
                   </div>
                 </div>
+                
                 <div className="col-xl-4 col-md-6">
                   <div className="card p-0">
                     <div className="card-body p-0">
                       <div className="img-sec w-100">
                         <Link to={routes.serviceDetails1}>
                           <ImageWithBasePath
-                            src="assets/img/providers/provider-19.jpg"
-                            className="img-fluid rounded-top w-100"
-                            alt="img"
-                          />
-                        </Link>
-                        <div className="image-tag d-flex justify-content-end align-items-center">
-                          <span className="trend-tag">Cleaning</span>
-                          <span className="trend-tag-2  d-flex justify-content-center align-items-center rating text-gray">
-                            <i className="fa fa-star filled me-1" />
-                            4.9
-                          </span>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <h5 className="mb-2 text-truncate">
-                          <Link to={routes.serviceDetails1}>
-                            House Cleaning Services
-                          </Link>
-                        </h5>
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <p className="fs-14 mb-0">
-                            <i className="ti ti-map-pin me-2" />
-                            Denver, USA
-                          </p>
-                          <h5>
-                            $15.00{" "}
-                            <span className="fs-13 text-gray">
-                              <del>$20.00/hr</del>
-                            </span>
-                          </h5>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <div className="d-flex gap-3">
-                            <Link
-                              to="#"
-                              data-bs-toggle="modal"
-                              data-bs-target="#del-service"
-                            >
-                              <i className="ti ti-trash me-2" />
-                              Delete
-                            </Link>
-                            <Link
-                              to="#"
-                              data-bs-toggle="modal"
-                              data-bs-target="#in-active"
-                            >
-                              <i className="ti ti-info-circle me-2" />
-                              Active
-                            </Link>
-                          </div>
-                          <Link
-                            to="#"
-                            className="btn bg-light"
-                          >
-                            Apply Offer
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-xl-4 col-md-6">
-                  <div className="card p-0">
-                    <div className="card-body p-0">
-                      <div className="img-sec w-100">
-                        <Link to={routes.serviceDetails1}>
-                          <ImageWithBasePath
-                            src="assets/img/providers/provider-20.jpg"
+                            src="assets/img/car.jpg"
                             className="img-fluid rounded-top w-100"
                             alt="img"
                           />
@@ -1211,7 +960,7 @@ const ProviderServices = () => {
                       <div className="p-3">
                         <h5 className="mb-2 text-truncate">
                           <Link to={routes.serviceDetails1}>
-                            Building Construction Services
+                            Building Construction Cars
                           </Link>
                         </h5>
                         <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1346,7 +1095,7 @@ const ProviderServices = () => {
     <div className="modal-dialog modal-dialog-centered">
       <div className="modal-content">
         <div className="modal-header d-flex align-items-center justify-content-between border-bottom">
-          <h5 className="modal-title">Active Services</h5>
+          <h5 className="modal-title">Active Cars</h5>
           <Link
             to="#"
             data-bs-dismiss="modal"
@@ -1420,4 +1169,4 @@ const ProviderServices = () => {
   )
 }
 
-export default ProviderServices
+export default ProviderCars

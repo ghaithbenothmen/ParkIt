@@ -37,6 +37,8 @@ import GoogleCallback from '../admin/authentication/GoogleCallback';
 import {api} from "../../api"
 
 import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPassword';
+import path from 'path';
+import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
 
 const routes = all_routes;
 
@@ -45,6 +47,19 @@ const publicRoutes = [
     path: routes.homeOne,
     name: 'home-one',
     element: <HomeOne />,
+    route: Route,
+  },
+
+  {
+    path: routes.activationSuccess,
+    name: 'activation-success',
+    element: <ActivationSuccess />,
+    route: Route,
+  },
+  {
+    path: routes.activationError,
+    name: 'activation-error',
+    element: <Error404 />,
     route: Route,
   },
   {

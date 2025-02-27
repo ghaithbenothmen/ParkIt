@@ -11,6 +11,9 @@ export const all_routes = {
   homeEight: '/home-nine',
   homeNine: '/home-ten',
 
+  activationError:'/activation-error',
+  activationSuccess:'/activation-success',
+
   // blog module path
   blog: '/blog/*',
   blogDetails: '/blog/blog-details',

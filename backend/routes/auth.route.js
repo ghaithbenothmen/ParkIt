@@ -12,7 +12,7 @@ router.post("/logout", userController.logout);
 router.get("/verify/:token", userController.verifyActivation); // Ensure this route exists
 
 router.post("/verify-2fa", userController.verify2FA); // Use the existing verify2FA function
-
+router.post("/enable-2fa", userController.enable2FA); // Use the existing enable2FA function
 
 router.get("/google", userController.googleAuth);
 router.post("/google", userController.googleAuth);

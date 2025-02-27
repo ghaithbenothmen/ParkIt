@@ -140,7 +140,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
             </Link>
             <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li>
-                <Link className="dropdown-item" to="/provider/dashboard">
+                <Link className="dropdown-item" to="/providers/dashboard">
                   <i className="ti ti-dashboard me-2"></i>Dashboard
                 </Link>
               </li>
