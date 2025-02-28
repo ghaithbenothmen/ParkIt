@@ -8,6 +8,7 @@ require('dotenv').config(); // Load environment variables from .env file
 var authRoutes = require('./routes/auth.route');
 var userRoutes = require('./routes/user.route');
 var vehiculeRoutes = require('./routes/vehicule.routes');
+var parkingRoutes = require('./routes/parking.routes');
 
 const cors = require('cors');
 
@@ -46,6 +47,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
+app.use('/api/parking', parkingRoutes);
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
 
