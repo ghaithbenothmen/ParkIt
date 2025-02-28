@@ -45,6 +45,11 @@ const UserSchema = new mongoose.Schema(
     image: { type: String, default: "" }, 
     isActive: { type: Boolean, required: true },
 
+    vehicules: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vehicule"
+    }],
+
     twoFactorSecret: { 
       type: String, 
       default: null 
