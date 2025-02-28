@@ -112,7 +112,7 @@ exports.register = async (req, res) => {
         { expiresIn: "24h" }
       );
 
-      const activationLink = `http://localhost:3000/api/auth/verify/${activationToken}`;
+      const activationLink = `http://localhost:4000/api/auth/verify/${activationToken}`;
 
       // Send activation email
       const mailOptions = {
@@ -190,33 +190,39 @@ exports.login = async (req, res) => {
 exports.verifyActivation = async (req, res) => {
   try {
     const { token } = req.params;
+    console.log("Activation Token:", token);
 
+    // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+    console.log("Decoded Token:", decoded);
+
+    // Find the user by ID
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(400).json({ message: "Invalid token or user not found." });
+      const frontendErrorUrl = `http://localhost:3000/activation-error`;
+      return res.redirect(frontendErrorUrl);
     }
+    console.log("User Before Activation:", user);
 
+    // Activate the user
     user.isActive = true;
     await user.save();
+    console.log("User After Activation:", user);
 
-    res.status(200).json({ message: "Account successfully activated." });
+    // Redirect to the frontend success page
+    const frontendSuccessUrl = `http://localhost:3000/activation-success`;
+    res.redirect(frontendSuccessUrl);
+    
   } catch (error) {
     console.error("Error verifying account:", error);
-    res.status(400).json({ message: "Invalid or expired activation token." });
+
+    const frontendErrorUrl = `http://localhost:3000/activation-error`;
+    res.redirect(frontendErrorUrl);
   }
 };
 
 
-exports.logout = async (req, res) => {
-  try {
-    res.clearCookie("token"); 
-    res.status(200).json({ message: "Logout successful" });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+
 
 exports.getProfile = async (req, res) => {
   try {
