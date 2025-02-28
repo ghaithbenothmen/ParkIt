@@ -151,28 +151,31 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Check if the account is activated
-    if (!user.isActive) {
-      return res.status(400).json({ message: "Account is not activated. Please check your email." });
-    }
+    console.log("User activation status:", user.isActive);
 
-    // Check the authentication provider
+    
+      if (!user.isActive) {
+        console.log("Account not activated for email:", email);
+        return res.status(400).json({ message: "Account is not activated. Please check your email." });
+      }
+
+    // Vérifier le fournisseur d'authentification
     if (user.authUser === "google") {
       return res.status(400).json({ message: "Please log in with Google" });
     }
 
-    // Verify the password for regular users
+    // Vérifier le mot de passe pour les utilisateurs locaux
     const isMatch = await argon2.verify(user.password, password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // If 2FA is enabled, require 2FA verification
+    // Si la 2FA est activée, exiger une vérification 2FA
     if (user.twoFactorEnabled) {
       return res.status(200).json({ message: "2FA required", user });
     }
 
-    // Generate a JWT token
+    // Générer un token JWT
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
