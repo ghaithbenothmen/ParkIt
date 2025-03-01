@@ -9,6 +9,7 @@ var authRoutes = require('./routes/auth.route');
 var userRoutes = require('./routes/user.route');
 var vehiculeRoutes = require('./routes/vehicule.routes');
 var parkingRoutes = require('./routes/parking.routes');
+const parkingSpotRoutes = require('./routes/parkingSpot.route');
 
 const cors = require('cors');
 
@@ -48,6 +49,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
 app.use('/api/parking', parkingRoutes);
+app.use('/api/parking-spots', parkingSpotRoutes); 
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
 

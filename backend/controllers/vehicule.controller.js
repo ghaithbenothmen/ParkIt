@@ -42,7 +42,6 @@ exports.getAllVehiculesByUser = async (req, res) => {
 };
 
 
-
 exports.modifierVehicule = async (req, res) => {
     try {
         const vehiculeId = req.params.id;
