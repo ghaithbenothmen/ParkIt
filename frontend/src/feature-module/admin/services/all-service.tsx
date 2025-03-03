@@ -1,85 +1,150 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Column } from 'primereact/column';
-import { Link } from 'react-router-dom';
-import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
-import { Dropdown } from 'primereact/dropdown';
-import { DataTable } from 'primereact/datatable';
-import * as Icon from 'react-feather';
-import { all_routes } from '../../../core/data/routes/all_routes';
-import { AllserviceInterface } from '../../../core/models/interface';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Column } from "primereact/column";
+import { Dropdown } from "primereact/dropdown";
+import { DataTable } from "primereact/datatable";
+import * as Icon from "react-feather";
+import axios from "axios";
+import ImageWithBasePath from "../../../core/img/ImageWithBasePath";
+import { all_routes } from "../../../core/data/routes/all_routes";
 
 const AllService = () => {
   const routes = all_routes;
-  const data = useSelector((state: any) => state.service_data);
   const [selectedValue, setSelectedValue] = useState(null);
-  const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
-  const renderBody = (res: AllserviceInterface) => {
-    return (
-      <Link to="#" className="table-imgname">
-        <ImageWithBasePath src={res.img} className="me-2" alt="img" />
-        <span>{res.service}</span>
-      </Link>
-    );
-  };
-  const renderBody2 = (res: AllserviceInterface) => {
-    return (
-      <h6
-        className={`${
-          res.status == 'Active'
-            ? 'badge-active'
-            : res.status == 'Delete'
-            ? 'badge-delete'
-            : res.status == 'Pending'
-            ? 'badge-pending'
-            : res.status == 'Inactive'
-            ? 'badge-inactive'
-            : ''
-        }`}
-      >
-        {res.status}
-      </h6>
-    );
-  };
-  const renderBody4 = (res: AllserviceInterface) => {
-    return (
-      <Link to="#" className="table-profileimage">
-        <ImageWithBasePath src={res.img1} className="me-2" alt="img" />
-        <span>Amanda</span>
-      </Link>
-    );
+  const [parkingToDelete, setParkingToDelete] = useState(null);
+  const [parkingToUpdate, setParkingToUpdate] = useState(null);
+  const [newParking, setNewParking] = useState({
+    nom: "",
+    adresse: "",
+    nbr_place: "",
+    tarif_horaire: "",
+    disponibilite: true,
+    latitude: "",
+    longitude: "",
+  });
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axios.get("http://localhost:4000/api/parking");
+        setServices(response.data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des services :", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServices();
+  }, []);
+
+  const deleteParking = async () => {
+    if (!parkingToDelete) return;
+    try {
+      await axios.delete(`http://localhost:4000/api/parking/${parkingToDelete._id}`);
+      setServices(services.filter(service => service._id !== parkingToDelete._id));
+      setParkingToDelete(null);
+      alert("Parking supprimé avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de la suppression du parking:", error);
+      alert("Erreur lors de la suppression du parking");
+    }
   };
 
-  const renderBody3 = () => {
-    return (
-      <div className="action-language">
-        <Link className="table-edit" to="/admin/services/edit-services">
-          <i className="fa-regular fa-pen-to-square"></i>
-          <span>Edit</span>
-        </Link>
-        <Link
-          className="table-delete"
-          to="#"
-          data-bs-toggle="modal"
-          data-bs-target="#delete-item"
-        >
-          <i className="fa-solid fa-trash-can"></i>
-          <span>Delete</span>
-        </Link>
-      </div>
-    );
+  const updateParking = async (e) => {
+    e.preventDefault();
+    if (!parkingToUpdate) return;
+    try {
+      const response = await axios.put(
+        `http://localhost:4000/api/parking/${parkingToUpdate._id}`,
+        parkingToUpdate
+      );
+      setServices(services.map(service => 
+        service._id === parkingToUpdate._id ? response.data : service
+      ));
+      setParkingToUpdate(null);
+      alert("Parking mis à jour avec succès !");
+      closeModal('update-item');
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du parking:", error);
+      alert("Erreur lors de la mise à jour du parking");
+    }
   };
+
+  const addParking = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/api/parking",
+        newParking
+      );
+      setServices([...services, response.data]);
+      setNewParking({
+        nom: "",
+        adresse: "",
+        nbr_place: "",
+        tarif_horaire: "",
+        disponibilite: true,
+        latitude: "",
+        longitude: "",
+      });
+      alert("Parking ajouté avec succès !");
+      closeModal('create-item');
+    } catch (error) {
+      console.error("Erreur lors de l'ajout du parking:", error);
+      alert("Erreur lors de l'ajout du parking");
+    }
+  };
+
+  const handleUpdateChange = (e) => {
+    const { name, value } = e.target;
+    setParkingToUpdate({
+      ...parkingToUpdate,
+      [name]: value,
+    });
+  };
+
+  const handleCreateChange = (e) => {
+    const { name, value } = e.target;
+    setNewParking({
+      ...newParking,
+      [name]: value,
+    });
+  };
+
+  const closeModal = (modalId) => {
+    const modal = document.getElementById(modalId);
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    modalInstance.hide();
+  };
+
+  const filteredServices = services.filter(service =>
+    Object.values(service).some(value =>
+      String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
   return (
     <>
       <div className="page-wrapper page-settings">
         <div className="content">
           <div className="content-page-header content-page-headersplit">
-            <h5>All Services</h5>
+            <h5>All Parkings</h5>
             <div className="list-btn">
               <ul>
                 <li>
                   <div className="filter-sorting">
                     <ul>
+                      <li>
+                        <input
+                          type="text"
+                          placeholder="Search..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </li>
                       <li>
                         <Link to="#" className="filter-sets">
                           <Icon.Filter className="react-feather-custom me-2" />
@@ -94,16 +159,14 @@ const AllService = () => {
                             alt="img"
                           />
                         </span>
-                        <div className="review-sort">
-                          <Dropdown
-                            value={selectedValue}
-                            onChange={(e) => setSelectedValue(e.value)}
-                            options={value}
-                            optionLabel="name"
-                            placeholder="A - Z"
-                            className="select admin-select-breadcrumb"
-                          />
-                        </div>
+                        <Dropdown
+                          value={selectedValue}
+                          onChange={(e) => setSelectedValue(e.value)}
+                          options={[{ name: "A - Z" }, { name: "Z - A" }]}
+                          optionLabel="name"
+                          placeholder="A - Z"
+                          className="select admin-select-breadcrumb"
+                        />
                       </li>
                     </ul>
                   </div>
@@ -111,140 +174,291 @@ const AllService = () => {
                 <li>
                   <Link
                     className="btn btn-primary"
-                    to="/admin/services/add-sevices"
+                    to="#"
+                    data-bs-toggle="modal"
+                    data-bs-target="#create-item"
                   >
                     <i className="fa fa-plus me-2" />
-                    Create Services{' '}
+                    Create Services
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
+
           <div className="row">
             <div className="col-12">
-              <div className="tab-sets">
-                <div className="tab-contents-sets">
-                  <ul>
-                    <li>
-                      <Link to="services" className="active">
-                        All Services
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to={routes.activeServices}>Active</Link>
-                    </li>
-                    <li>
-                      <Link to={routes.pendingServices}>Pending </Link>
-                    </li>
-                    <li>
-                      <Link to={routes.inActiveServices}>Inactive </Link>
-                    </li>
-                    <li>
-                      <Link to={routes.deletedServices}>Deleted </Link>
-                    </li>
-                  </ul>
-                </div>
-                <div className="tab-contents-count">
-                  <h6>Showing 8-10 of 84 results</h6>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-12 ">
-              <div className="table-resposnive table-div">
-                <table className="table datatable">
-                  <DataTable
-                    paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
-                    currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                    value={data}
-                    paginator
-                    rows={10}
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    tableStyle={{ minWidth: '50rem' }}
-                  >
-                    <Column sortable field="id" header="#"></Column>
+              <div className="table-responsive table-div">
+                {loading ? (
+                  <p>Chargement des données...</p>
+                ) : (
+                  <DataTable value={filteredServices} paginator rows={5} rowsPerPageOptions={[5, 10, 25, 50]}>
+                    <Column field="nom" header="Name" sortable />
+                    <Column field="adresse" header="Adress" sortable />
+                    <Column field="nbr_place" header="Places" sortable />
+                    <Column field="tarif_horaire" header="Tarif Horaire" sortable />
+                    <Column field="disponibilite" header="Disponibilité" sortable />
+                    <Column field="latitude" header="Latitude" sortable />
+                    <Column field="longitude" header="Longitude" sortable />
                     <Column
-                      sortable
-                      field="service"
-                      header="Service"
-                      body={renderBody}
-                    ></Column>
-                    <Column
-                      sortable
-                      field="category"
-                      header="Category"
-                    ></Column>
-                    <Column
-                      sortable
-                      field="subCategory"
-                      header="Sub Category"
-                    ></Column>
-                    <Column sortable field="amount" header="Price"></Column>
-                    <Column
-                      sortable
-                      field="duration"
-                      header="Duration"
-                    ></Column>
-                    <Column
-                      sortable
-                      field="status"
-                      header="Status"
-                      body={renderBody2}
-                    ></Column>
-                    <Column
-                      sortable
-                      field="status"
-                      header="Created By"
-                      body={renderBody4}
-                    ></Column>
-                    <Column header="Action" body={renderBody3}></Column>
+                      header="Actions"
+                      body={(rowData) => (
+                        <div className="action-language">
+                          <Link
+                            className="table-edit"
+                            to="#"
+                            data-bs-toggle="modal"
+                            data-bs-target="#update-item"
+                            onClick={() => setParkingToUpdate(rowData)}
+                          >
+                            <i className="fa-solid fa-pen-to-square"></i>
+                            <span>Update</span>
+                          </Link>
+                          <Link
+                            className="table-delete"
+                            to="#"
+                            data-bs-toggle="modal"
+                            data-bs-target="#delete-item"
+                            onClick={() => setParkingToDelete(rowData)}
+                          >
+                            <i className="fa-solid fa-trash-can"></i>
+                            <span>Delete</span>
+                          </Link>
+                        </div>
+                      )}
+                    />
                   </DataTable>
-                </table>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
-      {/* Delete */}
-      <div
-        className="modal fade"
-        id="delete-item"
-        tabIndex={-1}
-        aria-hidden="true"
-      >
+
+      {/* Modal de suppression */}
+      <div className="modal fade" id="delete-item" tabIndex={-1} aria-hidden="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
-            <form>
-              <button
-                type="button"
-                className="delete-popup"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              >
-                <i className="fa-regular fa-rectangle-xmark" />
+            <button type="button" className="delete-popup" data-bs-dismiss="modal" aria-label="Close">
+              <i className="fa-regular fa-rectangle-xmark" />
+            </button>
+            <div className="del-modal">
+              <h5>Do you really want to delete this parking?</h5>
+              <p>{parkingToDelete?.nom || "Parking Service"}</p>
+            </div>
+            <div className="delete-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                Cancel
               </button>
-              <div className="del-modal">
-                <h5>Do you realy want to delete this service?</h5>
-                <p>Plumbing Service</p>
-              </div>
-              <div className="delete-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  data-bs-dismiss="modal"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn modal-delete">
-                  Delete
-                </button>
-              </div>
-            </form>
+              <button type="button" className="btn modal-delete" data-bs-dismiss="modal" onClick={deleteParking}>
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      {/* /Delete */}
+
+      {/* Modal de mise à jour */}
+      <div className="modal fade" id="update-item" tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <button type="button" className="delete-popup" data-bs-dismiss="modal" aria-label="Close">
+              <i className="fa-regular fa-rectangle-xmark" />
+            </button>
+            <div className="del-modal">
+              <h5>Update Parking</h5>
+              <form onSubmit={updateParking}>
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Nom</label>
+                      <input
+                        type="text"
+                        name="nom"
+                        value={parkingToUpdate?.nom || ""}
+                        onChange={handleUpdateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Adresse</label>
+                      <input
+                        type="text"
+                        name="adresse"
+                        value={parkingToUpdate?.adresse || ""}
+                        onChange={handleUpdateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Nombre de places</label>
+                      <input
+                        type="number"
+                        name="nbr_place"
+                        value={parkingToUpdate?.nbr_place || ""}
+                        onChange={handleUpdateChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Tarif horaire</label>
+                      <input
+                        type="number"
+                        name="tarif_horaire"
+                        value={parkingToUpdate?.tarif_horaire || ""}
+                        onChange={handleUpdateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Disponibilité</label>
+                      <select
+                        name="disponibilite"
+                        value={parkingToUpdate?.disponibilite || true}
+                        onChange={handleUpdateChange}
+                      >
+                        <option value={true}>Disponible</option>
+                        <option value={false}>Non disponible</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Latitude</label>
+                      <input
+                        type="number"
+                        name="latitude"
+                        value={parkingToUpdate?.latitude || ""}
+                        onChange={handleUpdateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Longitude</label>
+                      <input
+                        type="number"
+                        name="longitude"
+                        value={parkingToUpdate?.longitude || ""}
+                        onChange={handleUpdateChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="update-footer">
+                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn modal-update" data-bs-dismiss="modal">
+                    Update
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal de création */}
+      <div className="modal fade" id="create-item" tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <button type="button" className="delete-popup" data-bs-dismiss="modal" aria-label="Close">
+              <i className="fa-regular fa-rectangle-xmark" />
+            </button>
+            <div className="del-modal">
+              <h5>Create Parking</h5>
+              <form onSubmit={addParking}>
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Nom</label>
+                      <input
+                        type="text"
+                        name="nom"
+                        value={newParking.nom}
+                        onChange={handleCreateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Adresse</label>
+                      <input
+                        type="text"
+                        name="adresse"
+                        value={newParking.adresse}
+                        onChange={handleCreateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Nombre de places</label>
+                      <input
+                        type="number"
+                        name="nbr_place"
+                        value={newParking.nbr_place}
+                        onChange={handleCreateChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="form-group">
+                      <label>Tarif horaire</label>
+                      <input
+                        type="number"
+                        name="tarif_horaire"
+                        value={newParking.tarif_horaire}
+                        onChange={handleCreateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Disponibilité</label>
+                      <select
+                        name="disponibilite"
+                        value={newParking.disponibilite}
+                        onChange={handleCreateChange}
+                      >
+                        <option value={true}>Disponible</option>
+                        <option value={false}>Non disponible</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Latitude</label>
+                      <input
+                        type="number"
+                        name="latitude"
+                        value={newParking.latitude}
+                        onChange={handleCreateChange}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Longitude</label>
+                      <input
+                        type="number"
+                        name="longitude"
+                        value={newParking.longitude}
+                        onChange={handleCreateChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="update-footer">
+                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn modal-update" data-bs-dismiss="modal">
+                    Create
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 };

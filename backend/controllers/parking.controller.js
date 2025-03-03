@@ -57,5 +57,18 @@ exports.supprimerParking = async (req, res) => {
         res.status(200).json({ message: "Parking supprimé avec succès" });
     } catch (error) {
         res.status(500).json({ message: error.message });
-    }
-};
+    }};
+
+    exports.totalParc = async (req, res) => {
+        try {
+            // Compter le nombre total d'utilisateurs dans la collection User
+            const parkCount = await Parking.countDocuments();
+    
+            // Retourner le nombre d'utilisateurs en JSON
+            return res.status(200).json({ count: parkCount });
+        } catch (err) {
+            console.error('Erreur lors du comptage des parking:', err);
+            return res.status(500).json({ error: 'Une erreur est survenue lors du comptage des parking.' });
+        }
+    };
+
