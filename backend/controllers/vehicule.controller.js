@@ -26,7 +26,8 @@ exports.ajouterVehicule = async (req, res) => {
 
 exports.getAllVehiculesByUser = async (req, res) => {
     try {
-        const { userId } = req.params;
+        // Récupérer l'ID de l'utilisateur connecté depuis le token
+        const userId = req.user.id;
 
         // Trouver tous les véhicules appartenant à cet utilisateur
         const vehicules = await Vehicule.find({ user: userId });
