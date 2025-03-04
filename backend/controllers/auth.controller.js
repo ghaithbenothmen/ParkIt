@@ -451,7 +451,6 @@ exports.verify2FA = async (req, res) => {
   }
 
   try {
-    // Find the user by email
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -470,10 +469,6 @@ exports.verify2FA = async (req, res) => {
       token: code,
       window: 1, // Allow a 30-second window for code validation
     });
-    console.log("2FA Verification Result:", verified);
-    console.log("2FA Verification Code:", code);
-    console.log("2FA user:", user);
-    console.log("2FA Secret:", user.twoFactorSecret);
 
     if (!verified) {
       return res.status(400).json({ message: "Invalid 2FA code" });
@@ -488,6 +483,26 @@ exports.verify2FA = async (req, res) => {
   } catch (error) {
     console.error("2FA Verification Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.disable2FA = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.twoFactorSecret = null;
+    user.twoFactorEnabled = false;
+    await user.save();
+
+    res.status(200).json({ message: "2FA has been disabled" });
+  } catch (error) {
+    console.error("Disable 2FA Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
