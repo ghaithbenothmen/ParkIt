@@ -21,46 +21,14 @@ const CustomerSideBar = () => {
   }, [location.pathname])
   
   const sidebar_data = [
-    {
-      link: routes.customerDashboard,
-      name: 'Dashboard',
-      icon: <i className="ti ti-layout-grid me-2" />,
-    },
-    {
-      link: routes.customerBooking,
-      name: 'Bookings',
-      icon: <Icon.Smartphone className="sidebar-feather me-3" />,
-    },
-    {
-      link: routes.customerFavourite,
-      name: 'Favorites',
-      icon: <Icon.Heart className="sidebar-feather me-3" />,
-    },
-    {
-      link: routes.customerWallet,
-      name: 'Wallet',
-      icon: <Icon.CreditCard className="sidebar-feather me-3" />,
-    },
-    {
-      link: routes.customerReviews,
-      name: 'Reviews',
-      icon: <Icon.Star className="sidebar-feather me-3" />,
-    },
-    {
-      link: routes.customerChat,
-      name: 'Chat',
-      icon: <Icon.MessageCircle className="sidebar-feather me-3" />,
-    },
-    {
-      link: routes.customerBooking,
-      name: 'Settings',
-      icon: <Icon.Settings className="sidebar-feather me-3" />,
-    },
-    {
-      link: routes.homeOne,
-      name: 'LogOut',
-      icon: <Icon.LogOut className="sidebar-feather me-3" />,
-    },
+    { link: routes.customerDashboard, name: 'Dashboard', icon: <Icon.Home className="sidebar-feather me-3" /> },
+    { link: routes.customerBooking, name: 'Bookings', icon: <Icon.Calendar className="sidebar-feather me-3" /> },
+    { link: routes.customerFavourite, name: 'Favorites', icon: <Icon.Heart className="sidebar-feather me-3" /> },
+    { link: routes.customerWallet, name: 'Wallet', icon: <Icon.CreditCard className="sidebar-feather me-3" /> },
+    { link: routes.customerReviews, name: 'Reviews', icon: <Icon.ThumbsUp className="sidebar-feather me-3" /> },
+    { link: routes.customerChat, name: 'Chat', icon: <Icon.MessageSquare className="sidebar-feather me-3" /> },
+    { link: routes.customerBooking, name: 'Settings', icon: <Icon.Sliders className="sidebar-feather me-3" /> },
+    { link: routes.homeOne, name: 'LogOut', icon: <Icon.Power className="sidebar-feather me-3" /> },
   ];
 
   const activeRouterPath = (link: string) => {
@@ -92,7 +60,7 @@ const CustomerSideBar = () => {
               to={routes.customerDashboard}
               className={`d-flex align-items-center ${location.pathname === routes.customerDashboard && 'active'}`}
             >
-              <i className="ti ti-layout-grid me-2" />
+              <i className="ti ti-layout-grid me-2 " />
               Dashboard
             </Link>
           </li>

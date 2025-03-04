@@ -40,6 +40,7 @@ const AuthModals = () => {
   const [user, setUser] = useState<User | null>(null);
   const [show2FAPopup, setShow2FAPopup] = useState<boolean>(false);
   const [showPhoneModal, setShowPhoneModal] = useState<boolean>(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const navigate = useNavigate();
@@ -202,6 +203,9 @@ const AuthModals = () => {
       // Show the 2FA popup
       setShow2FAPopup(true);
 
+      // Show the email confirmation popup
+      setShowEmailConfirmation(true);
+
       const registerModal = document.getElementById('register-modal');
       if (registerModal) {
         const bsRegisterModal = Modal.getInstance(registerModal);
@@ -257,37 +261,61 @@ const AuthModals = () => {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     validateEmail(email);
+  
     console.log('email', email);
     console.log('password', password
     );
     if (error || password.length < 8) {
       return;
     }
-
+  
     try {
       const data = await login(email, password);
+  
+      // Vérifier si le compte est activé
+      if (!data.user.isActive) {
+        setError("Account is not activated. Please check your email.");
+        return; // Arrêter le processus de connexion
+      }
+  
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-
+  
       const modal = document.getElementById('register-modal');
       if (modal) {
         const bsModal = Modal.getInstance(modal);
         bsModal?.hide();
       }
-
+  
       document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
       document.body.classList.remove('modal-open');
-
+  
       const role = data.user?.role || 'user';
       localStorage.setItem('role', role);
-
+  
       setTimeout(() => {
         navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
       }, 100);
     } catch (error: any) {
-      setError(error.message);
+      console.log("Full error response:", error.response); // Ajoutez ce log pour déboguer
+      if (error.response) {
+        // Si la réponse contient un message d'erreur
+if (error.response?.data?.message) {
+          setError(error.response.data.message);
+        } else if (error.response.statusText) {
+          setError(error.response.statusText); // Utiliser le texte du statut HTTP si le message n'est pas disponible
+        } else {
+          setError("An unexpected error occurred. Please try again.");
+        }
+      } else if (error.message) {
+        setError(error.message); // Utiliser le message d'erreur générique si la réponse n'est pas disponible
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     }
   };
+
+  
 
 
 
@@ -475,6 +503,54 @@ const AuthModals = () => {
           </div>
         </div>
       )}
+      {showEmailConfirmation && (
+  <div className="modal fade show" id="email-confirmation-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
+    <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-content">
+        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+          <Link to="#" onClick={() => setShowEmailConfirmation(false)} aria-label="Close">
+            <i className="ti ti-circle-x-filled fs-20" />
+          </Link>
+        </div>
+        <div className="modal-body p-4">
+          <div className="text-center">
+            <span className="success-check mb-3 mx-auto" style={{
+              display: 'inline-block',
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              backgroundColor: '#28a745',
+              color: 'white',
+              fontSize: '24px',
+              lineHeight: '50px',
+              textAlign: 'center'
+            }}>
+              <i className="ti ti-check" />
+            </span>
+            <h4 className="mb-2">Check Your Email</h4>
+            <p>We have sent a confirmation email to your address. Please check your inbox.</p>
+            <div>
+            <button
+              type="button"
+              className="btn btn-lg btn-linear-primary w-100"
+              onClick={() => {
+                setShowEmailConfirmation(false); // Fermer la pop-up
+                const loginModal = document.getElementById('login-modal');
+                if (loginModal) {
+                  const bsLoginModal = new Modal(loginModal);
+                  bsLoginModal.show(); // Ouvrir le modal de login
+                }
+              }}
+            >
+              OK
+            </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       {/* QR Code Modal */}
       {showQRCodeModal && (
         <div className="modal fade show" id="qr-code-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
@@ -573,7 +649,6 @@ const AuthModals = () => {
                     }}
                     required
                   />
-                  {error && <small className="form-text text-muted">{error}</small>}
                 </div>
                 <div className="mb-3">
                   <div className="d-flex align-items-center justify-content-between flex-wrap">

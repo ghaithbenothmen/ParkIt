@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const API_URL = "http://localhost:4000/api/auth"; 
 
 
@@ -30,28 +32,18 @@ export const register = async (userData: {
   };
 
 
-export const login = async (email: string, password: string) => {
-  try {
-    const response = await fetch(`${API_URL}/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }), 
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+  export const login = async (email: string, password: string) => {
+    try {
+      const response = await axios.post('http://localhost:4000/api/auth/login', { email, password });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw error; // Propager l'erreur pour qu'elle soit gérée dans `handleLogin`
+      } else {
+        throw new Error("An unexpected error occurred. Please try again.");
+      }
     }
-
-    const data = await response.json();
-    return data; 
-  } catch (error: any) {
-    throw new Error('Login failed. Please check your credentials and try again.');
-  }
-
-  
-};
+  };
 
 export const logout = async () => {
   try {

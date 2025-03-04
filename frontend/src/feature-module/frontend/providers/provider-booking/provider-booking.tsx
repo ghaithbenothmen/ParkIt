@@ -76,7 +76,7 @@ const ProviderBooking = () => {
                 <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
                   <div className="booking-img me-sm-3 mb-3 mb-sm-0">
                     <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/providers/provider-15.jpg" alt="User Image" />
+                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
                     </Link>
                     <div className="fav-item">
                       <Link to="#" className={`fav-icon ${selectedItems[1] ? 'selected' : ''}`} onClick={() => handleItemClick(1)}>
@@ -111,7 +111,7 @@ const ProviderBooking = () => {
                             <ImageWithBasePath
                               className="avatar-img rounded-circle"
                               alt="User Image"
-                              src="assets/img/profiles/avatar-02.jpg"
+                              src="assets/img/parking.jpg"
                             />
                           </div>
                           John Doe
@@ -145,7 +145,7 @@ const ProviderBooking = () => {
                 <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
                   <div className="booking-img me-sm-3 mb-3 mb-sm-0">
                     <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/providers/provider-13.jpg" alt="User Image" />
+                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
                     </Link>
                     <div className="fav-item">
                       <Link to="#" className={`fav-icon ${selectedItems[2] ? 'selected' : ''}`} onClick={() => handleItemClick(2)}>
@@ -232,7 +232,7 @@ const ProviderBooking = () => {
                 <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
                   <div className="booking-img me-sm-3 mb-3 mb-sm-0">
                     <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/providers/provider-16.jpg" alt="User Image" />
+                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
                     </Link>
                     <div className="fav-item">
                       <Link to="#" className={`fav-icon ${selectedItems[3] ? 'selected' : ''}`} onClick={() => handleItemClick(3)}>
@@ -307,7 +307,7 @@ const ProviderBooking = () => {
                 <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
                   <div className="booking-img me-sm-3 mb-3 mb-sm-0">
                     <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/providers/provider-19.jpg" alt="User Image" />
+                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
                     </Link>
                     <div className="fav-item">
                       <Link to="#" className={`fav-icon ${selectedItems[4] ? 'selected' : ''}`} onClick={() => handleItemClick(4)}>
@@ -382,7 +382,7 @@ const ProviderBooking = () => {
                 <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
                   <div className="booking-img me-sm-3 mb-3 mb-sm-0">
                     <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/providers/provider-18.jpg" alt="User Image" />
+                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
                     </Link>
                     <div className="fav-item">
                       <Link to="#" className={`fav-icon ${selectedItems[5] ? 'selected' : ''}`} onClick={() => handleItemClick(5)}>
