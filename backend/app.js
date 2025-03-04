@@ -1,28 +1,27 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 const mongoose = require('mongoose');
 require('dotenv').config(); // Load environment variables from .env file
-var authRoutes = require('./routes/auth.route');
-var userRoutes = require('./routes/user.route');
-var vehiculeRoutes = require('./routes/vehicule.routes');
-var parkingRoutes = require('./routes/parking.routes');
+const authRoutes = require('./routes/auth.route');
+const userRoutes = require('./routes/user.route');
+const vehiculeRoutes = require('./routes/vehicule.routes');
+const parkingRoutes = require('./routes/parking.routes');
 const parkingSpotRoutes = require('./routes/parkingSpot.route');
 const reservationRoutes = require('./routes/reservation.route');
+
 
 const cors = require('cors');
 
 
 
 
-var app = express();
+const app = express();
 
 
 
-
-app.use(cors());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -67,9 +66,11 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  // Renvoyer une réponse JSON au lieu de rendre une vue
+  res.status(err.status || 500).json({
+    message: err.message,
+    error: req.app.get('env') === 'development' ? err : {}
+  });
 });
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
