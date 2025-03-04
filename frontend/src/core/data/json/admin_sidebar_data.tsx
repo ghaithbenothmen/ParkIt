@@ -92,10 +92,10 @@ export const adminSidebar = [
             menuValue: 'Parkings',
             route: routes.allServices,
           },
-          {
-            menuValue: 'Parking Settings',
-            route: routes.serviceSettings,
-          },
+          //{
+            //menuValue: 'Parking Settings',
+            //route: routes.serviceSettings,
+          //},
         ],
       },
       /* {

@@ -196,7 +196,8 @@ const AllService = () => {
                     <Column field="nom" header="Name" sortable />
                     <Column field="adresse" header="Adress" sortable />
                     <Column field="nbr_place" header="Places" sortable />
-                    <Column field="tarif_horaire" header="Tarif Horaire" sortable />
+                    <Column field="tarif_horaire" header="
+Hourly rate" sortable />
                     <Column field="disponibilite" header="Disponibilité" sortable />
                     <Column field="latitude" header="Latitude" sortable />
                     <Column field="longitude" header="Longitude" sortable />
@@ -212,7 +213,7 @@ const AllService = () => {
                             onClick={() => setParkingToUpdate(rowData)}
                           >
                             <i className="fa-solid fa-pen-to-square"></i>
-                            <span>Update</span>
+                            <span>Edit</span>
                           </Link>
                           <Link
                             className="table-delete"
@@ -257,208 +258,246 @@ const AllService = () => {
           </div>
         </div>
       </div>
-
-      {/* Modal de mise à jour */}
-      <div className="modal fade" id="update-item" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <button type="button" className="delete-popup" data-bs-dismiss="modal" aria-label="Close">
-              <i className="fa-regular fa-rectangle-xmark" />
-            </button>
-            <div className="del-modal">
-              <h5>Update Parking</h5>
-              <form onSubmit={updateParking}>
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label>Nom</label>
-                      <input
-                        type="text"
-                        name="nom"
-                        value={parkingToUpdate?.nom || ""}
-                        onChange={handleUpdateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Adresse</label>
-                      <input
-                        type="text"
-                        name="adresse"
-                        value={parkingToUpdate?.adresse || ""}
-                        onChange={handleUpdateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Nombre de places</label>
-                      <input
-                        type="number"
-                        name="nbr_place"
-                        value={parkingToUpdate?.nbr_place || ""}
-                        onChange={handleUpdateChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label>Tarif horaire</label>
-                      <input
-                        type="number"
-                        name="tarif_horaire"
-                        value={parkingToUpdate?.tarif_horaire || ""}
-                        onChange={handleUpdateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Disponibilité</label>
-                      <select
-                        name="disponibilite"
-                        value={parkingToUpdate?.disponibilite || true}
-                        onChange={handleUpdateChange}
-                      >
-                        <option value={true}>Disponible</option>
-                        <option value={false}>Non disponible</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Latitude</label>
-                      <input
-                        type="number"
-                        name="latitude"
-                        value={parkingToUpdate?.latitude || ""}
-                        onChange={handleUpdateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Longitude</label>
-                      <input
-                        type="number"
-                        name="longitude"
-                        value={parkingToUpdate?.longitude || ""}
-                        onChange={handleUpdateChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="update-footer">
-                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn modal-update" data-bs-dismiss="modal">
-                    Update
-                  </button>
-                </div>
-              </form>
+{/* Modal de mise à jour */}
+<div className="modal fade" id="update-item" tabIndex={-1} aria-hidden="true">
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content rounded-3 shadow-lg">
+      <button type="button" className="delete-popup" data-bs-dismiss="modal" aria-label="Close">
+        <i 
+          className="fa-regular fa-rectangle-xmark" 
+          style={{ color: '#dc3545', fontSize: '1.5rem', transition: 'color 0.3s ease' }} 
+        />
+      </button>
+      <div className="del-modal p-4">
+        <h5 className="text-center mb-4 text-primary">Update Parking</h5>
+        <form onSubmit={updateParking}>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="nom">Name</label>
+                <input
+                  id="nom"
+                  type="text"
+                  name="nom"
+                  value={parkingToUpdate?.nom || ""}
+                  onChange={handleUpdateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="adresse">Adress</label>
+                <input
+                  id="adresse"
+                  type="text"
+                  name="adresse"
+                  value={parkingToUpdate?.adresse || ""}
+                  onChange={handleUpdateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="nbr_place"> places</label>
+                <input
+                  id="nbr_place"
+                  type="number"
+                  name="nbr_place"
+                  value={parkingToUpdate?.nbr_place || ""}
+                  onChange={handleUpdateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="tarif_horaire">
+                Hourly rate</label>
+                <input
+                  id="tarif_horaire"
+                  type="number"
+                  name="tarif_horaire"
+                  value={parkingToUpdate?.tarif_horaire || ""}
+                  onChange={handleUpdateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="disponibilite">Availability</label>
+                <select
+                  id="disponibilite"
+                  name="disponibilite"
+                  value={parkingToUpdate?.disponibilite || true}
+                  onChange={handleUpdateChange}
+                  className="form-select"
+                >
+                  <option value={true}>Disponible</option>
+                  <option value={false}>Non disponible</option>
+                </select>
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="latitude">Latitude</label>
+                <input
+                  id="latitude"
+                  type="number"
+                  name="latitude"
+                  value={parkingToUpdate?.latitude || ""}
+                  onChange={handleUpdateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="longitude">Longitude</label>
+                <input
+                  id="longitude"
+                  type="number"
+                  name="longitude"
+                  value={parkingToUpdate?.longitude || ""}
+                  onChange={handleUpdateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
             </div>
           </div>
-        </div>
+          <div className="d-flex justify-content-between">
+            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Update
+            </button>
+          </div>
+        </form>
       </div>
+    </div>
+  </div>
+</div>
+
 
       {/* Modal de création */}
       <div className="modal fade" id="create-item" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <button type="button" className="delete-popup" data-bs-dismiss="modal" aria-label="Close">
-              <i className="fa-regular fa-rectangle-xmark" />
-            </button>
-            <div className="del-modal">
-              <h5>Create Parking</h5>
-              <form onSubmit={addParking}>
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label>Nom</label>
-                      <input
-                        type="text"
-                        name="nom"
-                        value={newParking.nom}
-                        onChange={handleCreateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Adresse</label>
-                      <input
-                        type="text"
-                        name="adresse"
-                        value={newParking.adresse}
-                        onChange={handleCreateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Nombre de places</label>
-                      <input
-                        type="number"
-                        name="nbr_place"
-                        value={newParking.nbr_place}
-                        onChange={handleCreateChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label>Tarif horaire</label>
-                      <input
-                        type="number"
-                        name="tarif_horaire"
-                        value={newParking.tarif_horaire}
-                        onChange={handleCreateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Disponibilité</label>
-                      <select
-                        name="disponibilite"
-                        value={newParking.disponibilite}
-                        onChange={handleCreateChange}
-                      >
-                        <option value={true}>Disponible</option>
-                        <option value={false}>Non disponible</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Latitude</label>
-                      <input
-                        type="number"
-                        name="latitude"
-                        value={newParking.latitude}
-                        onChange={handleCreateChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Longitude</label>
-                      <input
-                        type="number"
-                        name="longitude"
-                        value={newParking.longitude}
-                        onChange={handleCreateChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="update-footer">
-                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn modal-update" data-bs-dismiss="modal">
-                    Create
-                  </button>
-                </div>
-              </form>
+  <div className="modal-dialog modal-dialog-centered">
+    <div className="modal-content rounded-3 shadow-lg">
+      <button type="button" className="delete-popup" data-bs-dismiss="modal" aria-label="Close">
+        <i 
+          className="fa-regular fa-rectangle-xmark" 
+          style={{ color: '#dc3545', fontSize: '1.5rem', transition: 'color 0.3s ease' }} 
+        />
+      </button>
+      <div className="del-modal p-4">
+        <h5 className="text-center mb-4 text-primary">Create Parking</h5>
+        <form onSubmit={addParking}>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="nom">Name</label>
+                <input
+                  id="nom"
+                  type="text"
+                  name="nom"
+                  value={newParking.nom}
+                  onChange={handleCreateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="adresse">Adress</label>
+                <input
+                  id="adresse"
+                  type="text"
+                  name="adresse"
+                  value={newParking.adresse}
+                  onChange={handleCreateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="nbr_place"> places</label>
+                <input
+                  id="nbr_place"
+                  type="number"
+                  name="nbr_place"
+                  value={newParking.nbr_place}
+                  onChange={handleCreateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+            </div>
+            <div className="col-md-6">
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="tarif_horaire">
+                Hourly rate</label>
+                <input
+                  id="tarif_horaire"
+                  type="number"
+                  name="tarif_horaire"
+                  value={newParking.tarif_horaire}
+                  onChange={handleCreateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="disponibilite">Availability</label>
+                <select
+                  id="disponibilite"
+                  name="disponibilite"
+                  value={newParking.disponibilite}
+                  onChange={handleCreateChange}
+                  className="form-select"
+                >
+                  <option value={true}>Disponible</option>
+                  <option value={false}>Non disponible</option>
+                </select>
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="latitude">Latitude</label>
+                <input
+                  id="latitude"
+                  type="number"
+                  name="latitude"
+                  value={newParking.latitude}
+                  onChange={handleCreateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
+              <div className="form-group mb-3">
+                <label className="form-label" htmlFor="longitude">Longitude</label>
+                <input
+                  id="longitude"
+                  type="number"
+                  name="longitude"
+                  value={newParking.longitude}
+                  onChange={handleCreateChange}
+                  className="form-control"
+                  required
+                />
+              </div>
             </div>
           </div>
-        </div>
+          <div className="d-flex justify-content-between">
+            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Create
+            </button>
+          </div>
+        </form>
       </div>
+    </div>
+  </div>
+</div>
+
+
     </>
   );
 };
