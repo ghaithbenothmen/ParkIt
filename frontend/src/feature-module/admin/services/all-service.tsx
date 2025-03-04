@@ -8,6 +8,7 @@ import axios from "axios";
 import ImageWithBasePath from "../../../core/img/ImageWithBasePath";
 import { all_routes } from "../../../core/data/routes/all_routes";
 
+
 const AllService = () => {
   const routes = all_routes;
   const [selectedValue, setSelectedValue] = useState(null);
@@ -49,7 +50,7 @@ const AllService = () => {
       alert("Parking supprimé avec succès !");
     } catch (error) {
       console.error("Erreur lors de la suppression du parking:", error);
-      alert("Erreur lors de la suppression du parking");
+      
     }
   };
 
@@ -69,17 +70,14 @@ const AllService = () => {
       closeModal('update-item');
     } catch (error) {
       console.error("Erreur lors de la mise à jour du parking:", error);
-      alert("Erreur lors de la mise à jour du parking");
+      
     }
   };
 
   const addParking = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:4000/api/parking",
-        newParking
-      );
+      const response = await axios.post("http://localhost:4000/api/parking",newParking);
       setServices([...services, response.data]);
       setNewParking({
         nom: "",
@@ -93,8 +91,8 @@ const AllService = () => {
       alert("Parking ajouté avec succès !");
       closeModal('create-item');
     } catch (error) {
-      console.error("Erreur lors de l'ajout du parking:", error);
-      alert("Erreur lors de l'ajout du parking");
+      
+     
     }
   };
 
@@ -125,6 +123,8 @@ const AllService = () => {
       String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
+
+  
 
   return (
     <>
@@ -258,6 +258,7 @@ Hourly rate" sortable />
           </div>
         </div>
       </div>
+    
 {/* Modal de mise à jour */}
 <div className="modal fade" id="update-item" tabIndex={-1} aria-hidden="true">
   <div className="modal-dialog modal-dialog-centered">
