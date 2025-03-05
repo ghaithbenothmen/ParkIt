@@ -54,8 +54,23 @@ exports.deleteUser = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+
+
 };
 
+
+exports.totalUser = async (req, res) => {
+    try {
+        // Compter le nombre total d'utilisateurs dans la collection User
+        const userCount = await User.countDocuments();
+
+        // Retourner le nombre d'utilisateurs en JSON
+        return res.status(200).json({ count: userCount });
+    } catch (err) {
+        console.error('Erreur lors du comptage des utilisateurs:', err);
+        return res.status(500).json({ error: 'Une erreur est survenue lors du comptage des utilisateurs.' });
+    }
+};
 exports.checkUser = async (req, res) => {
     try {
       const { email } = req.body;
@@ -108,3 +123,5 @@ exports.checkUser = async (req, res) => {
       res.status(500).json({ message: "Server error. Please try again later." });
     }
   };
+
+

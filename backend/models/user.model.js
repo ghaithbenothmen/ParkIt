@@ -46,7 +46,12 @@ const UserSchema = new mongoose.Schema(
     authUser: { type: String, enum: ["local", "google"], default: "local" }, // Track authentication provider
     
     image: { type: String, default: "" }, 
-    isActive: { type: Boolean, required: true },
+    isActive: { type: Boolean},
+
+    vehicules: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vehicule"
+    }],
 
     twoFactorSecret: { 
       type: String, 
@@ -56,14 +61,7 @@ const UserSchema = new mongoose.Schema(
       type: Boolean, 
       default: false 
     },
-    twoFactorCode: {
-      type: String,
-      default: null
-  },
-    twoFactorExpires: {
-      type: Date,
-      default: null
-  }  ,
+
 
     resetToken: { 
       type: String, default: null
