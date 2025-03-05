@@ -143,15 +143,29 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  console.log('logiinnn')
   try {
+    
+    
+    console.log('hi')
     const { email, password } = req.body;
 
+    // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     console.log("User activation status:", user.isActive);
+    if (!user) {
+      // Throw a 400 error if the user is not found
+      throw { status: 400, message: "Email not found. Please check your email address." };
+    }
+    console.log(user)
+    // Check if the account is activated
+    if (!user.isActive) {
+      return res.status(400).json({ message: "Account is not activated. Please check your email." });
+    }
 
     
       if (!user.isActive) {
@@ -180,10 +194,18 @@ exports.login = async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
+    // Return token and user data
     res.json({ token, user });
   } catch (error) {
-    console.error("Error logging in:", error.message);
-    res.status(500).json({ message: "Server error" });
+    // Catch and handle errors
+    console.error("Error in login function:", error.message || error);
+
+    // Check if the error has a status code
+    const statusCode = error.status || 500;
+    const message = error.message || "Server error";
+
+    // Send the appropriate response
+    res.status(statusCode).json({ message });
   }
 };
 
@@ -264,6 +286,9 @@ exports.logout = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
 
 exports.getProfile = async (req, res) => {
   try {
