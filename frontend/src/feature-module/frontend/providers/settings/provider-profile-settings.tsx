@@ -1,25 +1,34 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ImageWithBasePath from "../../../../core/img/ImageWithBasePath";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
+
 
 const ProviderProfileSettings: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
   const [user, setUser] = useState({
     firstname: "",
     lastname: "",
     email: "",
     phone: "",
+    image: "",
   });
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-
     axios
       .get("http://localhost:4000/api/auth/profile", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
-      .then((res) => setUser(res.data))
+      .then((res) => {
+        setUser(res.data);
+        if (res.data.image) {
+          setImagePreview(res.data.image);
+        }
+      })
       .catch((err) => console.error(err));
   }, []);
 
@@ -29,38 +38,42 @@ const ProviderProfileSettings: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
+
     const formData = new FormData();
     formData.append("firstname", user.firstname);
     formData.append("lastname", user.lastname);
     formData.append("phone", user.phone);
     formData.append("email", user.email);
 
+    if (image) {
+      formData.append("image", image);
+    }
+
     try {
       const res = await axios.put("http://localhost:4000/api/auth/profile", formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
       });
 
-
-      console.log('Updated Profile:', res.data);
-
-
       setUser(res.data);
+      if (res.data.image) {
+        setImagePreview(res.data.image);
+      }
 
-      axios
-        .get("http://localhost:4000/api/auth/profile", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        })
-        .then((res) => setUser(res.data))
-        .catch((err) => console.error("Error refetching profile:", err));
+      setAlert({ type: "success", message: "Profile updated successfully!" });
 
-      alert("Profile updated successfully!");
-
+      const profileRes = await axios.get("http://localhost:4000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setUser(profileRes.data);
     } catch (error) {
       console.error(error);
-      alert("Error updating profile.");
+      setAlert({ type: "error", message: "Error updating profile. Please try again." });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,12 +81,33 @@ const ProviderProfileSettings: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImage(file);
-      setImagePreview(URL.createObjectURL(file)); // Generate preview URL
+      setImagePreview(URL.createObjectURL(file));
     }
   };
+
   return (
     <div className="page-wrapper">
       <div className="content container-fluid">
+        {alert && (
+          <div className={`alert alert-${alert.type === "success" ? "success" : "danger"}`}>
+            {alert.message}
+            <button
+              type="button"
+              className="close"
+              onClick={() => setAlert(null)}
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        )}
+        {isLoading && (
+          <div className="loading-spinner">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        )}
         <div className="card-body">
           <h6 className="user-title">Profile Picture</h6>
           <div className="pro-picture">
@@ -86,7 +120,7 @@ const ProviderProfileSettings: React.FC = () => {
                 />
               ) : (
                 <ImageWithBasePath
-                  src="assets/img/user/user-02.jpg"
+                  src="assets/img/user.jpg"
                   alt="user"
                   className="img-fluid rounded-circle"
                 />
@@ -125,7 +159,6 @@ const ProviderProfileSettings: React.FC = () => {
           </div>
         </div>
         <h5>Account Settings</h5>
-
         <div className="card">
           <div className="card-body">
             <h6 className="user-title">General Information</h6>
@@ -140,7 +173,6 @@ const ProviderProfileSettings: React.FC = () => {
                   onChange={handleChange}
                 />
               </div>
-
               <div className="mb-3">
                 <label>Last Name</label>
                 <input
@@ -151,7 +183,6 @@ const ProviderProfileSettings: React.FC = () => {
                   onChange={handleChange}
                 />
               </div>
-
               <div className="mb-3">
                 <label>Email</label>
                 <input
@@ -162,7 +193,6 @@ const ProviderProfileSettings: React.FC = () => {
                   readOnly
                 />
               </div>
-
               <div className="mb-3">
                 <label>Phone</label>
                 <input
@@ -173,9 +203,8 @@ const ProviderProfileSettings: React.FC = () => {
                   onChange={handleChange}
                 />
               </div>
-
-              <button type="submit" className="btn btn-primary">
-                Save Changes
+              <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                {isLoading ? "Saving..." : "Save Changes"}
               </button>
             </form>
           </div>

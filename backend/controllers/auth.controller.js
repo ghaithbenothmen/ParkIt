@@ -240,8 +240,9 @@ exports.verifyActivation = async (req, res) => {
 };
 
 
-
 exports.updateProfile = async (req, res) => {
+  console.log("Request Body:", req.body);
+  console.log("Request File:", req.file);
   upload(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ message: "Image upload failed", error: err.message });
@@ -253,8 +254,9 @@ exports.updateProfile = async (req, res) => {
       let updatedData = { firstname, lastname, phone, email };
 
       if (req.file) {
-        updatedData.image = req.file.path; // Cloudinary URL or local path
+        updatedData.image = req.file.path; // Cloudinary URL
       }
+
 
       const updatedUser = await User.findByIdAndUpdate(
         req.user.id,
@@ -270,7 +272,6 @@ exports.updateProfile = async (req, res) => {
     } catch (error) {
       console.error("Error updating profile:", error);
       res.status(500).json({ message: error.message });
-
     }
   });
 };

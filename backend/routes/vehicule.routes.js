@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const vehiculeController = require("../controllers/vehicule.controller");
-lete("/:id", vehiculeController.deleteVehicule );
-
 const authMiddleware = require("../middleware/auth");
 
 router.get("/:userId", authMiddleware, vehiculeController.getAllVehiculesByUser);
