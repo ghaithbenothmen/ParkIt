@@ -18,7 +18,7 @@ const Dashboard = () => {
   const routes = all_routes;
   
     const [userCount, setUserCount] = useState(null); // Initialize as null
-  
+    const [parcCount, setParcCount] = useState(null); 
     // Function to fetch user count from API
     const fetchUserCount = async () => {
       try {
@@ -28,9 +28,25 @@ const Dashboard = () => {
         console.error('Error fetching user count:', error);
       }
     };
+
+
+    const fetchParkingCount = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/parking/parc/count'); // Replace with your API endpoint
+        setParcCount(response.data.count); // Assuming your API response has a `count` field
+      } catch (error) {
+        console.error('Error fetching parc count:', error);
+      }
+    };
   
+
+    
     useEffect(() => {
       fetchUserCount(); // Fetch user count on component mount
+    }, []);
+
+    useEffect(() => {
+      fetchParkingCount(); // Fetch user count on component mount
     }, []);
 
   const serviceImage1 = (rowData: AdminDashboardInterface) => {
@@ -362,9 +378,9 @@ const Dashboard = () => {
                           alt="img"
                           className="me-2"
                         />
-                        <span className="counters" data-count={18}>
-                          18
-                        </span>
+                        <span className="counters" data-count={30}>
+                        {parcCount !== null ? parcCount : 'Loading...'}
+                        </span> 
                       </div>
                     </div>
                     

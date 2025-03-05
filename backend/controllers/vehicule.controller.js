@@ -26,7 +26,9 @@ exports.ajouterVehicule = async (req, res) => {
 
 exports.getAllVehiculesByUser = async (req, res) => {
     try {
+
         const userId = req.params.userId; // Récupérez l'ID de l'utilisateur depuis les paramètres
+
 
         // Trouver tous les véhicules appartenant à cet utilisateur
         const vehicules = await Vehicule.find({ user: userId });
@@ -40,6 +42,7 @@ exports.getAllVehiculesByUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 exports.getAllVehicules = async (req, res) => {
     try {
@@ -55,6 +58,7 @@ exports.getAllVehicules = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 
 exports.modifierVehicule = async (req, res) => {
