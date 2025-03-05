@@ -1,9 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const vehiculeController = require("../controllers/vehicule.controller");
+lete("/:id", vehiculeController.deleteVehicule );
 
-router.get("/:userId", vehiculeController.getAllVehiculesByUser);
+const authMiddleware = require("../middleware/auth");
+
+router.get("/:userId", authMiddleware, vehiculeController.getAllVehiculesByUser);
 router.post("/", vehiculeController.ajouterVehicule);
 router.put("/:id", vehiculeController.modifierVehicule);
 router.delete("/:id", vehiculeController.deleteVehicule );
+router.get('/', vehiculeController.getAllVehicules);
+
 module.exports = router;

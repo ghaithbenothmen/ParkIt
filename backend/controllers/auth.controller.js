@@ -23,9 +23,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-
-
-
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -41,7 +38,6 @@ const storage = new CloudinaryStorage({
     public_id: (req, file) => Date.now() + "-" + file.originalname,
   },
 });
-
 
 const upload = multer({ storage }).single("image");
 
@@ -156,6 +152,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    console.log("User activation status:", user.isActive);
     if (!user) {
       // Throw a 400 error if the user is not found
       throw { status: 400, message: "Email not found. Please check your email address." };
@@ -166,23 +163,29 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Account is not activated. Please check your email." });
     }
 
-    // Check the authentication provider
+    
+      if (!user.isActive) {
+        console.log("Account not activated for email:", email);
+        return res.status(400).json({ message: "Account is not activated. Please check your email." });
+      }
+
+    // Vérifier le fournisseur d'authentification
     if (user.authUser === "google") {
       return res.status(400).json({ message: "Please log in with Google" });
     }
 
-    // Verify the password for regular users
+    // Vérifier le mot de passe pour les utilisateurs locaux
     const isMatch = await argon2.verify(user.password, password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // If 2FA is enabled, require 2FA verification
+    // Si la 2FA est activée, exiger une vérification 2FA
     if (user.twoFactorEnabled) {
       return res.status(200).json({ message: "2FA required", user });
     }
 
-    // Generate a JWT token
+    // Générer un token JWT
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
@@ -238,19 +241,39 @@ exports.verifyActivation = async (req, res) => {
 
 
 
-
-exports.getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password"); // Exclude password from the response
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+exports.updateProfile = async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Image upload failed", error: err.message });
     }
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
+    try {
+      const { firstname, lastname, phone, email } = req.body;
+
+      let updatedData = { firstname, lastname, phone, email };
+
+      if (req.file) {
+        updatedData.image = req.file.path; // Cloudinary URL or local path
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        updatedData,
+        { new: true }
+      ).select("-password");
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: error.message });
+
+    }
+  });
+};
 
 exports.logout = async (req, res) => {
   try {
@@ -275,56 +298,6 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-exports.requestPasswordReset = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Generate a reset token
-    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "10m", // 10 minutes
-    });
-
-    user.resetToken = resetToken;
-    user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
-    await user.save();
-
-    // Send the reset link via email
-    const resetLink = `http://localhost:3000/react/template/authentication/emailForgetPassword?token=${resetToken}`;
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: user.email,
-      subject: "Password Reset Request",
-      html: `
-          <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
-            <h1 style="color: #333;">Reset Your Password</h1>
-            <p style="color: #555;">You requested a password reset. Click the button below to reset your password:</p>
-            <a href="${resetLink}" style="display: inline-block; background-color: #007bff; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold;">Reset Password</a>
-            <p style="color: #999; font-size: 14px;">This link will expire in 10 minutes.</p>
-            <p style="color: #777; font-size: 12px;">If you did not request this, please ignore this email or contact support.</p>
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-            <p style="color: #666; font-size: 12px;">&copy; 2025 Your Company. All rights reserved.</p>
-          </div>
-            `,
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    res.status(200).json({ message: "Password reset link sent to your email", resetLink });
-  } catch (error) {
-    console.error("Request Password Reset Error:", error);
-
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-
-
 exports.googleAuth = async (req, res) => {
   const code = req.query.code;
 
@@ -373,6 +346,87 @@ exports.googleAuth = async (req, res) => {
   }
 };
 
+exports.requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "10m", 
+    });
+
+    user.resetToken = resetToken;
+    user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save();
+
+    // Send the reset link via email
+    const resetLink = `http://localhost:3000/authentication/emailForgetPassword?token=${resetToken}`;
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Password Reset Request",
+      html: 
+      `
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+      
+      <!-- Header -->
+      <div style="background-color: #007bff; padding: 10px; border-radius: 10px 10px 0 0;">
+        <img src="https://drive.google.com/uc?export=view&id=1hYiYnwo9GrDfF7lT-bvaDbRKabeNJr9F" alt="ParkIt" style="width: 50px; display: block; margin: auto;">
+      </div>
+
+      <!-- Body -->
+      <h1 style="color: #333;">Reset Your Password</h1>
+      <p style="color: #555;">You requested a password reset. Click the button below to reset your password:</p>
+
+      <a href="${resetLink}" 
+         style="display: inline-block; background-color: #007bff; color: #fff; text-decoration: none; 
+         padding: 12px 20px; border-radius: 5px; font-weight: bold; font-size: 16px;">
+        Reset Password
+      </a>
+
+      <p style="color: #999; font-size: 14px; margin-top: 20px;">This link will expire in 10 minutes.</p>
+      <p style="color: #777; font-size: 12px;">If you did not request this, please ignore this email or contact support.</p>
+
+      <!-- Footer -->
+      <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+      <p style="color: #666; font-size: 12px;">&copy;2025 - All Rights Reserved Parkit</p>
+
+      <!-- Social Media Icons -->
+      <div style="margin-top: 10px;">
+        <a href="https://facebook.com/yourcompany" target="_blank" style="text-decoration: none; margin: 0 10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width: 24px;">
+        </a>
+        <a href="mailto:support@yourcompany.com" style="text-decoration: none; margin: 0 10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email" style="width: 24px;">
+        </a>
+        <a href="https://wa.me/1234567890" target="_blank" style="text-decoration: none; margin: 0 10px;">
+          <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" style="width: 24px;">
+        </a>
+      </div>
+
+      <p style="color: #666; font-size: 12px; margin-top: 10px;">
+        Contact us: <a href="mailto:support@yourcompany.com" style="color: #007bff; text-decoration: none;">pi.parkit@gmail.com</a>
+      </p>
+            <p style="color: #666; font-size: 12px;">&copy;2025 - All Rights Reserved Parkit</p>
+    </div>
+  `,
+  
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: "Password reset link sent to your email", resetLink });
+  } catch (error) {
+    console.error("Request Password Reset Error:", error);
+
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 exports.resetPassword = async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -381,12 +435,8 @@ exports.resetPassword = async (req, res) => {
     if (!token) {
       return res.status(400).json({ message: "Token is required" });
     }
-
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    
     const user = await User.findOne({
-      _id: decoded.id,
       resetToken: token, 
       resetTokenExpire: { $gt: Date.now() },
     });
@@ -395,10 +445,8 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired token" });
     }
 
-    const hashedPassword = await argon2.hash(newPassword);
-
-    // Update the user's password and clear the reset token
-    user.password = hashedPassword;
+    // Ne pas hacher ici, car le middleware pre-save le fera automatiquement
+    user.password = newPassword; 
     user.resetToken = null;
     user.resetTokenExpire = null;
     await user.save();
@@ -406,9 +454,6 @@ exports.resetPassword = async (req, res) => {
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     console.error("Reset Password Error:", error);
-    if (error.name === "TokenExpiredError") {
-      return res.status(400).json({ message: "Token has expired" });
-    }
     res.status(500).json({ message: "Server error" });
 
   }
@@ -450,7 +495,6 @@ exports.verify2FA = async (req, res) => {
   }
 
   try {
-    // Find the user by email
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -469,10 +513,6 @@ exports.verify2FA = async (req, res) => {
       token: code,
       window: 1, // Allow a 30-second window for code validation
     });
-    console.log("2FA Verification Result:", verified);
-    console.log("2FA Verification Code:", code);
-    console.log("2FA user:", user);
-    console.log("2FA Secret:", user.twoFactorSecret);
 
     if (!verified) {
       return res.status(400).json({ message: "Invalid 2FA code" });
@@ -490,3 +530,54 @@ exports.verify2FA = async (req, res) => {
   }
 };
 
+exports.disable2FA = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.twoFactorSecret = null;
+    user.twoFactorEnabled = false;
+    await user.save();
+
+    res.status(200).json({ message: "2FA has been disabled" });
+  } catch (error) {
+    console.error("Disable 2FA Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.updatePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id; // Ensure this is correctly populated by the middleware
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Verify the current password using argon2
+    const isMatch = await argon2.verify(user.password, currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+    }
+
+    // Hash the new password using argon2
+    const hashedPassword = await argon2.hash(newPassword);
+
+    // Update the user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Return success response
+    res.json({ success: true, message: 'Password changed successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ success: false, message: 'Failed to change password.' });
+  }
+};
