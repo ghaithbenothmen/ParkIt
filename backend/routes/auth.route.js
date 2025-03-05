@@ -7,18 +7,23 @@ const authMiddleware = require("../middleware/auth");
 router.post("/register", userController.register);
 router.post("/login", userController.login);
 router.get("/profile", authMiddleware, userController.getProfile);
+router.put("/profile", authMiddleware, userController.updateProfile);
 router.post("/logout", userController.logout);
 
 router.get("/verify/:token", userController.verifyActivation); // Ensure this route exists
 
-router.post("/verify-2fa", userController.verify2FA); // Use the existing verify2FA function
-router.post("/enable-2fa", userController.enable2FA); // Use the existing enable2FA function
+router.post("/verify-2fa", userController.verify2FA); 
+router.post("/enable-2fa", userController.enable2FA); 
+router.post("/disable-2fa", userController.disable2FA);
 
 router.get("/google", userController.googleAuth);
 router.post("/google", userController.googleAuth);
 
 router.post("/request-reset", userController.requestPasswordReset);
 router.post("/reset-password", userController.resetPassword);
+
+
+router.post("/change-password", authMiddleware,userController.updatePassword);
 
 
 module.exports = router;
