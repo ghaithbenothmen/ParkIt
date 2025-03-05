@@ -506,3 +506,34 @@ exports.disable2FA = async (req, res) => {
   }
 };
 
+exports.updatePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id; // Ensure this is correctly populated by the middleware
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Verify the current password using argon2
+    const isMatch = await argon2.verify(user.password, currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+    }
+
+    // Hash the new password using argon2
+    const hashedPassword = await argon2.hash(newPassword);
+
+    // Update the user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Return success response
+    res.json({ success: true, message: 'Password changed successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ success: false, message: 'Failed to change password.' });
+  }
+};

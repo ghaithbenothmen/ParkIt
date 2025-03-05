@@ -4,6 +4,7 @@ import { all_routes } from '../../../../core/data/routes/all_routes';
 import PhoneInput from 'react-phone-input-2';
 import axios from 'axios';
 import SuccessModal from '../../../../modals/SuccessModal';
+import { Modal } from 'bootstrap';
 
 const ProviderSecuritySettings = () => {
   const routes = all_routes;
@@ -37,7 +38,34 @@ const ProviderSecuritySettings = () => {
   const user = storedUser ? JSON.parse(storedUser) : null; // Get user data from local storage
   const email = user?.email; // Extract the user's email
 
-  
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordValidation, setPasswordValidation] = useState({
+    hasMinLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
+
+  const validatePassword = (password: string) => {
+    const hasMinLength = password.length >= 8;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    setPasswordValidation({
+      hasMinLength,
+      hasUppercase,
+      hasLowercase,
+      hasNumber,
+      hasSpecialChar,
+    });
+  };
+
   useEffect(() => {
     const fetch2FAStatus = async () => {
       try {
@@ -98,6 +126,68 @@ const ProviderSecuritySettings = () => {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    // Validate new password and confirm password
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('New passwords do not match.');
+      return;
+    }
+  
+    // Validate password strength
+    if (
+      !passwordValidation.hasMinLength ||
+      !passwordValidation.hasUppercase ||
+      !passwordValidation.hasLowercase ||
+      !passwordValidation.hasNumber ||
+      !passwordValidation.hasSpecialChar
+    ) {
+      setPasswordError('Password does not meet the requirements.');
+      return;
+    }
+  
+    try {
+      const response = await axios.post(
+        'http://localhost:4000/api/auth/change-password',
+        {
+          currentPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+  
+      if (response.data.success) {
+        setSuccessMessage('Password changed successfully!');
+        setShowSuccessModal(true);
+  
+        // Clear the form fields and error message
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setPasswordError('');
+  
+        // Hide the change password modal
+        const changePasswordModal = document.getElementById('change-password');
+        if (changePasswordModal) {
+          const modalInstance = Modal.getInstance(changePasswordModal);
+          if (modalInstance) {
+            modalInstance.hide();
+          }
+        }
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setPasswordError('Failed to change password. Please try again.');
+    }
+  };
+
+  
   return (
     <>
       {/* Page Wrapper */}
@@ -402,7 +492,7 @@ const ProviderSecuritySettings = () => {
               </Link>
             </div>
             <div className="modal-body p-4">
-              <form >
+              <form onSubmit={handleChangePassword}>
                 <div className="mb-3">
                   <label className="form-label">Current Password</label>
                   <div className="pass-group">
@@ -410,6 +500,8 @@ const ProviderSecuritySettings = () => {
                       type={selectedItems[1] ? 'text' : 'password'}
                       className="form-control pass-input"
                       placeholder="*************"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
                     />
                     <span onClick={() => handleItemClick(1)} className={`toggle-password feather ${selectedItems[1] ? 'icon-eye' : 'icon-eye-off'}`} />
                   </div>
@@ -421,6 +513,11 @@ const ProviderSecuritySettings = () => {
                       type={selectedItems[2] ? 'text' : 'password'}
                       className="form-control pass-input"
                       placeholder="*************"
+                      value={newPassword}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        validatePassword(e.target.value);
+                      }}
                     />
                     <span onClick={() => handleItemClick(2)} className={`toggle-password feather ${selectedItems[2] ? 'icon-eye' : 'icon-eye-off'}`} />
                   </div>
@@ -430,6 +527,23 @@ const ProviderSecuritySettings = () => {
                     <span id="strong" />
                     <span id="heavy" />
                   </div>
+                  <div className="password-validation-feedback">
+                    <div className={`validation-rule ${passwordValidation.hasMinLength ? 'valid' : 'invalid'}`}>
+                      {passwordValidation.hasMinLength ? '✓' : '✗'} At least 8 characters
+                    </div>
+                    <div className={`validation-rule ${passwordValidation.hasUppercase ? 'valid' : 'invalid'}`}>
+                      {passwordValidation.hasUppercase ? '✓' : '✗'} At least 1 uppercase letter
+                    </div>
+                    <div className={`validation-rule ${passwordValidation.hasLowercase ? 'valid' : 'invalid'}`}>
+                      {passwordValidation.hasLowercase ? '✓' : '✗'} At least 1 lowercase letter
+                    </div>
+                    <div className={`validation-rule ${passwordValidation.hasNumber ? 'valid' : 'invalid'}`}>
+                      {passwordValidation.hasNumber ? '✓' : '✗'} At least 1 number
+                    </div>
+                    <div className={`validation-rule ${passwordValidation.hasSpecialChar ? 'valid' : 'invalid'}`}>
+                      {passwordValidation.hasSpecialChar ? '✓' : '✗'} At least 1 special character
+                    </div>
+                  </div>
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Confirm New Password</label>
@@ -438,25 +552,39 @@ const ProviderSecuritySettings = () => {
                       type={selectedItems[3] ? 'text' : 'password'}
                       className="form-control pass-input"
                       placeholder="*************"
+                      value={confirmNewPassword}
+                      onChange={(e) => {
+                        setConfirmNewPassword(e.target.value);
+                        if (newPassword !== e.target.value) {
+                          setPasswordError('New passwords do not match.');
+                        } else {
+                          setPasswordError('');
+                        }
+                      }}
                     />
                     <span onClick={() => handleItemClick(3)} className={`toggle-password feather ${selectedItems[3] ? 'icon-eye' : 'icon-eye-off'}`} />
                   </div>
+                  {passwordError && (
+                    <div className="alert alert-danger mt-3" role="alert">
+                      {passwordError}
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer border-top">
+                  <div className="acc-submit">
+                    <Link
+                      to="#"
+                      className="btn btn-light me-2"
+                      data-bs-dismiss="modal"
+                    >
+                      Cancel
+                    </Link>
+                    <button className="btn btn-dark" type="submit">
+                      Update Password
+                    </button>
+                  </div>
                 </div>
               </form>
-            </div>
-            <div className="modal-footer border-top">
-              <div className="acc-submit">
-                <Link
-                  to="#"
-                  className="btn btn-light me-2"
-                  data-bs-dismiss="modal"
-                >
-                  Cancel
-                </Link>
-                <button className="btn btn-dark" type="button" data-bs-dismiss="modal">
-                  Update Password
-                </button>
-              </div>
             </div>
           </div>
         </div>
