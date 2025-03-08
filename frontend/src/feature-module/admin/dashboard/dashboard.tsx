@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import ReactApexChart from 'react-apexcharts';
 import { DataTable } from 'primereact/datatable';
@@ -15,7 +16,38 @@ import { AdminDashboardThree } from '../../../core/data/json/admin-dashboard3';
 
 const Dashboard = () => {
   const routes = all_routes;
- 
+  
+    const [userCount, setUserCount] = useState(null); // Initialize as null
+    const [parcCount, setParcCount] = useState(null); 
+    // Function to fetch user count from API
+    const fetchUserCount = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/users/users/count'); // Replace with your API endpoint
+        setUserCount(response.data.count); // Assuming your API response has a `count` field
+      } catch (error) {
+        console.error('Error fetching user count:', error);
+      }
+    };
+
+
+    const fetchParkingCount = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/parking/parc/count'); // Replace with your API endpoint
+        setParcCount(response.data.count); // Assuming your API response has a `count` field
+      } catch (error) {
+        console.error('Error fetching parc count:', error);
+      }
+    };
+  
+
+    
+    useEffect(() => {
+      fetchUserCount(); // Fetch user count on component mount
+    }, []);
+
+    useEffect(() => {
+      fetchParkingCount(); // Fetch user count on component mount
+    }, []);
 
   const serviceImage1 = (rowData: AdminDashboardInterface) => {
     const [service] = rowData.service.split('\n');
@@ -240,7 +272,7 @@ const Dashboard = () => {
                           alt="img"
                         />
                       </span>
-                      <h6>User</h6>
+                      <h6>Total User</h6>
                     </div>
                     <div className="home-useraction">
                       <Link
@@ -279,105 +311,30 @@ const Dashboard = () => {
                           className="me-2"
                         />
                         <span className="counters" data-count={30}>
-                          30
-                        </span>
+                        {userCount !== null ? userCount : 'Loading...'}
+                        </span> 
                       </div>
-                      <h5> Current Month</h5>
                     </div>
-                    <div className="homegraph">
-                      <ImageWithBasePath
-                        src="assets/admin/img/graph/graph1.png"
-                        alt="img"
-                      />
-                    </div>
+                    
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col-lg-3 col-sm-6 col-12 d-flex widget-path widget-service">
-            <div className="card">
-              <div className="card-body">
-                <div className="home-user home-provider">
-                  <div className="home-userhead">
-                    <div className="home-usercount">
-                      <span>
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/user-circle.svg"
-                          alt="img"
-                        />
-                      </span>
-                      <h6>Providers</h6>
-                    </div>
-                    <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
-                        <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                      </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link
-                            to={routes.userProviders}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="dropdown-item">
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="home-usercontent">
-                    <div className="home-usercontents">
-                      <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
-                        <span className="counters" data-count={25}>
-                          25
-                        </span>
-                      </div>
-                      <h5> Current Month</h5>
-                    </div>
-                    <div className="homegraph">
-                      <ImageWithBasePath
-                        src="assets/admin/img/graph/graph2.png"
-                        alt="img"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          
+           
+                     
+                      
           <div className="col-lg-3 col-sm-6 col-12 d-flex widget-path widget-service">
             <div className="card">
               <div className="card-body">
                 <div className="home-user home-service">
                   <div className="home-userhead">
                     <div className="home-usercount">
-                      <span>
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/service.svg"
-                          alt="img"
-                        />
-                      </span>
-                      <h6>Service</h6>
+                    <span>
+  <i className="fas fa-parking"></i>
+</span>
+                      <h6>Parking</h6>
                     </div>
                     <div className="home-useraction">
                       <Link
@@ -421,18 +378,12 @@ const Dashboard = () => {
                           alt="img"
                           className="me-2"
                         />
-                        <span className="counters" data-count={18}>
-                          18
-                        </span>
+                        <span className="counters" data-count={30}>
+                        {parcCount !== null ? parcCount : 'Loading...'}
+                        </span> 
                       </div>
-                      <h5> Current Month</h5>
                     </div>
-                    <div className="homegraph">
-                      <ImageWithBasePath
-                        src="assets/admin/img/graph/graph3.png"
-                        alt="img"
-                      />
-                    </div>
+                    
                   </div>
                 </div>
               </div>
@@ -450,7 +401,7 @@ const Dashboard = () => {
                           alt="img"
                         />
                       </span>
-                      <h6>Subscription</h6>
+                      <h6>Income</h6>
                     </div>
                     <div className="home-useraction">
                       <Link
@@ -495,14 +446,9 @@ const Dashboard = () => {
                           $650
                         </span>
                       </div>
-                      <h5> Current Month</h5>
+                      
                     </div>
-                    <div className="homegraph">
-                      <ImageWithBasePath
-                        src="assets/admin/img/graph/graph4.png"
-                        alt="img"
-                      />
-                    </div>
+                    
                   </div>
                 </div>
               </div>
@@ -515,7 +461,7 @@ const Dashboard = () => {
               <div className="card-body">
                 <div className="home-user">
                   <div className="home-head-user">
-                    <h2>Revenue</h2>
+                    <h2>Income</h2>
                     <div className="home-select">
                       <div className="dropdown">
                         <button
@@ -676,7 +622,7 @@ const Dashboard = () => {
               <div className="card-body">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Top Services</h2>
+                    <h2>Top Parking</h2>
                     <Link to={routes.allServices} className="btn btn-viewall">
                       View All
                       <ImageWithBasePath
@@ -722,7 +668,7 @@ const Dashboard = () => {
               <div className="card-body">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Top Providers</h2>
+                    <h2>Top Users</h2>
                     <Link to={routes.provider} className="btn btn-viewall">
                       View All
                       <ImageWithBasePath

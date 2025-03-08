@@ -38,11 +38,13 @@ const AuthModals = () => {
   const [forgotResponse, setForgotResponse] = useState<string>('');
   const [twoFACode, setTwoFACode] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
-  const [show2FAPopup, setShow2FAPopup] = useState<boolean>(false);
+  const [show2FAModal, setShow2FAModal] = useState<boolean>(false);
   const [showPhoneModal, setShowPhoneModal] = useState<boolean>(false);
   const [showEmailConfirmation, setShowEmailConfirmation] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [twoFAError, setTwoFAError] = useState<string | null>(null);
 
+  
   const navigate = useNavigate();
 
 
@@ -53,6 +55,35 @@ const AuthModals = () => {
     hasNumber: false,
     hasSpecialChar: false,
   });
+
+  useEffect(() => {
+    console.log("Updated show2FAModal:", show2FAModal);
+  
+    if (show2FAModal) {
+      // Hide the login modal first
+      const loginModalElement = document.getElementById('login-modal');
+      if (loginModalElement) {
+        const loginBsModal = Modal.getInstance(loginModalElement);
+        if (loginBsModal) {
+          loginBsModal.hide();
+        }
+      }
+  
+    
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+  
+
+    
+        const twoFAModalElement = document.getElementById('2fa-verification-modal');
+        if (twoFAModalElement) {
+          const twoFAModal = new Modal(twoFAModalElement);
+          twoFAModal.show();
+        }
+    
+    }
+  }, [show2FAModal]);
+  
+  
 
 
   useEffect(() => {
@@ -193,15 +224,12 @@ const AuthModals = () => {
 
   const handleRegisterSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const userData = { firstname, lastname, email, phone, password, enable2FA: false }; // Default to false
+    const userData = { firstname, lastname, email, phone, password }; // Remove enable2FA
 
     try {
       const response = await register(userData);
       setRegistrationSuccess(true);
-      setSuccessMessage('Registration successful!');
-
-      // Show the 2FA popup
-      setShow2FAPopup(true);
+      setSuccessMessage('Registration successful! Please check your email to activate your account.');
 
       // Show the email confirmation popup
       setShowEmailConfirmation(true);
@@ -211,6 +239,9 @@ const AuthModals = () => {
         const bsRegisterModal = Modal.getInstance(registerModal);
         bsRegisterModal?.hide();
       }
+
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+    document.body.classList.remove('modal-open');
     } catch (error: any) {
       console.error('Error during registration:', error);
       setRegisterError(error.message);
@@ -230,8 +261,81 @@ const AuthModals = () => {
       }
     }; 
    */
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    validateEmail(email);
+
+    if (error || password.length < 8) {
+      return;
+    }
+
+    try {
+      const data = await login(email, password);
+      console.log('Login response:', data);
+
+      // Check if the account is activated
+      if (!data.user.isActive) {
+        setError("Account is not activated. Please check your email.");
+        return;
+      }
+
+      // Check if 2FA is enabled for the user
+      if (data.user.twoFactorEnabled) {
+        console.log('2FA is enabled for this user.');
+        console.log("Setting show2FAPopup to:", show2FAModal);
+
+        setShow2FAModal(true);
+        console.log("Setting show2FAPopup to:", show2FAModal);
+
+        setEmail(data.user.email); // Save the email for 2FA verification
+        return; // Stop here and wait for the 2FA code
+      }
+
+      // If 2FA is not enabled, proceed to login
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      const modal = document.getElementById('login-modal');
+      if (modal) {
+        const bsModal = Modal.getInstance(modal);
+        bsModal?.hide();
+      }
+
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+      document.body.classList.remove('modal-open');
+
+      const role = data.user?.role || 'user';
+      localStorage.setItem('role', role);
+
+      console.log('Login successful. Role:', role);
+      setTimeout(() => {
+        navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+      }, 100);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.response) {
+        if (error.response?.data?.message) {
+          setError(error.response.data.message);
+        } else if (error.response.statusText) {
+          setError(error.response.statusText);
+        } else {
+          setError("An unexpected error occurred. Please try again.");
+        }
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    }
+  };
+
   const handleVerify2FA = async () => {
     try {
+      console.log('Verifying 2FA code...');
+      console.log('Email:', email);
+      console.log('2FA Code:', twoFACode);
+
       const response = await axios.post('http://localhost:4000/api/auth/verify-2fa', {
         email,
         code: twoFACode,
@@ -240,8 +344,9 @@ const AuthModals = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      //alert('2FA verification successful!');
-      const modal = document.getElementById('register-modal');
+      console.log('2FA verification successful. Token:', response.data.token);
+
+      const modal = document.getElementById('login-modal');
       if (modal) {
         const bsModal = Modal.getInstance(modal);
         bsModal?.hide();
@@ -249,73 +354,27 @@ const AuthModals = () => {
 
       document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
       document.body.classList.remove('modal-open');
-      navigate('/providers/dashboard');
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      const errorMessage = axiosError.response?.data?.message || 'Invalid 2FA code';
-      alert(errorMessage);
-      console.error('2FA verification error:', axiosError.response?.data || axiosError.message);
-    }
-  };
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    validateEmail(email);
-  
-    console.log('email', email);
-    console.log('password', password
-    );
-    if (error || password.length < 8) {
-      return;
-    }
-  
-    try {
-      const data = await login(email, password);
-  
-      // Vérifier si le compte est activé
-      if (!data.user.isActive) {
-        setError("Account is not activated. Please check your email.");
-        return; // Arrêter le processus de connexion
-      }
-  
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-  
-      const modal = document.getElementById('register-modal');
-      if (modal) {
-        const bsModal = Modal.getInstance(modal);
-        bsModal?.hide();
-      }
-  
-      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-      document.body.classList.remove('modal-open');
-  
-      const role = data.user?.role || 'user';
+      const role = response.data.user?.role || 'user';
       localStorage.setItem('role', role);
-  
+
+      console.log('Role:', role);
       setTimeout(() => {
         navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
       }, 100);
     } catch (error: any) {
-      console.log("Full error response:", error.response); // Ajoutez ce log pour déboguer
-      if (error.response) {
-        // Si la réponse contient un message d'erreur
-if (error.response?.data?.message) {
-          setError(error.response.data.message);
-        } else if (error.response.statusText) {
-          setError(error.response.statusText); // Utiliser le texte du statut HTTP si le message n'est pas disponible
-        } else {
-          setError("An unexpected error occurred. Please try again.");
-        }
-      } else if (error.message) {
-        setError(error.message); // Utiliser le message d'erreur générique si la réponse n'est pas disponible
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
+      console.error("2FA Verification Error:", error);
+    
+    if (error.response?.data?.message) {
+      setTwoFAError(error.response.data.message);
+    } else {
+      setTwoFAError("Invalid 2FA code. Please try again.");
+    }
+
     }
   };
 
-  
+
 
 
 
@@ -359,19 +418,19 @@ if (error.response?.data?.message) {
     }
   }, []);
 
-  const handleSkip2FA = () => {
-    // Hide the 2FA popup
-    setShow2FAPopup(false);
-
-    // Remove the modal backdrop
-    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
-
-    // Remove the 'modal-open' class from the body
-    document.body.classList.remove('modal-open');
-
-    navigate('/home');
-
-  };
+  /*   const handleSkip2FA = () => {
+      // Hide the 2FA popup
+      setShow2FAPopup(false);
+  
+      // Remove the modal backdrop
+      document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+  
+      // Remove the 'modal-open' class from the body
+      document.body.classList.remove('modal-open');
+  
+      navigate('/home');
+  
+    }; */
 
   return (
     <>
@@ -453,49 +512,36 @@ if (error.response?.data?.message) {
           </div>
         </>
       )}
-      {show2FAPopup && (
-        <div className="modal fade show" id="2fa-popup-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
+      {show2FAModal && (
+        <div className="modal fade show" id="2fa-verification-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-                <Link to="#" onClick={() => setShow2FAPopup(false)} aria-label="Close">
-                  <i className="ti ti-circle-x-filled fs-20" />
-                </Link>
+            
               </div>
               <div className="modal-body p-4">
                 <div className="text-center mb-3">
-                  <h3 className="mb-2">Enable Two-Factor Authentication (2FA)</h3>
-                  <p>Do you want to enable 2FA for added security?</p>
+                  <h3 className="mb-2">Two-Factor Authentication</h3>
+                  <p>Enter the 6-digit code from your authenticator app.</p>
+                </div>
+                <div className="mb-3">
+                {twoFAError && <div className="alert alert-danger">{twoFAError}</div>}
+                  <label className="form-label">2FA Code</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter 6-digit code"
+                    value={twoFACode}
+                    onChange={(e) => setTwoFACode(e.target.value)}
+                  />
                 </div>
                 <div className="mb-3">
                   <button
                     type="button"
-                    className="btn btn-lg btn-linear-primary w-100 mb-2"
-                    onClick={async () => {
-                      try {
-                        // Call the backend to enable 2FA
-                        const response = await axios.post('http://localhost:4000/api/auth/enable-2fa', {
-                          email,
-                        });
-
-                        // Show the QR code modal
-                        setQrCodeUrl(response.data.qrCodeUrl);
-                        setShow2FAPopup(false); // Close the 2FA activation popup
-                        setShowQRCodeModal(true); // Show the QR code modal
-                      } catch (error) {
-                        console.error('Error enabling 2FA:', error);
-                        alert('Failed to enable 2FA. Please try again.');
-                      }
-                    }}
+                    className="btn btn-lg btn-linear-primary w-100"
+                    onClick={handleVerify2FA}
                   >
-                    Enable 2FA
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-lg btn-linear-secondary w-100"
-                    onClick={handleSkip2FA}
-                  >
-                    Skip for Now
+                    Verify
                   </button>
                 </div>
               </div>
@@ -504,53 +550,53 @@ if (error.response?.data?.message) {
         </div>
       )}
       {showEmailConfirmation && (
-  <div className="modal fade show" id="email-confirmation-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
-    <div className="modal-dialog modal-dialog-centered">
-      <div className="modal-content">
-        <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-          <Link to="#" onClick={() => setShowEmailConfirmation(false)} aria-label="Close">
-            <i className="ti ti-circle-x-filled fs-20" />
-          </Link>
-        </div>
-        <div className="modal-body p-4">
-          <div className="text-center">
-            <span className="success-check mb-3 mx-auto" style={{
-              display: 'inline-block',
-              width: '50px',
-              height: '50px',
-              borderRadius: '50%',
-              backgroundColor: '#28a745',
-              color: 'white',
-              fontSize: '24px',
-              lineHeight: '50px',
-              textAlign: 'center'
-            }}>
-              <i className="ti ti-check" />
-            </span>
-            <h4 className="mb-2">Check Your Email</h4>
-            <p>We have sent a confirmation email to your address. Please check your inbox.</p>
-            <div>
-            <button
-              type="button"
-              className="btn btn-lg btn-linear-primary w-100"
-              onClick={() => {
-                setShowEmailConfirmation(false); // Fermer la pop-up
-                const loginModal = document.getElementById('login-modal');
-                if (loginModal) {
-                  const bsLoginModal = new Modal(loginModal);
-                  bsLoginModal.show(); // Ouvrir le modal de login
-                }
-              }}
-            >
-              OK
-            </button>
+        <div className="modal fade show" id="email-confirmation-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
+                <Link to="#" onClick={() => setShowEmailConfirmation(false)} aria-label="Close">
+                  <i className="ti ti-circle-x-filled fs-20" />
+                </Link>
+              </div>
+              <div className="modal-body p-4">
+                <div className="text-center">
+                  <span className="success-check mb-3 mx-auto" style={{
+                    display: 'inline-block',
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    backgroundColor: '#28a745',
+                    color: 'white',
+                    fontSize: '24px',
+                    lineHeight: '50px',
+                    textAlign: 'center'
+                  }}>
+                    <i className="ti ti-check" />
+                  </span>
+                  <h4 className="mb-2">Check Your Email</h4>
+                  <p>We have sent a confirmation email to your address. Please check your inbox.</p>
+                  <div>
+                    <button
+                      type="button"
+                      className="btn btn-lg btn-linear-primary w-100"
+                      onClick={() => {
+                        setShowEmailConfirmation(false); // Fermer la pop-up
+                        const loginModal = document.getElementById('login-modal');
+                        if (loginModal) {
+                          const bsLoginModal = new Modal(loginModal);
+                          bsLoginModal.show(); // Ouvrir le modal de login
+                        }
+                      }}
+                    >
+                      OK
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
       {/* QR Code Modal */}
       {showQRCodeModal && (
         <div className="modal fade show" id="qr-code-modal" tabIndex={-1} style={{ display: 'block' }} aria-hidden="true">
@@ -790,8 +836,8 @@ if (error.response?.data?.message) {
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
-               
-                 
+
+
                   </div>
                 </div>
                 <PasswordValidationFeedback />

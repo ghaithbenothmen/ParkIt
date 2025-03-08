@@ -1,14 +1,20 @@
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ allowedRoles }: { allowedRoles: string[] }) => {
-  const role = localStorage.getItem("role"); // Get role from localStorage
+interface ProtectedRouteProps {
+  element: JSX.Element;
+  path: string;
+  role: string | null;
+}
 
-  if (!role || !allowedRoles.includes(role)) {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, path, role }) => {
+  if (path.startsWith('/admin') && role !== 'admin') {
     return <Navigate to="/home" replace />;
   }
-
-  return <Outlet />;
+  if (path.startsWith('/providers') && role !== 'user') {
+    return <Navigate to="/home" replace />;
+  }
+  return element;
 };
 
 export default ProtectedRoute;

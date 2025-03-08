@@ -1,21 +1,14 @@
-import React from 'react'
+import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import ProviderAddon from './provider-addon/provider-addon';
-
 import Verification from './settings/verification';
 import ProviderEditService from './provider-edit-service/provider-edit-service';
-
-
 import ProviderDeviceManagement from './settings/provider-device-management';
 import ProviderLoginActivity from './settings/provider-login-activity';
 import ProviderAvailability from './provider-availability/provider-availability';
 import ProviderBookDetails from './provider-book-details/provider-book-details';
 import ProviderBooking from './provider-booking/provider-booking';
-
-
-
 import ProviderSecuritySettings from './settings/provider-security-settings';
-
 import ProviderServices from './provider-service/provider-service';
 import ProviderServiceList from './provider-service-list/provider-service-list';
 import ProviderSignup from './authentication/provider-signup';
@@ -25,11 +18,10 @@ import ProviderSocialProfile from './settings/provider-social-profile';
 import ProviderDashboard from './dashboard/dashboard';
 import ProviderSignupPayment from './authentication/provider-signup-payment';
 import ProviderSignupSubscription from './authentication/provider-signup-subscription';
-
 import CustomerDetails from './customer/customerDetails';
 import CustomerList from './customer/customerList';
 import CustomerGrid from './customer/customerGrid';
-
+import CreateVehicule from '../services/create-service/createServices'; // Importez la nouvelle page
 
 const ProvidersRoutes = () => {
   const all_providers_routes = [
@@ -45,15 +37,12 @@ const ProvidersRoutes = () => {
       element: <ProviderEditService />,
       route: Route,
     },
-
     {
       path: '/settings/provider-login-activity',
       name: 'ProviderLoginActivity',
       element: <ProviderLoginActivity />,
       route: Route,
     },
-    
- 
     {
       path: '/settings/verification',
       name: 'verfication',
@@ -75,7 +64,6 @@ const ProvidersRoutes = () => {
       name: 'provider-plan',
       element: <ProviderPlan />,
     },
-
     {
       path: '/provider-availability',
       name: 'provider-availability',
@@ -94,7 +82,6 @@ const ProvidersRoutes = () => {
       element: <ProviderBooking />,
       route: Route,
     },
-
     {
       path: '/dashboard',
       name: 'provider-dashboard',
@@ -107,8 +94,6 @@ const ProvidersRoutes = () => {
       element: <ProviderServices />,
       route: Route,
     },
-    
-    
     {
       path: '/authentication/provider-signup',
       name: 'provider-signup',
@@ -133,7 +118,6 @@ const ProvidersRoutes = () => {
       element: <ProviderSocialProfile />,
       route: Route,
     },
-
     {
       path: '/customer/customer-details',
       name: 'customer-details',
@@ -152,7 +136,6 @@ const ProvidersRoutes = () => {
       element: <CustomerGrid />,
       route: Route,
     },
-
     {
       path: '/settings/provider-security-settings',
       name: 'provider-security-settings',
@@ -183,7 +166,18 @@ const ProvidersRoutes = () => {
       element: <ProviderSecuritySettings />,
       route: Route,
     },
-
+    {
+      path: '/provider-service/create-vehicule',
+      name: 'create-vehicule',
+      element: <CreateVehicule />, // Nouvelle route pour la création de véhicules
+      route: Route,
+    },
+    {
+      path: '/provider-service/edit-vehicule/:id',
+      name: 'edit-vehicule',
+      element: <CreateVehicule />, // Même composant pour l'édition
+      route: Route,
+    },
     {
       path: '*',
       name: 'NotFound',
@@ -191,19 +185,16 @@ const ProvidersRoutes = () => {
       route: Route,
     },
   ];
+
   return (
     <>
-       <>
       <Routes>
-        <Route>
-          {all_providers_routes.map((route, idx) => (
-            <Route path={route.path} element={route.element} key={idx} />
-          ))}
-        </Route>
+        {all_providers_routes.map((route, idx) => (
+          <Route path={route.path} element={route.element} key={idx} />
+        ))}
       </Routes>
     </>
-    </>
-  )
-}
+  );
+};
 
-export default ProvidersRoutes
+export default ProvidersRoutes;

@@ -1,221 +1,216 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import ImageWithBasePath from "../../../../core/img/ImageWithBasePath";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 
-import { Dropdown } from 'primereact/dropdown';
-import { TagsInput } from 'react-tag-input-component';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 
-const ProviderProfileSettings = () => {
-  const [selectedGender, setGender] = useState(null);
-  const [selectedCurrency, setCurrency] = useState(null);
-  const [tags] = useState(['English', 'French']);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const handleDateChange = (date: any) => {
-    setSelectedDate(date);
+const ProviderProfileSettings: React.FC = () => {
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [user, setUser] = useState({
+    firstname: "",
+    lastname: "",
+    email: "",
+    phone: "",
+    image: "",
+  });
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:4000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then((res) => {
+        setUser(res.data);
+        if (res.data.image) {
+          setImagePreview(res.data.image);
+        }
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const gender = [
-    { name: 'Select Gender' },
-    { name: 'Male' },
-    { name: 'Female' },
-  ];
-  const currency = [
-    { name: 'Choose Currency' },
-    { name: 'Eur' },
-    { name: 'Aud' },
-  ];
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("firstname", user.firstname);
+    formData.append("lastname", user.lastname);
+    formData.append("phone", user.phone);
+    formData.append("email", user.email);
+
+    if (image) {
+      formData.append("image", image);
+    }
+
+    try {
+      const res = await axios.put("http://localhost:4000/api/auth/profile", formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      setUser(res.data);
+      if (res.data.image) {
+        setImagePreview(res.data.image);
+      }
+
+      setAlert({ type: "success", message: "Profile updated successfully!" });
+
+      const profileRes = await axios.get("http://localhost:4000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setUser(profileRes.data);
+    } catch (error) {
+      console.error(error);
+      setAlert({ type: "error", message: "Error updating profile. Please try again." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   return (
-    <>
-  {/* Page Wrapper */}
-  <div className="page-wrapper">
-    <div className="content container-fluid">
-      <div className="row">
-        <div className="col-md-10 mx-auto">
-          <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
-            <h5>Account Settings</h5>
+    <div className="page-wrapper">
+      <div className="content container-fluid">
+        {alert && (
+          <div className={`alert alert-${alert.type === "success" ? "success" : "danger"}`}>
+            {alert.message}
+            <button
+              type="button"
+              className="close"
+              onClick={() => setAlert(null)}
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
-        </div>
-      </div>
-      {/* Profile settings */}
-      <div className="row">
-        <div className="col-md-10 mx-auto">
-          {/* Account Settings */}
-          <div className="card mb-0">
-            <div className="card-body">
-              <h6 className="user-title">Profile Picture</h6>
-              <div className="pro-picture">
-                <div className="pro-img avatar avatar-xl">
-                  <ImageWithBasePath
-                    src="assets/img/user/user-02.jpg"
-                    alt="user"
-                    className="img-fluid rounded-circle"
-                  />
-                </div>
-                <div className="pro-info">
-                  <div className="d-flex mb-2">
-                    <Link
-                      to="#"
-                      className="btn btn-dark btn-sm d-flex align-items-center me-3"
-                    >
-                      <i className="ti ti-cloud-upload me-1" />
-                      Upload
-                    </Link>
-                    <Link
-                      to="#"
-                      className="btn btn-light btn-sm d-flex align-items-center"
-                    >
-                      Remove
-                    </Link>
-                  </div>
-                  <p className="fs-14">
-                    *image size should be at least 320px big,and less then
-                    500kb. Allowed files .png and .jpg.
-                  </p>
-                </div>
+        )}
+        {isLoading && (
+          <div className="loading-spinner">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        )}
+        <div className="card-body">
+          <h6 className="user-title">Profile Picture</h6>
+          <div className="pro-picture">
+            <div className="pro-img avatar avatar-xl">
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="user"
+                  className="img-fluid rounded-circle"
+                />
+              ) : (
+                <ImageWithBasePath
+                  src="assets/img/user.jpg"
+                  alt="user"
+                  className="img-fluid rounded-circle"
+                />
+              )}
+            </div>
+            <div className="pro-info">
+              <div className="d-flex mb-2">
+                <label
+                  htmlFor="image-upload"
+                  className="btn btn-dark btn-sm d-flex align-items-center me-3"
+                >
+                  <i className="ti ti-cloud-upload me-1" />
+                  Upload
+                </label>
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+                <button
+                  className="btn btn-light btn-sm d-flex align-items-center"
+                  onClick={() => {
+                    setImage(null);
+                    setImagePreview(null);
+                  }}
+                >
+                  Remove
+                </button>
               </div>
-              <h6 className="user-title">General Information</h6>
-              <div className="general-info">
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Name</label>
-                      <input type="text" className="form-control" />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">User Name</label>
-                      <input type="text" className="form-control" />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Email</label>
-                      <input type="email" className="form-control" />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Mobile Number</label>
-                      <input type="text" className="form-control" />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Gender</label>
-                      <Dropdown
-                        value={selectedGender}
-                        onChange={(e) => setGender(e.value)}
-                        options={gender}
-                        optionLabel="name"
-                        placeholder="English"
-                        className="select w-100"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="mb-3">
-                      <label className="form-label">Date of birth</label>
-                      <div className=" input-icon react-calender position-relative">
-                        <span className="input-icon-addon">
-                          <i className="ti ti-calendar" />
-                        </span>
-                        <DatePicker
-                          selected={selectedDate}
-                          onChange={handleDateChange}               
-                          placeholderText='DD/MM/YYYY'
-                          className="form-control datetimepicker w-100"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-md-12">
-                    <div>
-                      <label className="form-label">Your Bio</label>
-                      <textarea className="form-control" defaultValue={""} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <h6 className="user-title">Address </h6>
-              <div className="row address-info">
-                <div className="col-md-12">
-                  <div className="mb-3">
-                    <label className="form-label">Address</label>
-                    <input type="text" className="form-control" />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Country</label>
-                    <input type="text" className="form-control" />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">State</label>
-                    <input type="text" className="form-control" />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">City</label>
-                    <input type="text" className="form-control" />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Postal Code</label>
-                    <input type="text" className="form-control" />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Currency Code</label>
-                    <Dropdown
-                        value={selectedCurrency}
-                        onChange={(e) => setCurrency(e.value)}
-                        options={currency}
-                        optionLabel="name"
-                        placeholder="Choose Currency"
-                        className="select w-100"
-                      />
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="mb-3">
-                    <label className="form-label">Language</label>
-                    <TagsInput
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                          // @ts-expect-error
-                          className="input-tags form-control"
-                          tags={tags}
-                          value={tags}
-                        />
-                  </div>
-                </div>
-              </div>
-              <div className="acc-submit d-flex justify-content-end">
-                <Link to="#" className="btn btn-light me-3">
-                  Cancel
-                </Link>
-                <Link to="#" className="btn btn-dark">
-                  Save Changes
-                </Link>
-              </div>
+              <p className="fs-14">
+                *image size should be at least 320px big, and less than 500kb. Allowed files .png and .jpg.
+              </p>
             </div>
           </div>
         </div>
-        {/* /Account Settings */}
+        <h5>Account Settings</h5>
+        <div className="card">
+          <div className="card-body">
+            <h6 className="user-title">General Information</h6>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="firstname"
+                  value={user.firstname}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="lastname"
+                  value={user.lastname}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label>Email</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  name="email"
+                  value={user.email}
+                  readOnly
+                />
+              </div>
+              <div className="mb-3">
+                <label>Phone</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="phone"
+                  value={user.phone}
+                  onChange={handleChange}
+                />
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                {isLoading ? "Saving..." : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
-      {/* /profile-settings */}
     </div>
-  </div>
-  {/* /Page Wrapper */}
-</>
-
   );
 };
 

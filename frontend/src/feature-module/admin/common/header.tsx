@@ -5,6 +5,8 @@ import * as Icon from 'react-feather';
 import { set_is_mobile_sidebar } from '../../../core/data/redux/action';
 import { useDispatch } from 'react-redux';
 import { all_routes } from '../../../core/data/routes/all_routes';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 
 const AdminHeader = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -59,12 +61,7 @@ const AdminHeader = () => {
       </Link>
       <div className="header-split">
         <div className="page-headers">
-          <div className="search-bar">
-            <span>
-              <Icon.Search className="react-feather-custom"></Icon.Search>
-            </span>
-            <input type="text" placeholder="Search" className="form-control" />
-          </div>
+          
         </div>
         <ul className="nav admin-user-menu">
           {/* Notifications */}
@@ -342,58 +339,47 @@ const AdminHeader = () => {
           </li>
           {/* User Menu */}
           <li className="nav-item dropdown">
-            <Link
-              to="#"
-              className="user-link  nav-link"
-              data-bs-toggle="dropdown"
-            >
-              <span className="user-img">
-                <ImageWithBasePath
-                  className="rounded-circle"
-                  src="assets/admin/img/user.jpg"
-                  width={40}
-                  alt="Admin"
-                />
-                <span className="animate-circle" />
-              </span>
-              <span className="user-content">
-                <span className="user-name">John Smith</span>
-                <span className="user-details">Demo User</span>
-              </span>
-            </Link>
-            <div className="dropdown-menu menu-drop-user">
-              <div className="profilemenu ">
-                <div className="user-detials">
-                  <Link to="account">
-                    <span className="profile-image">
-                      <ImageWithBasePath
-                        src="assets/admin/img/user.jpg"
-                        alt="img"
-                        className="profilesidebar"
-                      />
-                    </span>
-                    <span className="profile-content">
-                      <span>John Smith</span>
-                      <span>John@example.com</span>
-                    </span>
-                  </Link>
-                </div>
-                <div className="subscription-menu">
-                  <ul>
-                    <li>
-                      <Link to="account-settings">Profile</Link>
-                    </li>
-                    <li>
-                      <Link to="localization">Settings</Link>
-                    </li>
-                  </ul>
-                </div>
-                <div className="subscription-logout">
-                  <Link to="signin">Log Out</Link>
-                </div>
-              </div>
-            </div>
-          </li>
+  <Link
+    to="#"
+    className="user-link nav-link dropdown-toggle"
+    id="userDropdown"
+    role="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    <span className="user-img">
+      <ImageWithBasePath
+        className="rounded-circle"
+        src="assets/admin/img/user.jpg"
+        width={40}
+        alt="Admin"
+      />
+      <span className="animate-circle" />
+    </span>
+    <span className="user-content">
+      <span className="user-name">John Smith</span>
+      <span className="user-details">Demo User</span>
+    </span>
+  </Link>
+  <ul className="dropdown-menu menu-drop-user" aria-labelledby="userDropdown">
+    <li className="user-details">
+      <Link to="account" className="dropdown-item">
+        <ImageWithBasePath
+          src="assets/admin/img/user.jpg"
+          alt="img"
+          className="profilesidebar"
+        />
+        <div className="profile-content">
+          <span>John Smith</span>
+          <span>John@example.com</span>
+        </div>
+      </Link>
+    </li>
+    <li><Link to="account-settings" className="dropdown-item">Profile</Link></li>
+    <li><Link to="localization" className="dropdown-item">Settings</Link></li>
+    <li><Link to="signin" className="dropdown-item text-danger">Log Out</Link></li>
+  </ul>
+</li>
           {/* /User Menu */}
         </ul>
       </div>

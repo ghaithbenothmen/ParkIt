@@ -144,15 +144,29 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  console.log('logiinnn')
   try {
+    
+    
+    console.log('hi')
     const { email, password } = req.body;
 
+    // Find the user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     console.log("User activation status:", user.isActive);
+    if (!user) {
+      // Throw a 400 error if the user is not found
+      throw { status: 400, message: "Email not found. Please check your email address." };
+    }
+    console.log(user)
+    // Check if the account is activated
+    if (!user.isActive) {
+      return res.status(400).json({ message: "Account is not activated. Please check your email." });
+    }
 
     
       if (!user.isActive) {
@@ -181,10 +195,18 @@ exports.login = async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
+    // Return token and user data
     res.json({ token, user });
   } catch (error) {
-    console.error("Error logging in:", error.message);
-    res.status(500).json({ message: "Server error" });
+    // Catch and handle errors
+    console.error("Error in login function:", error.message || error);
+
+    // Check if the error has a status code
+    const statusCode = error.status || 500;
+    const message = error.message || "Server error";
+
+    // Send the appropriate response
+    res.status(statusCode).json({ message });
   }
 };
 
@@ -222,16 +244,41 @@ exports.verifyActivation = async (req, res) => {
   }
 };
 
-exports.getProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select("-password"); // Exclude password from the response
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+
+exports.updateProfile = async (req, res) => {
+  console.log("Request Body:", req.body);
+  console.log("Request File:", req.file);
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Image upload failed", error: err.message });
     }
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+
+    try {
+      const { firstname, lastname, phone, email } = req.body;
+
+      let updatedData = { firstname, lastname, phone, email };
+
+      if (req.file) {
+        updatedData.image = req.file.path; // Cloudinary URL
+      }
+
+
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        updatedData,
+        { new: true }
+      ).select("-password");
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
 };
 
 exports.logout = async (req, res) => {
@@ -242,6 +289,9 @@ exports.logout = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
 
 exports.getProfile = async (req, res) => {
   try {
@@ -407,7 +457,6 @@ exports.verify2FA = async (req, res) => {
   }
 
   try {
-    // Find the user by email
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -426,10 +475,6 @@ exports.verify2FA = async (req, res) => {
       token: code,
       window: 1, // Allow a 30-second window for code validation
     });
-    console.log("2FA Verification Result:", verified);
-    console.log("2FA Verification Code:", code);
-    console.log("2FA user:", user);
-    console.log("2FA Secret:", user.twoFactorSecret);
 
     if (!verified) {
       return res.status(400).json({ message: "Invalid 2FA code" });
@@ -447,3 +492,54 @@ exports.verify2FA = async (req, res) => {
   }
 };
 
+exports.disable2FA = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.twoFactorSecret = null;
+    user.twoFactorEnabled = false;
+    await user.save();
+
+    res.status(200).json({ message: "2FA has been disabled" });
+  } catch (error) {
+    console.error("Disable 2FA Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.updatePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id; // Ensure this is correctly populated by the middleware
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Verify the current password using argon2
+    const isMatch = await argon2.verify(user.password, currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
+    }
+
+    // Hash the new password using argon2
+    const hashedPassword = await argon2.hash(newPassword);
+
+    // Update the user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Return success response
+    res.json({ success: true, message: 'Password changed successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ success: false, message: 'Failed to change password.' });
+  }
+};
