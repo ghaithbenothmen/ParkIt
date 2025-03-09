@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../../../core/data/routes/all_routes';
+import { jwtDecode } from 'jwt-decode';
 const routes = all_routes;
 
 const ProviderCars = () => {
@@ -15,12 +16,29 @@ const ProviderCars = () => {
   // Function to fetch vehicles
   const fetchVehicles = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/vehicules');
-      if (!response.ok) {
-        throw new Error('Error fetching vehicles');
+      // Récupérer le token JWT depuis le localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Utilisateur non connecté');
       }
+  
+      // Décoder le token pour obtenir l'ID de l'utilisateur
+      const decoded = jwtDecode<{ id: string }>(token);
+      const userId = decoded.id;
+  
+      // Envoyer une requête pour récupérer les véhicules de l'utilisateur connecté
+      const response = await fetch(`http://localhost:4000/api/vehicules/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`, // Inclure le token dans les en-têtes
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des véhicules');
+      }
+  
       const data = await response.json();
-      setVehicles(data.vehicules);
+      setVehicles(data.vehicules); // Mettre à jour l'état des véhicules
     } catch (error) {
       console.error(error);
     }
