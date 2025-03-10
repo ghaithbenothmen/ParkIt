@@ -24,7 +24,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-mongoose.connect(process.env.MONGO_URI)
+const dbUri = 'mongodb://parkit:parkit@mongo:27017/parkit';
+
+mongoose.connect(dbUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    authSource: 'admin'   // important because the user is created in `admin`
+})
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
 app.use(cors({

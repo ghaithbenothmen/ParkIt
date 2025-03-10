@@ -26,6 +26,7 @@ const AuthModals = () => {
   });
   const [error, setError] = useState<string>('');
   const [firstname, setFirstName] = useState<string>('');
+  const [image, setImage] = useState<File | null>(null);
   const [lastname, setLastName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
@@ -193,19 +194,32 @@ const AuthModals = () => {
 
   const handleRegisterSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const userData = { firstname, lastname, email, phone, password, enable2FA: false }; // Default to false
-
+  
+    // Create a FormData object to handle file uploads
+    const formData = new FormData();
+    formData.append('firstname', firstname);
+    formData.append('lastname', lastname);
+    formData.append('phone', phone);
+    formData.append('email', email);
+    formData.append('password', password);
+    if (image) formData.append('image', image); // Append the image file if it exists
+  
     try {
-      const response = await register(userData);
+      const response = await axios.post('http://localhost:4000/api/auth/register', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
       setRegistrationSuccess(true);
       setSuccessMessage('Registration successful!');
-
+  
       // Show the 2FA popup
       setShow2FAPopup(true);
-
+  
       // Show the email confirmation popup
       setShowEmailConfirmation(true);
-
+  
       const registerModal = document.getElementById('register-modal');
       if (registerModal) {
         const bsRegisterModal = Modal.getInstance(registerModal);
@@ -216,6 +230,7 @@ const AuthModals = () => {
       setRegisterError(error.message);
     }
   };
+  
 
   /*   const handleEnable2FA = async () => {
       try {
@@ -746,6 +761,7 @@ if (error.response?.data?.message) {
                     onChange={(e) => setFirstName(e.target.value)}
                   />
                 </div>
+                
                 <div className="mb-3">
                   <label className="form-label">Last Name</label>
                   <input
@@ -773,6 +789,17 @@ if (error.response?.data?.message) {
                     onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
+                
+                <div className="mb-3">
+                <label className="form-label">Profile Image</label>
+                <input
+                  type="file"
+                  className="form-control"
+                  accept="image/*"
+                  onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)}
+                  />
+                </div>
+
                 <div className="mb-3">
                   <label className="form-label">Password</label>
                   <div className="input-group">
@@ -796,6 +823,7 @@ if (error.response?.data?.message) {
                 </div>
                 <PasswordValidationFeedback />
                 {registerError && <div className="alert alert-danger">{registerError}</div>}
+
                 <div className="mb-3">
                   <button type="submit" className="btn btn-lg btn-linear-primary w-100">
                     Register

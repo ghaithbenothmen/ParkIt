@@ -37,7 +37,6 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "user_images",
-    format: async (req, file) => "jpg",
     public_id: (req, file) => Date.now() + "-" + file.originalname,
   },
 });
@@ -97,6 +96,7 @@ exports.register = async (req, res) => {
         phone,
         email,
         password: hashedPassword,
+        image: req.file ? req.file.path : null, // Image upload feature        ,
         isActive: false,
         twoFactorSecret,
         twoFactorEnabled: enable2FA || false,
@@ -119,7 +119,51 @@ exports.register = async (req, res) => {
         from: process.env.EMAIL_USERNAME,
         to: user.email,
         subject: "Account Activation",
-        html: `<p>Click <a href="${activationLink}">here</a> to activate your account.</p>`,
+        html: 
+        `
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+        
+        <!-- Header -->
+        <div style="background-color: #007bff; padding: 10px; border-radius: 10px 10px 0 0;">
+          <img src="https://drive.google.com/uc?export=view&id=1hYiYnwo9GrDfF7lT-bvaDbRKabeNJr9F" alt="ParkIt" style="width: 50px; display: block; margin: auto;">
+        </div>
+  
+        <!-- Body -->
+        <h1 style="color: #333;">Activate your Account</h1>
+        <p style="color: #555;">Click the button below to verify your email:</p>
+  
+        <a href="${activationLink}" 
+           style="display: inline-block; background-color: #007bff; color: #fff; text-decoration: none; 
+           padding: 12px 20px; border-radius: 5px; font-weight: bold; font-size: 16px;">
+          Activate Account
+        </a>
+  
+        <p style="color: #999; font-size: 14px; margin-top: 20px;">This link will expire in 10 minutes.</p>
+        <p style="color: #777; font-size: 12px;">If you did not request this, please ignore this email or contact support.</p>
+  
+        <!-- Footer -->
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+        <p style="color: #666; font-size: 12px;">&copy;2025 - All Rights Reserved Parkit</p>
+  
+        <!-- Social Media Icons -->
+        <div style="margin-top: 10px;">
+          <a href="https://facebook.com/yourcompany" target="_blank" style="text-decoration: none; margin: 0 10px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width: 24px;">
+          </a>
+          <a href="mailto:support@yourcompany.com" style="text-decoration: none; margin: 0 10px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email" style="width: 24px;">
+          </a>
+          <a href="https://wa.me/1234567890" target="_blank" style="text-decoration: none; margin: 0 10px;">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" style="width: 24px;">
+          </a>
+        </div>
+  
+        <p style="color: #666; font-size: 12px; margin-top: 10px;">
+          Contact us: <a href="mailto:support@yourcompany.com" style="color: #007bff; text-decoration: none;">pi.parkit@gmail.com</a>
+        </p>
+              <p style="color: #666; font-size: 12px;">&copy;2025 - All Rights Reserved Parkit</p>
+      </div>
+    `,
       };
 
       transporter.sendMail(mailOptions, (err, info) => {

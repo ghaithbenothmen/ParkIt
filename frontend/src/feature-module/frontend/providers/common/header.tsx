@@ -14,6 +14,15 @@ import { AppState } from '../../../../core/models/interface';
 const ProviderHeader = () => {
   const routes = all_routes;
   const toggle_data = useSelector((state: AppState) => state.toggleSidebar2);
+  const [user, setUser] = useState<{ image: string } | null>(null);
+
+  useEffect(() => {
+    // Retrieve user data from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
  
   const dispatch = useDispatch();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -272,7 +281,8 @@ const ProviderHeader = () => {
                         <div className="d-flex">
                           <span className="avatar avatar-lg me-2 flex-shrink-0">
                             <ImageWithBasePath
-                              src="assets/img/user.jpg"
+                              src={user?.image || 'assets/img/user.jpg'}
+
                               alt="Profile"
                               className="rounded-circle"
                             />
@@ -337,7 +347,7 @@ const ProviderHeader = () => {
               <Link to="#" data-bs-toggle="dropdown">
                 <div className="booking-user d-flex align-items-center">
                   <span className="user-img">
-                    <ImageWithBasePath src="assets/img/user.jpg" alt="user" />
+                    <img src={user?.image || 'assets/img/user.jpg'} alt="user" />
                   </span>
                 </div>
               </Link>
