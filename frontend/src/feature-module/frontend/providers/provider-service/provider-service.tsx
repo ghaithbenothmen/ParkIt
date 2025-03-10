@@ -13,34 +13,68 @@ const ProviderCars = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false); // Controls the display of the success pop-up
   const [vehicleToDelete, setVehicleToDelete] = useState(null); // Vehicle to be deleted
 
-  // Function to fetch vehicles
   const fetchVehicles = async () => {
     try {
-      // Récupérer le token JWT depuis le localStorage
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Utilisateur non connecté');
       }
-  
-      // Décoder le token pour obtenir l'ID de l'utilisateur
-      const decoded = jwtDecode<{ id: string }>(token);
+
+      const decoded = jwtDecode(token);
       const userId = decoded.id;
-  
-      // Envoyer une requête pour récupérer les véhicules de l'utilisateur connecté
+
       const response = await fetch(`http://localhost:4000/api/vehicules/${userId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`, // Inclure le token dans les en-têtes
+          Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!response.ok) {
         throw new Error('Erreur lors de la récupération des véhicules');
       }
-  
+
       const data = await response.json();
-      setVehicles(data.vehicules); // Mettre à jour l'état des véhicules
+
+      // Ajouter l'URL de l'image pour chaque véhicule
+      const vehiclesWithImages = await Promise.all(
+        data.vehicules.map(async (vehicle) => {
+          const imageUrl = await fetchCarImage(vehicle.marque, vehicle.modele);
+          return { ...vehicle, imageUrl };
+        })
+      );
+
+      setVehicles(vehiclesWithImages); // Mettre à jour l'état des véhicules avec les images
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const fetchCarImage = async (marque, modele) => {
+    try {
+      const apiKey = process.env.REACT_APP_PEXELS_API_KEY; // Clé API Pexels
+      const query = `${marque} ${modele} car`; // Recherche par marque et modèle
+      const response = await fetch(
+        `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1`,
+        {
+          headers: {
+            Authorization: apiKey, // Utiliser la clé API Pexels
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération de l\'image');
+      }
+
+      const data = await response.json();
+      if (data.photos.length > 0) {
+        return data.photos[0].src.medium; // Retourne l'URL de la première image trouvée
+      } else {
+        return 'https://via.placeholder.com/300'; // Image par défaut si aucune image n'est trouvée
+      }
+    } catch (error) {
+      console.error(error);
+      return 'https://via.placeholder.com/300'; // Image par défaut en cas d'erreur
     }
   };
 
@@ -184,18 +218,18 @@ const ProviderCars = () => {
                         <div className="col-xl-4 col-md-6" key={vehicle._id}>
                           <div className="card p-0">
                             <div className="card-body p-0">
-                              <div className="img-sec w-100">
-                                <Link to={routes.serviceDetails1}>
-                                  <ImageWithBasePath
-                                    src="assets/img/land.jpg"
-                                    className="img-fluid rounded-top w-100"
-                                    alt="img"
-                                  />
-                                </Link>
-                                <div className="image-tag d-flex justify-content-end align-items-center">
-                                  <span className="trend-tag">{vehicle.marque}</span>
-                                </div>
+                            <div className="img-sec w-100 image-container">
+                              <Link to={routes.serviceDetails1}>
+                                <img
+                                  src={vehicle.imageUrl}
+                                  className="img-fluid rounded-top w-100"
+                                  alt={`${vehicle.marque} ${vehicle.modele}`}
+                                />
+                              </Link>
+                              <div className="image-tag d-flex justify-content-end align-items-center">
+                                <span className="trend-tag">{vehicle.marque}</span>
                               </div>
+                            </div>
                               <div className="p-3">
                                 <h5 className="mb-2 text-truncate">
                                   <Link to={routes.serviceDetails1}>
@@ -210,10 +244,7 @@ const ProviderCars = () => {
                                 </div>
                                 <div className="d-flex justify-content-between align-items-center">
                                   <div className="d-flex gap-3">
-                                    <Link
-                                      to="#"
-                                      onClick={() => handleEditClick(vehicle)}
-                                    >
+                                    <Link to="#" onClick={() => handleEditClick(vehicle)}>
                                       <i className="ti ti-edit me-2" />
                                       Edit
                                     </Link>

@@ -17,6 +17,19 @@
   z-index: 1000;
 }
 
+/* CSS pour le conteneur de l'image */
+.image-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden; /* Pour cacher les parties de l'image qui dépassent */
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .spinner-border {
   width: 3rem;
   height: 3rem;
