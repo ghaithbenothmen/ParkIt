@@ -14,6 +14,7 @@ const Users = () => {
   const [searchQuery, setSearchQuery] = useState<string>(''); // Recherche
   const [roleFilter, setRoleFilter] = useState<string | null>(null); // Filtre par rôle
   const [userToDelete, setUserToDelete] = useState<any>(null); // Utilisateur à supprimer
+  const [errors, setErrors] = useState<{ [key: string]: string }>({}); // Erreurs de validation
 
   const alphabet = ['All', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
 
@@ -96,6 +97,33 @@ const Users = () => {
       console.error("Erreur lors de la suppression de l'utilisateur:", error);
       alert("Erreur lors de la suppression de l'utilisateur");
     }
+  };
+
+  // Valider les données du formulaire
+  const validateForm = (data: any) => {
+    const errors: { [key: string]: string } = {};
+
+    if (!data.firstname || data.firstname.length < 2 || data.firstname.length > 50) {
+      errors.firstname = "Le prénom doit contenir entre 2 et 50 caractères.";
+    }
+
+    if (!data.lastname || data.lastname.length < 2 || data.lastname.length > 50) {
+      errors.lastname = "Le nom doit contenir entre 2 et 50 caractères.";
+    }
+
+    if (!data.email || !/^\S+@\S+\.\S+$/.test(data.email)) {
+      errors.email = "Veuillez fournir une adresse email valide.";
+    }
+
+    if (data.authUser === "local" && (!data.phone || !/^(2|5|9)\d{7}$/.test(data.phone))) {
+      errors.phone = "Veuillez fournir un numéro de téléphone tunisien valide.";
+    }
+
+    if (data.authUser === "local" && (!data.password || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(data.password))) {
+      errors.password = "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.";
+    }
+
+    return errors;
   };
 
   // Boutons d'action pour chaque utilisateur
