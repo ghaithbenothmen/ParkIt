@@ -4,9 +4,10 @@ import { Modal } from 'react-bootstrap';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import BreadCrumb from '../../common/breadcrumb/breadCrumb';
+import { jwtDecode } from 'jwt-decode'; // Import correct de jwt-decode
 
 const CreateVehicule = () => {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const [marque, setMarque] = useState('');
   const [modele, setModele] = useState('');
@@ -14,6 +15,17 @@ const navigate = useNavigate();
   const [immatriculation, setImmatriculation] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // Récupérer l'ID de l'utilisateur depuis le token JWT
+  const token = localStorage.getItem('token');
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+  if (token) {
+      const decoded = jwtDecode<{ id: string }>(token); // Décoder le token JWT
+      setUserId(decoded.id); // Récupérer l'ID de l'utilisateur
+  }
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -40,9 +52,13 @@ const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted");
+    if (!marque || !modele || !couleur || !immatriculation) {
+      console.error("Tous les champs sont obligatoires");
+      return;
+    }
+  
     const vehiculeData = { marque, modele, couleur, immatriculation };
-    console.log("Data to send:", vehiculeData); // Ajoutez ce log pour vérifier les données
+    console.log("Data to send:", vehiculeData);
   
     try {
       const url = isEditMode
@@ -54,12 +70,14 @@ const navigate = useNavigate();
         method,
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(vehiculeData),
       });
   
       if (!response.ok) {
-        throw new Error('Error saving vehicle');
+        const errorData = await response.json(); // Récupérer les détails de l'erreur
+        throw new Error(errorData.message || 'Error saving vehicle');
       }
   
       setShowModal(true);
@@ -145,9 +163,9 @@ const navigate = useNavigate();
                             </div>
                           </div>
                           <div className="text-end">
-                          <button type="submit" className="btn btn-dark">
-                            {isEditMode ? 'Update Vehicle' : 'Add Vehicle'}
-                          </button>
+                            <button type="submit" className="btn btn-dark">
+                              {isEditMode ? 'Update Vehicle' : 'Add Vehicle'}
+                            </button>
                           </div>
                         </div>
                       </div>
