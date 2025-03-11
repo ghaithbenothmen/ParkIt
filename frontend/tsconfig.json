@@ -22,6 +22,7 @@
     "allowImportingTsExtensions":false,
   },
   "include": [
-    "src"
+    "src",
+    "env.d.ts"
   ]
 }

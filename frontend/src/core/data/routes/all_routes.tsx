@@ -10,6 +10,8 @@ export const all_routes = {
   homeSeven: '/home-eight',
   homeEight: '/home-nine',
   homeNine: '/home-ten',
+  payment: '/payment',
+
 
   activationError:'/activation-error',
   activationSuccess:'/activation-success',

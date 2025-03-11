@@ -165,4 +165,81 @@ function Cart() {
   );
 }
 
-export default Cart;
+export default Cart;*/
+import React from "react";
+import { useState } from "react";
+
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+
+// Stripe public key from environment variables
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+interface CheckoutFormProps {
+  reservationId: string;
+}
+
+const CheckoutForm = ({ reservationId }: CheckoutFormProps) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setLoading(true);
+
+    try {
+      // Replace with your backend API
+      const res = await fetch("/api/payment/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: 500, reservationId }), // Example amount
+      });
+
+      const { clientSecret } = await res.json();
+
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: elements.getElement(CardElement)! },
+      });
+
+      if (result.error) {
+        console.log(result.error.message);
+      } else {
+        console.log("Payment successful:", result.paymentIntent);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <CardElement />
+      <button type="submit" disabled={loading}>
+        {loading ? "Processing..." : "Pay"}
+      </button>
+    </form>
+  );
+};
+
+interface CartProps {
+  reservationId: string;
+}
+
+const Payment = () => {
+  const reservationId = "static-id"; // Set a static reservationId for now
+
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm reservationId={reservationId} />
+    </Elements>
+  );
+};
+
+export default Payment;
+
+
