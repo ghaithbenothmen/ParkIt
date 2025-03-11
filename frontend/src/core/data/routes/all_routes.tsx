@@ -33,6 +33,7 @@ export const all_routes = {
   provider: '/services/providers/provider-list',
   serviceDetails1: '/services/service-details/service-details1',
   serviceDetails2: '/services/service-details/service-details2',
+  provider_services: '/provider-service',
 
   // customers module path
   customers: '/customers/*',

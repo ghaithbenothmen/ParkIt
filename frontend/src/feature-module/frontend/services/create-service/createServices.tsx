@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, Routes } from 'react-router-dom';
 import { Modal } from 'react-bootstrap';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
@@ -189,7 +189,7 @@ const CreateVehicule = () => {
               <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
                 Close
               </button>
-              <Link to={all_routes.providers} className="btn btn-linear-primary">
+              <Link to={all_routes.provider_services} className="btn btn-linear-primary">
                 View List
               </Link>
             </div>
