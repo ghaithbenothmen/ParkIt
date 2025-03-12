@@ -6,6 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 const routes = all_routes;
 
 const ProviderCars = () => {
+  console.log("ProvidersCars component rendered");
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState(null); // Selected vehicle for editing
   const [showEditModal, setShowEditModal] = useState(false); // Controls the display of the edit pop-up

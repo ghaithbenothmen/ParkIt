@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate, Routes } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Modal } from 'react-bootstrap';
-import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import BreadCrumb from '../../common/breadcrumb/breadCrumb';
 import { jwtDecode } from 'jwt-decode'; // Import correct de jwt-decode
+const routes = all_routes;
 
 const CreateVehicule = () => {
   const navigate = useNavigate();
@@ -21,11 +21,11 @@ const CreateVehicule = () => {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-  if (token) {
+    if (token) {
       const decoded = jwtDecode<{ id: string }>(token); // Décoder le token JWT
       setUserId(decoded.id); // Récupérer l'ID de l'utilisateur
-  }
-  }, []);
+    }
+  }, [token]);
 
   useEffect(() => {
     if (id) {
@@ -56,35 +56,31 @@ const CreateVehicule = () => {
       console.error("Tous les champs sont obligatoires");
       return;
     }
-  
+
     const vehiculeData = { marque, modele, couleur, immatriculation };
     console.log("Data to send:", vehiculeData);
-  
+
     try {
       const url = isEditMode
         ? `http://localhost:4000/api/vehicules/${id}`
         : 'http://localhost:4000/api/vehicules';
       const method = isEditMode ? 'PUT' : 'POST';
-  
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(vehiculeData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json(); // Récupérer les détails de l'erreur
         throw new Error(errorData.message || 'Error saving vehicle');
       }
-  
-      setShowModal(true);
-      setTimeout(() => {
-        setShowModal(false);
-        navigate(all_routes.providers);
-      }, 2000);
+
+      setShowModal(true); // Afficher la modal sans redirection automatique
     } catch (error) {
       console.error(error);
     }
@@ -92,7 +88,11 @@ const CreateVehicule = () => {
 
   return (
     <>
-      <BreadCrumb title={isEditMode ? 'Edit Vehicle' : 'Add Vehicle'} item1="Vehicles" item2={isEditMode ? 'Edit Vehicle' : 'Add Vehicle'} />
+      <BreadCrumb
+        title={isEditMode ? 'Edit Vehicle' : 'Add Vehicle'}
+        item1="Vehicles"
+        item2={isEditMode ? 'Edit Vehicle' : 'Add Vehicle'}
+      />
       <div className="page-wrapper">
         <div className="content">
           <div className="container">
@@ -177,25 +177,31 @@ const CreateVehicule = () => {
           </div>
         </div>
       </div>
-      <Modal centered show={showModal} onHide={() => setShowModal(false)}>
-        <div className="modal-body">
-          <div className="text-center py-4">
-            <span className="success-check mb-3 mx-auto">
-              <i className="ti ti-check" />
-            </span>
-            <h4 className="mb-2">Vehicle {isEditMode ? 'Updated' : 'Added'} Successfully</h4>
-            <p>The vehicle has been {isEditMode ? 'updated' : 'added'} to your list.</p>
-            <div className="d-flex align-items-center justify-content-center mt-3">
-              <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
-                Close
-              </button>
-              <Link to={all_routes.provider_services} className="btn btn-linear-primary">
-                View List
-              </Link>
+      <Modal
+          centered
+          show={showModal}
+          onHide={() => setShowModal(false)}
+          backdrop="static"
+          keyboard={false}
+        >
+          <div className="modal-body">
+            <div className="text-center py-4">
+              <span className="success-check mb-3 mx-auto">
+                <i className="ti ti-check" />
+              </span>
+              <h4 className="mb-2">Vehicle {isEditMode ? 'Updated' : 'Added'} Successfully</h4>
+              <p>The vehicle has been {isEditMode ? 'updated' : 'added'} to your list.</p>
+              <div className="d-flex align-items-center justify-content-center mt-3">
+                <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
+                  Close
+                </button>
+                <Link to={routes.providerServices} className="btn btn-linear-primary">
+                  View List
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
     </>
   );
 };
