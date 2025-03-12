@@ -163,33 +163,6 @@ const ProviderCars = () => {
             <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
               <h5>My Cars</h5>
               <div className="d-flex align-items-center">
-                <span className="fs-14 me-2">Sort</span>
-                <div className="dropdown me-2">
-                  <Link
-                    to="#"
-                    className="dropdown-toggle bg-light-300 "
-                    data-bs-toggle="dropdown"
-                  >
-                    Newly Added
-                  </Link>
-                  <div className="dropdown-menu">
-                    <Link to="#" className="dropdown-item active">
-                      Recently Added
-                    </Link>
-                  </div>
-                </div>
-                <Link
-                  to={routes.providerService}
-                  className="tags active d-flex justify-content-center align-items-center  rounded me-2"
-                >
-                  <i className="ti ti-layout-grid" />
-                </Link>
-                <Link
-                  to={routes.providerServiceList}
-                  className="tags d-flex justify-content-center align-items-center border rounded me-2"
-                >
-                  <i className="ti ti-list" />
-                </Link>
                 <Link
                   to={routes.createService}
                   className="btn btn-dark d-flex align-items-center"
