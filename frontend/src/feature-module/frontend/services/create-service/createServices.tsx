@@ -16,6 +16,14 @@ const CreateVehicule = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // État pour les messages d'erreur
+  const [errors, setErrors] = useState({
+    marque: '',
+    modele: '',
+    couleur: '',
+    immatriculation: '',
+  });
+
   // Récupérer l'ID de l'utilisateur depuis le token JWT
   const token = localStorage.getItem('token');
   const [userId, setUserId] = useState<string | null>(null);
@@ -50,11 +58,47 @@ const CreateVehicule = () => {
     }
   };
 
+  // Fonction pour valider les champs
+  const validateFields = () => {
+    const newErrors = {
+      marque: '',
+      modele: '',
+      couleur: '',
+      immatriculation: '',
+    };
+
+    let isValid = true;
+
+    if (!marque.trim()) {
+      newErrors.marque = 'Brand is required.';
+      isValid = false;
+    }
+
+    if (!modele.trim()) {
+      newErrors.modele = 'Model is required.';
+      isValid = false;
+    }
+
+    if (!couleur.trim()) {
+      newErrors.couleur = 'Color is required.';
+      isValid = false;
+    }
+
+    if (!immatriculation.trim()) {
+      newErrors.immatriculation = 'Registration is required.';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!marque || !modele || !couleur || !immatriculation) {
-      console.error("Tous les champs sont obligatoires");
-      return;
+
+    // Valider les champs avant la soumission
+    if (!validateFields()) {
+      return; // Arrêter la soumission si des champs sont vides
     }
 
     const vehiculeData = { marque, modele, couleur, immatriculation };
@@ -112,11 +156,13 @@ const CreateVehicule = () => {
                                 </label>
                                 <input
                                   type="text"
-                                  className="form-control"
+                                  className={`form-control ${errors.marque ? 'is-invalid' : ''}`}
                                   value={marque}
                                   onChange={(e) => setMarque(e.target.value)}
-                                  required
                                 />
+                                {errors.marque && (
+                                  <div className="invalid-feedback">{errors.marque}</div>
+                                )}
                               </div>
                             </div>
                             <div className="col-md-6">
@@ -126,11 +172,13 @@ const CreateVehicule = () => {
                                 </label>
                                 <input
                                   type="text"
-                                  className="form-control"
+                                  className={`form-control ${errors.modele ? 'is-invalid' : ''}`}
                                   value={modele}
                                   onChange={(e) => setModele(e.target.value)}
-                                  required
                                 />
+                                {errors.modele && (
+                                  <div className="invalid-feedback">{errors.modele}</div>
+                                )}
                               </div>
                             </div>
                             <div className="col-md-6">
@@ -140,11 +188,13 @@ const CreateVehicule = () => {
                                 </label>
                                 <input
                                   type="text"
-                                  className="form-control"
+                                  className={`form-control ${errors.couleur ? 'is-invalid' : ''}`}
                                   value={couleur}
                                   onChange={(e) => setCouleur(e.target.value)}
-                                  required
                                 />
+                                {errors.couleur && (
+                                  <div className="invalid-feedback">{errors.couleur}</div>
+                                )}
                               </div>
                             </div>
                             <div className="col-md-6">
@@ -154,11 +204,13 @@ const CreateVehicule = () => {
                                 </label>
                                 <input
                                   type="text"
-                                  className="form-control"
+                                  className={`form-control ${errors.immatriculation ? 'is-invalid' : ''}`}
                                   value={immatriculation}
                                   onChange={(e) => setImmatriculation(e.target.value)}
-                                  required
                                 />
+                                {errors.immatriculation && (
+                                  <div className="invalid-feedback">{errors.immatriculation}</div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -178,30 +230,30 @@ const CreateVehicule = () => {
         </div>
       </div>
       <Modal
-          centered
-          show={showModal}
-          onHide={() => setShowModal(false)}
-          backdrop="static"
-          keyboard={false}
-        >
-          <div className="modal-body">
-            <div className="text-center py-4">
-              <span className="success-check mb-3 mx-auto">
-                <i className="ti ti-check" />
-              </span>
-              <h4 className="mb-2">Vehicle {isEditMode ? 'Updated' : 'Added'} Successfully</h4>
-              <p>The vehicle has been {isEditMode ? 'updated' : 'added'} to your list.</p>
-              <div className="d-flex align-items-center justify-content-center mt-3">
-                <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
-                  Close
-                </button>
-                <Link to={routes.providerServices} className="btn btn-linear-primary">
-                  View List
-                </Link>
-              </div>
+        centered
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        backdrop="static"
+        keyboard={false}
+      >
+        <div className="modal-body">
+          <div className="text-center py-4">
+            <span className="success-check mb-3 mx-auto">
+              <i className="ti ti-check" />
+            </span>
+            <h4 className="mb-2">Vehicle {isEditMode ? 'Updated' : 'Added'} Successfully</h4>
+            <p>The vehicle has been {isEditMode ? 'updated' : 'added'} to your list.</p>
+            <div className="d-flex align-items-center justify-content-center mt-3">
+              <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
+                Close
+              </button>
+              <Link to={routes.providerServices} className="btn btn-linear-primary">
+                View List
+              </Link>
             </div>
           </div>
-        </Modal>
+        </div>
+      </Modal>
     </>
   );
 };
