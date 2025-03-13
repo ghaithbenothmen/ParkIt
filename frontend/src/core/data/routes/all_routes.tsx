@@ -18,7 +18,7 @@ export const all_routes = {
   parkings: '/parkings/*',
   parkinglist:'/parkings',
   parkingDetails:'/parkings/parking-details/:id',
-  parkingBooking:'/parkings/booking',
+  parkingBooking:'/parkings/booking-parking/:id',
 
   // services module path
   services: '/services/*',

@@ -681,7 +681,7 @@ const ParkingDetails = () => {
                         </span>
                       </div>
                       <Link
-                        to={routes.booking}
+                        to={`/parkings/booking-parking/${parking?._id}`}
                         className="btn btn-lg btn-primary w-100 d-flex align-items-center justify-content-center mb-3"
                       >
                         <i className="ti ti-calendar me-2" />
