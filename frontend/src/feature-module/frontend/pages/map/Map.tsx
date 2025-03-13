@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import React from "react";
 import L from "leaflet";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import HomeHeader from "../../home/header/home-header";
 import { MapPin, Search } from "react-feather";
 
@@ -28,7 +28,7 @@ const MapPage = () => {
   const [searchLocation, setSearchLocation] = useState(""); // To store the current location from search
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-
+  const navigate = useNavigate();
   const location = useLocation();
   const { location: inputLocation, currentPosition } = location.state || {};
 
@@ -236,7 +236,7 @@ const MapPage = () => {
         </p>
         <button
           className="btn btn-sm btn-danger w-100"
-          onClick={() => console.log(`Redirect to details for ${parking._id}`)}
+          onClick={() => navigate(`/parkings/parking-details/${parking._id}`)}
         >
           See Details
         </button>

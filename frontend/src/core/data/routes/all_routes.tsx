@@ -14,13 +14,19 @@ export const all_routes = {
   blogList: '/blog/blog-list',
 
 
+  //parking math
+  parkings: '/parkings/*',
+  parkinglist:'/parkings',
+  parkingDetails:'/parkings/parking-details/:id',
+  parkingBooking:'/parkings/booking',
+
   // services module path
   services: '/services/*',
   serviceGrid: '/services/service-grid',
   serviceList: '/services/service-list',
   createService: '/services/create-service',
   providerDetails: '/services/providers/provider-details',
-  search: '/map',
+  map: '/map',
   serviceRequest: '/services/service-request',
   searchList: '/services/search-list',
   provider: '/services/providers/provider-list',
