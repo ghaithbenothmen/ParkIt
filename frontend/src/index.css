@@ -3,6 +3,33 @@
 @import 'react-clock/dist/Clock.css';
 @import 'react-phone-input-2/lib/style.css';
 @import 'primereact/resources/themes/lara-light-indigo/theme.css';
+.search-section {
+  position: relative;  /* Ensure that the suggestions are positioned relative to this container */
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;  /* Ensure it appears directly below the input */
+  left: 0;
+  right: 0;
+  z-index: 999;  /* Make sure it's on top of the map */
+  max-height: 200px;  /* Limit the height if necessary */
+  overflow-y: auto;  /* Allow scrolling if the list is too long */
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Add shadow for better visibility */
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.suggestions-list li {
+  cursor: pointer;
+  padding: 8px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.suggestions-list li:hover {
+  background-color: #f1f1f1;
+}
 
 .loading-spinner {
   position: fixed;

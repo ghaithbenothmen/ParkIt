@@ -39,6 +39,7 @@ import {api} from "../../api"
 import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPassword';
 import path from 'path';
 import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
+import Map from '../frontend/pages/map/Map';
 
 const routes = all_routes;
 
@@ -68,6 +69,12 @@ const publicRoutes = [
     element: <GoogleCallback/>,
     route: Route
 
+  },
+  {
+    path: '/map',
+    name: 'map',
+    element: <Map />,
+    route: Route,
   },
   {
     path: routes.index,

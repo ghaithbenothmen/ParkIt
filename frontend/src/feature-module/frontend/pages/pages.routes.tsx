@@ -16,6 +16,8 @@ import PaymentSetting from '../providers/settings/payment-setting';
 
 import BookingWizard from './booking/booking-wizard';
 import Invoice from '../customers/invoice/invoice';
+import Map from './map/Map';
+
 
 
 const PagesRoutes = () => {
@@ -27,7 +29,6 @@ const PagesRoutes = () => {
       route: Route,
     },
 
-   
    
     {
       path: '/contact-us',

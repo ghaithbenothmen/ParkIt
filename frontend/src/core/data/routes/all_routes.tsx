@@ -2,14 +2,7 @@ export const all_routes = {
   // home module path
   homeOne: '/home-two',
   index: '/home',
-  homeTwo: '/home-three',
-  homeThree: '/home-four',
-  homeFour: '/home-five',
-  homeFive: '/home-six',
-  homeSix: '/home-seven',
-  homeSeven: '/home-eight',
-  homeEight: '/home-nine',
-  homeNine: '/home-ten',
+
 
   activationError:'/activation-error',
   activationSuccess:'/activation-success',
@@ -27,7 +20,7 @@ export const all_routes = {
   serviceList: '/services/service-list',
   createService: '/services/create-service',
   providerDetails: '/services/providers/provider-details',
-  search: '/services/search',
+  search: '/map',
   serviceRequest: '/services/service-request',
   searchList: '/services/search-list',
   provider: '/services/providers/provider-list',
