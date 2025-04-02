@@ -6,6 +6,7 @@ import BookingModals from '../../customers/common/bookingModals';
 import { customerOption, serviceOption, staffOption } from '../../../../core/data/json/dropDownData';
 import CustomDropdown from '../../common/dropdown/commonSelect';
 import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
+import EmbeddedCheckoutForm from '../../../router/EmbeddedCheckoutForm';
 
 
 const ProviderBooking = () => {
@@ -155,7 +156,8 @@ const ProviderBooking = () => {
                   </div>
                   <div className="booking-det-info">
                     <h6 className="mb-3">
-                      <Link to={routes.bookingDetails}>Car Repair Services</Link>
+                      
+                      <Link to={routes.bookingDetails}>Reservation</Link>
                       <span className="badge badge-soft-success ms-2">Completed</span>
                     </h6>
                     <ul className="booking-details">
@@ -199,9 +201,8 @@ const ProviderBooking = () => {
                 </div>
                 <div className="text-end">
                   <div className="d-flex align-items-center flex-wrap row-gap-2">
-                    <Link to={routes.booking} className="btn btn-dark me-2">
-                      Rebook
-                    </Link>
+                  <EmbeddedCheckoutForm />
+
                     <Link
                       to={routes.booking}
                       className="btn btn-light"

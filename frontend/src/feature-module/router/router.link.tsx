@@ -39,8 +39,10 @@ import {api} from "../../api"
 import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPassword';
 import path from 'path';
 import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
-import Payment from '../../payment';
+import PaymentSuccess from './return.paypage';
+import EmbeddedCheckoutForm from './EmbeddedCheckoutForm';
 const routes = all_routes;
+
 
 const publicRoutes = [
   {
@@ -49,10 +51,17 @@ const publicRoutes = [
     element: <HomeOne />,
     route: Route,
   },
+
   {
     path: routes.payment,
     name: 'payment',
-    element: <Payment />,
+    element: <EmbeddedCheckoutForm />,
+    route: Route,
+  },
+  {
+    path: routes.paymentSuccess,
+    name: 'payment-success',
+    element: <PaymentSuccess />,
     route: Route,
   },
 

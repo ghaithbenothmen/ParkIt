@@ -1,62 +1,36 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
 
-const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
-if (!stripeKey) {
-  console.error("Stripe publishable key is missing!");
-}
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
-
-
-const EmbeddedCheckoutButton = () => {
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const modalRef = useRef<HTMLDialogElement | null>(null);
-  const navigate = useNavigate();
-
-  const fetchClientSecret = useCallback(async () => {
-    try {
-      const response = await fetch("http://localhost:4000/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: "price_1OtHkdBF7AptWZlcIjbBpS8r" }), // Replace with actual price ID
-      });
-      const data = await response.json();
-      setClientSecret(data.client_secret);
-    } catch (error) {
-      console.error("Error fetching client secret:", error);
-    }
-  }, []);
-
+export default function EmbeddedCheckoutForm() {
   const handleCheckoutClick = async () => {
-    setShowCheckout(true);
-    await fetchClientSecret(); // Fetch client secret before showing checkout
-    modalRef.current?.showModal();
-  };
 
-  const handleCloseModal = () => {
-    setShowCheckout(false);
-    modalRef.current?.close();
+    const response = await fetch('http://localhost:4000/api/payment/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reservationId: '67d0e8cf6a48b72dddbde074' }), 
+    });
+
+    const session = await response.json();
+
+  const stripePublicKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
+
+if (!stripePublicKey) {
+  throw new Error('Stripe public key is not defined in environment variables.');
+}
+
+if (typeof window !== "undefined" && window.Stripe) {
+  const stripe = window.Stripe(stripePublicKey);
+  await stripe.redirectToCheckout({ sessionId: session.id });
+
+} else {
+  throw new Error('Stripe.js is not loaded.');
+}
   };
 
   return (
     <div>
-      <button onClick={handleCheckoutClick}>Start Checkout</button>
-      <dialog ref={modalRef}>
-        <div>
-          <h2>Stripe Checkout</h2>
-          {showCheckout && clientSecret && (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              {/* Add your Stripe form here */}
-            </Elements>
-          )}
-          <button onClick={handleCloseModal}>Close</button>
-        </div>
-      </dialog>
+      <button onClick={handleCheckoutClick}className="btn btn-dark me-2">Checkout</button>
     </div>
   );
-};
-
-export default EmbeddedCheckoutButton;
+}

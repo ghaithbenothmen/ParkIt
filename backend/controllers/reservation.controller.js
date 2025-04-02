@@ -16,6 +16,7 @@ exports.createReservation = async (req, res) => {
             return res.status(400).json({ message: 'La place de parking est déjà réservée pour cette période.' });
         }
 
+
         // Créer une nouvelle réservation
         const newReservation = new Reservation({
             userId,
@@ -25,14 +26,72 @@ exports.createReservation = async (req, res) => {
             endDate,
             totalPrice
         });
+        await newReservation.save();try {
+            const amount = 1000; // Amount to pay (modify as needed)
+            const trackingId = `order-${Date.now()}`;  // Generate a tracking ID using the current timestamp
+            
+            // Ensure `newReservation` is properly created before using `newReservation._id`
+            if (!newReservation || !newReservation._id) {
+                return res.status(400).json({ error: "Reservation not found or invalid" });
+            }
+        
+            const response = await fetch("https://developers.flouci.com/api/generate_payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    app_token: "a85c8b00-781c-401a-be6f-5c596aba1676",
+                    app_secret: "1020d467-11ca-4fbe-b120-afdd7004044d",
+                    amount: amount,
+                    accept_card: true,
+                    session_timeout_secs: 1200,
+                    success_link: `http://localhost:4000/api/reservations/success?trackingId=${trackingId}&reservationId=${newReservation._id}`,
+                    fail_link: `http://localhost:4000/api/reservations/fail?trackingId=${trackingId}&reservationId=${newReservation._id}`,
+                    developer_tracking_id: trackingId
+                }),
+            });
+        
+            if (!response.ok) {
+                throw new Error("Failed to create payment on Flouci");
+            }
+        
+            const data = await response.json();
+        
+            if (data.result && data.result.link) {
+                console.log("Payment link:", data.result.link);
+                // Redirect to Flouci payment page
+                return res.redirect(data.result.link);
+            }
+        
+            // If the response does not contain a valid payment link
+            return res.status(400).json({ error: "Failed to create payment" });
+        
+        } catch (error) {
+            console.error("Error creating payment:", error);
+            return res.status(500).json({ error: "Payment creation failed", message: error.message });
+        }
+        
 
-        await newReservation.save();
 
         res.status(201).json({ message: 'Réservation créée avec succès', data: newReservation });
+
     } catch (error) {
         res.status(500).json({ message: 'Erreur lors de la création de la réservation', error: error.message });
     }
 };
+exports.paymentSuccess = async (req, res) => {
+    const { trackingId, reservationId, payment_id } = req.query;
+    
+    if (!trackingId || !reservationId) return res.send("Invalid request");
+
+    // Update the reservation payment status to "confirmed"
+    await Reservation.findByIdAndUpdate(reservationId, { status: 'confirmed' });
+        const frontendSuccessrUrl = `http://localhost:3000/activation-success`;
+        return res.redirect(frontendSuccessrUrl);
+}
+exports.paymentFail = async (req, res) => {
+        const frontendErrorUrl = `http://localhost:3000/activation-error`;
+        return res.redirect(frontendErrorUrl);
+}
 
 exports.getAllReservations = async (req, res) => {
     try {
@@ -160,5 +219,7 @@ module.exports = {
     deleteReservation: exports.deleteReservation,
     getAllReservationsByUser: exports.getAllReservationsByUser,
     getAllReservationsByParking: exports.getAllReservationsByParking,
-    getAllReservationsByParkingSpot: exports.getAllReservationsByParkingSpot
+    getAllReservationsByParkingSpot: exports.getAllReservationsByParkingSpot,
+    paymentSuccess: exports.paymentSuccess,
+    paymentFail: exports.paymentFail
 };

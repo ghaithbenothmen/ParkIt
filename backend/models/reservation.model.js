@@ -34,8 +34,8 @@ const reservationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['confirmed', 'canceled', 'finished'], // Valeurs autorisées
-        default: 'confirmed' // Valeur par défaut
+        enum: ['confirmed', 'pending', 'canceled'], // Valeurs autorisées
+        default: 'pending' // Valeur par défaut
     },
     totalPrice: {
         type: Number,

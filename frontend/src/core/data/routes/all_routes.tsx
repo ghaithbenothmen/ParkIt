@@ -10,6 +10,7 @@ export const all_routes = {
   homeSeven: '/home-eight',
   homeEight: '/home-nine',
   homeNine: '/home-ten',
+  paymentSuccess: '/payment-success',
   payment: '/payment',
 
 
@@ -21,6 +22,7 @@ export const all_routes = {
   blogDetails: '/blog/blog-details',
   blogGrid: '/blog/blog-grid',
   blogList: '/blog/blog-list',
+
 
 
   // services module path
