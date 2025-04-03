@@ -39,6 +39,8 @@ import {api} from "../../api"
 import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPassword';
 import path from 'path';
 import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
+import Map from '../frontend/pages/map/Map';
+import Parking from '../frontend/pages/parking/parking';
 
 import PaymentSuccess from '../frontend/home/new-home/PaymentSuccess';
 import PaymentError from '../frontend/home/new-home/PaymentError';
@@ -92,6 +94,13 @@ const publicRoutes = [
     route: Route
 
   },
+  {
+    path: '/map',
+    name: 'map',
+    element: <Map />,
+    route: Route,
+  },
+  
   {
     path: routes.index,
     name: 'Home',
@@ -165,6 +174,12 @@ const publicRoutes = [
     path: routes.customers,
     name: 'customers',
     element: <Customers />,
+    route: Route,
+  },
+  {
+    path: routes.parkings,
+    name: 'parking',
+    element: <Parking />,
     route: Route,
   },
   {
