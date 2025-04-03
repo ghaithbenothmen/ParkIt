@@ -3,8 +3,10 @@ const router = express.Router();
 const reservationController = require('../controllers/reservation.controller');
 
 // Routes pour les opérations CRUD
+
 router.get('/success',reservationController.paymentSuccess);
 router.get('/fail',reservationController.paymentFail);
+router.post('/:id/payment',reservationController.reservationPayment);
 router.post('/', reservationController.createReservation);
 router.get('/', reservationController.getAllReservations);
 router.get('/:id', reservationController.getReservationById);

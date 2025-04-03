@@ -12,7 +12,6 @@ const vehiculeRoutes = require('./routes/vehicule.routes');
 const parkingRoutes = require('./routes/parking.routes');
 const parkingSpotRoutes = require('./routes/parkingSpot.route');
 const reservationRoutes = require('./routes/reservation.route');
-const stripeRoutes = require("./routes/payment.route");
 
 
 
@@ -52,7 +51,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
 app.use('/api/parking', parkingRoutes);
-app.use("/api/payment", stripeRoutes);
 app.use('/api/parking-spots', parkingSpotRoutes); 
 app.use('/api/reservations', reservationRoutes);
 

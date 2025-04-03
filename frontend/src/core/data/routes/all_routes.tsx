@@ -1,3 +1,5 @@
+import PaymentSuccess from "../../../feature-module/router/return.paypage";
+
 export const all_routes = {
   // home module path
   homeOne: '/home-two',
@@ -10,10 +12,10 @@ export const all_routes = {
   homeSeven: '/home-eight',
   homeEight: '/home-nine',
   homeNine: '/home-ten',
-  paymentSuccess: '/payment-success',
   payment: '/payment',
 
-
+  paymentSuccess:'/payment-success',
+  paymentError:'/payment-error',
   activationError:'/activation-error',
   activationSuccess:'/activation-success',
 
