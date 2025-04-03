@@ -12,7 +12,7 @@ const ParkingVisualization = () => {
   const [error, setError] = useState(null);
   // const { parkingId } = useParams(); // Get parking ID from URL parameters
   // Or use a fixed ID for testing:
-  const parkingId = "67d6d098fb0f9da17eee00c9"; 
+  const parkingId = "67d6dc550344fc876386b161"; 
   
   
   useEffect(() => {
@@ -55,15 +55,17 @@ const ParkingVisualization = () => {
           .map(spot => ({
             id: spot.numero,
             _id: spot._id, // Store MongoDB ID for future API calls
-            position: determinePosition(spot.numero, parkingData.nbr_place),
-            row: determineRow(spot.numero, parkingData.nbr_place)
+            position: spot.numero.match(/[0-9]+/)[0] % 7 === 0 || spot.numero.match(/[0-9]+/)[0] <= 2 ? 'right' : 'left', // Adjusted logic for spot positions
+            row: determineCustomRow(spot.numero)
           }));
         
-        const unavailableSpots = spots
+          const unavailableSpots = spots
           .filter(spot => !spot.disponibilite)
           .map(spot => ({
-            position: determinePosition(spot.numero, parkingData.nbr_place),
-            row: determineRow(spot.numero, parkingData.nbr_place)
+            id: spot.numero,
+            _id: spot._id,
+            position: spot.numero.match(/[0-9]+/)[0] % 7 === 0 || spot.numero.match(/[0-9]+/)[0] <= 2 ? 'right' : 'left',
+            row: determineCustomRow(spot.numero)
           }));
         
         setParkingSpots(availableSpots);
@@ -84,27 +86,15 @@ const ParkingVisualization = () => {
     }
   }, [parkingId]);
   
-  // Helper functions to determine position and row based on spot number and total spots
-  const determinePosition = (spotNumber, totalSpots) => {
-    // Example: Assuming we have 2 spots per row (left and right)
-    // A01, A03, A05, etc. are on the left
-    // A02, A04, A06, etc. are on the right
+  // Custom row determination for the new layout (5 left, 2 right)
+  const determineCustomRow = (spotNumber) => {
     const number = parseInt(spotNumber.replace(/[^0-9]/g, ''));
-    return number % 2 === 0 ? 'right' : 'left';
-  };
-  
-  const determineRow = (spotNumber, totalSpots) => {
-    // Example: If we have 2 spots per row, then
-    // A01 and A02 are row 1, A03 and A04 are row 2, etc.
-    const number = parseInt(spotNumber.replace(/[^0-9]/g, ''));
-    return Math.ceil(number / 2);
-  };
-  
-  // Calculate max rows based on nbr_place (assuming 2 spots per row)
-  const calculateMaxRows = () => {
-    if (!parkingInfo) return 0;
-    // If each row has 2 spots (left and right), then max rows = nbr_place / 2
-    return Math.ceil(parkingInfo.nbr_place / 2);
+    
+    if (number <= 2) { // A01, A02 on right side
+      return number;
+    } else { // A03-A07 on left side
+      return number - 2; // Adjust rows for left side
+    }
   };
 
   const handleSelectSpot = (spotId) => {
@@ -137,83 +127,139 @@ const ParkingVisualization = () => {
   };
 
   const generateParkingLayout = () => {
-    const maxRows = calculateMaxRows();
-    const layout = [];
-
-    // Entry/Exit Section
-    layout.push(
-      <div key="entry-exit" className="traffic-lane mb-4 py-2 bg-light">
-        <div className="d-flex align-items-center justify-content-between px-3">
-          <div className="d-flex align-items-center gap-2">
-            <i className="ti ti-arrow-left fs-4 text-primary"></i>
-            <span className="small text-muted">Entry</span>
+    // Define which spots should be on which side
+    const leftSideSpots = ['A01', 'A02', 'A03', 'A04', 'A05'];
+    const rightSideSpots = ['A06', 'A07'];
+    
+    const leftSpots = [];
+    const rightSpots = [];
+    const centerExitPath = [];
+    const centerEntryPath = [];
+  
+    // Get maximum number of rows
+    const maxRows = Math.max(leftSideSpots.length, rightSideSpots.length);
+  
+    // Generate center path elements for exit
+    for (let i = 0; i < maxRows; i++) {
+      centerExitPath.push(
+        <div className="exit-path-segment" key={`exit-path-${i}`}>
+          {i === Math.floor(maxRows / 2) && (
+            <div className="exit-label">EXIT</div>
+          )}
+        </div>
+      );
+    }
+  
+    // Generate center path elements for entry
+    for (let i = 0; i < maxRows; i++) {
+      centerEntryPath.push(
+        <div className="entry-path-segment" key={`entry-path-${i}`}>
+          {i === Math.floor(maxRows / 2) && (
+            <div className="entry-label">ENTRY</div>
+          )}
+        </div>
+      );
+    }
+    
+    // Generate left side spots (5 spots)
+    for (let i = 0; i < leftSideSpots.length; i++) {
+      const spotId = leftSideSpots[i];
+      const leftSpot = parkingSpots.find(spot => spot.id === spotId);
+      const isLeftOccupied = occupiedSpots.some(spot => spot.id === spotId);
+  
+      leftSpots.push(
+        <div className="parking-side left-side mb-3" key={`left-${i}`}>
+          {leftSpot ? (
+            <button
+              className={`spot-btn ${selectedSpot === leftSpot.id ? 'active' : ''}`}
+              onClick={() => handleSelectSpot(leftSpot.id)}
+            >
+              {leftSpot.id}
+            </button>
+          ) : (
+            <div className="spot-placeholder">
+              {isLeftOccupied && <img src="./../assets/img/car2D.png" alt="Occupied" />}
+              {!isLeftOccupied && spotId}
+            </div>
+          )}
+        </div>
+      );
+    }
+  
+    // Add empty spots to right side first to push A06 and A07 to the bottom
+    // We need to add (leftSideSpots.length - rightSideSpots.length) empty spots
+    const emptySpacesNeeded = leftSideSpots.length - rightSideSpots.length;
+    
+    for (let i = 0; i < emptySpacesNeeded; i++) {
+      rightSpots.push(
+        <div className="parking-side right-side mb-3" key={`right-empty-${i}`}>
+          <div className="spot-placeholder empty"></div>
+        </div>
+      );
+    }
+  
+    // Then generate right side spots (A06 and A07) at the bottom
+    for (let i = 0; i < rightSideSpots.length; i++) {
+      const spotId = rightSideSpots[i];
+      const rightSpot = parkingSpots.find(spot => spot.id === spotId);
+      const isRightOccupied = occupiedSpots.some(spot => spot.id === spotId);
+  
+      rightSpots.push(
+        <div className="parking-side right-side mb-3" key={`right-${i}`}>
+          {rightSpot ? (
+            <button
+              className={`spot-btn ${selectedSpot === rightSpot.id ? 'active' : ''}`}
+              onClick={() => handleSelectSpot(rightSpot.id)}
+            >
+              {rightSpot.id}
+            </button>
+          ) : (
+            <div className="spot-placeholder">
+              {isRightOccupied && <img src="./../assets/img/car2D.png" alt="Occupied" />}
+              {!isRightOccupied && spotId}
+            </div>
+          )}
+        </div>
+      );
+    }
+  
+    return (
+      <div className="d-flex justify-content-between">
+        {/* Exit column (left) */}
+        <div className="w-30 pe-2">
+          {/* All left-side spots */}
+          {leftSpots}
+        </div>
+  
+        {/* Center exit path */}
+        <div className="exit-path-container w-15 px-1">
+          <div className="d-flex align-items-center justify-content-center mb-3">
+            <span className="small text-muted invisible">Exit Path</span>
           </div>
-          <div className="d-flex align-items-center gap-2">
-            <span className="small text-muted">Exit</span>
-            <i className="ti ti-arrow-right fs-4 text-primary"></i>
+          <div className="exit-path">
+            {centerExitPath}
+          </div>
+        </div>
+        
+        {/* Entry column (right side spots) */}
+        <div className="w-30 px-1">
+          {/* All right-side spots, with empty spaces at the top and A06/A07 at the bottom */}
+          {rightSpots}
+        </div>
+        
+        {/* Entry path (rightmost column) */}
+        <div className="entry-path-container w-15 ps-1">
+          <div className="d-flex align-items-center justify-content-center mb-3">
+            <span className="small text-muted invisible">Entry Path</span>
+          </div>
+          <div className="entry-path">
+            {centerEntryPath}
           </div>
         </div>
       </div>
     );
-
-    // Parking Rows
-    for (let row = 1; row <= maxRows; row++) {
-      const leftSpot = parkingSpots.find(spot => spot.position === 'left' && spot.row === row);
-      const rightSpot = parkingSpots.find(spot => spot.position === 'right' && spot.row === row);
-      
-      const isLeftOccupied = occupiedSpots.some(spot => spot.position === 'left' && spot.row === row);
-      const isRightOccupied = occupiedSpots.some(spot => spot.position === 'right' && spot.row === row);
-
-      layout.push(
-        <div className="parking-row position-relative mb-3" key={`row-${row}`}>
-          {/* Traffic Lane Separator */}
-          <div className="traffic-separator">
-            <div className="dashed-line"></div>
-            <div className="traffic-arrows">
-              <i className="ti ti-arrow-left"></i>
-              <i className="ti ti-arrow-right"></i>
-            </div>
-          </div>
-
-          <div className="d-flex justify-content-between align-items-center py-2">
-            {/* Left Side */}
-            <div className="parking-side left-side">
-              {leftSpot ? (
-                <button
-                  className={`spot-btn ${selectedSpot === leftSpot.id ? 'active' : ''}`}
-                  onClick={() => handleSelectSpot(leftSpot.id)}
-                >
-                  {leftSpot.id}
-                </button>
-              ) : (
-                <div className="spot-placeholder">
-                  {isLeftOccupied && <img src="./../assets/img/car2D.png" alt="Occupied" />}
-                </div>
-              )}
-            </div>
-
-            {/* Right Side */}
-            <div className="parking-side right-side">
-              {rightSpot ? (
-                <button
-                  className={`spot-btn ${selectedSpot === rightSpot.id ? 'active' : ''}`}
-                  onClick={() => handleSelectSpot(rightSpot.id)}
-                >
-                  {rightSpot.id}
-                </button>
-              ) : (
-                <div className="spot-placeholder">
-                  {isRightOccupied && <img src="./../assets/img/car2D.png" alt="Occupied" />}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return layout;
   };
+
 
   if (loading) {
     return <div className="text-center p-5"><span className="spinner-border"></span></div>;
