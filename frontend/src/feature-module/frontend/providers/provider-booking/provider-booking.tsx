@@ -15,7 +15,7 @@ const ProviderBooking = () => {
   const handleItemClick = (index: number) => {
     setSelectedItems((prevSelectedItems) => {
       const updatedSelectedItems = [...prevSelectedItems];
-      updatedSelectedItems[index] = !updatedSelectedItems[index];
+      updatedSelectedItems[index] = !updatedSelectedItems[index]; 
       return updatedSelectedItems;
     });
   };

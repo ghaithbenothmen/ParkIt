@@ -44,7 +44,6 @@ import Parking from '../frontend/pages/parking/parking';
 
 import PaymentSuccess from '../frontend/home/new-home/PaymentSuccess';
 import PaymentError from '../frontend/home/new-home/PaymentError';
-import EmbeddedCheckoutForm from './EmbeddedCheckoutForm';
 const routes = all_routes;
 
 
@@ -56,12 +55,6 @@ const publicRoutes = [
     route: Route,
   },
 
-  {
-    path: routes.payment,
-    name: 'payment',
-    element: <EmbeddedCheckoutForm />,
-    route: Route,
-  },
   {
     path: routes.paymentSuccess,
     name: 'payment-success',

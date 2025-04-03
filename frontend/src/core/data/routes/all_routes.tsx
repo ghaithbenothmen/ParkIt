@@ -1,4 +1,3 @@
-import PaymentSuccess from "../../../feature-module/router/return.paypage";
 
 export const all_routes = {
   // home module path
