@@ -16,6 +16,9 @@ import PaymentSetting from '../providers/settings/payment-setting';
 
 import BookingWizard from './booking/booking-wizard';
 import Invoice from '../customers/invoice/invoice';
+import Map from './map/Map';
+import ParkingDetails from './parking/parking-details/parking-details';
+
 
 
 const PagesRoutes = () => {
@@ -27,7 +30,6 @@ const PagesRoutes = () => {
       route: Route,
     },
 
-   
    
     {
       path: '/contact-us',
@@ -43,7 +45,12 @@ const PagesRoutes = () => {
       element: <Invoice />,
       route: Route,
     },
-    
+    {
+      path: '/parking-details/service-details1',
+      name: 'parking-details',
+      element: <ParkingDetails />,
+      route: Route,
+    },
     {
       path: '/pricing-plan',
       name: 'pricing',
