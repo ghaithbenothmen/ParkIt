@@ -22,6 +22,7 @@ import CustomerDetails from './customer/customerDetails';
 import CustomerList from './customer/customerList';
 import CustomerGrid from './customer/customerGrid';
 import CreateVehicule from '../services/create-service/createServices'; // Importez la nouvelle page
+import ParkingVisualization from './pickParkingSpot';
 
 const ProvidersRoutes = () => {
   const all_providers_routes = [
@@ -176,6 +177,12 @@ const ProvidersRoutes = () => {
       path: '/provider-service/edit-vehicule/:id',
       name: 'edit-vehicule',
       element: <CreateVehicule />, // Même composant pour l'édition
+      route: Route,
+    },
+    {
+      path: '/ParkingVisualization',
+      name: 'ParkingVisualization',
+      element: <ParkingVisualization />, 
       route: Route,
     },
     {
