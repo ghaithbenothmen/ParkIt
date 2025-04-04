@@ -16,9 +16,38 @@ import { AdminDashboardThree } from '../../../core/data/json/admin-dashboard3';
 
 const Dashboard = () => {
   const routes = all_routes;
+
   
     const [userCount, setUserCount] = useState(null); // Initialize as null
     const [parcCount, setParcCount] = useState(null); 
+    const [reservationStat, setReservationStat] = useState(null); 
+    const [reservationSummary, setReservationSummary] = useState(null); 
+    const [topUsers, setTopUsers] = useState(null); 
+    const [bookChartData, setBookChartData] = useState({
+      series: [],
+      options: {
+        chart: {
+          width: 700,
+          type: 'pie',
+        },
+        labels: ['Confirmed', 'Canceled', 'Pending'], // Match your legend
+        colors: ['#1BA345', '#FF0000', '#FEC001'],
+        responsive: [
+          {
+            breakpoint: 480,
+            options: {
+              chart: {
+                width: 200,
+              },
+              legend: {
+                position: 'bottom',
+              },
+            },
+          },
+        ],
+      },
+    });
+    
     // Function to fetch user count from API
     const fetchUserCount = async () => {
       try {
@@ -38,6 +67,44 @@ const Dashboard = () => {
         console.error('Error fetching parc count:', error);
       }
     };
+    
+    const fetchReservationSummary = async () => {
+      const response = await axios.get('http://localhost:4000/api/reservations/reservation-summary');
+      setReservationSummary(response.data.count);
+    };
+    
+    const fetchReservationStat = async () => {
+      try {
+        const response = await axios.get(
+          'http://localhost:4000/api/reservations/reservation-statistics'
+        );
+    
+        const data = response.data.count; // Make sure this is an array like [30, 40, 50]
+        setReservationStat(data);
+    
+        // Update chart data here
+        setBookChartData((prev) => ({
+          ...prev,
+          series: data,
+        }));
+      } catch (error) {
+        console.error('Error fetching reservation statistics:', error);
+      }
+    };
+    
+    useEffect(() => {
+      const fetchTopUsers = async () => {
+        try {
+          const response = await axios.get('http://localhost:4000/api/reservations/top-users');
+          setTopUsers(response.data.topUsers);
+        } catch (error) {
+          console.error('Error fetching top users:', error);
+        }
+      };
+    
+      fetchTopUsers();
+    }, []);
+    
   
 
     
@@ -48,7 +115,15 @@ const Dashboard = () => {
     useEffect(() => {
       fetchParkingCount(); // Fetch user count on component mount
     }, []);
+    useEffect(() => {
+      fetchReservationSummary(); // Fetch user count on component mount
+    }, []);
 
+    useEffect(() => {
+      fetchReservationStat(); 
+    }, []);
+    console.log(reservationStat);
+    console.log("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii");
   const serviceImage1 = (rowData: AdminDashboardInterface) => {
     const [service] = rowData.service.split('\n');
     return (
@@ -165,7 +240,7 @@ const Dashboard = () => {
     tooltip: {},
   };
   const book = {
-    series: [10, 45, 45],
+    series: reservationStat,
     chart: {
       width: 700,
       type: 'pie',
@@ -236,7 +311,7 @@ const Dashboard = () => {
       {
         name: 'Received',
         type: 'column',
-        data: [70, 150, 80, 180, 150, 175, 201, 60, 200, 120, 190, 160],
+        data: reservationSummary,
       },
       {
         name: 'Revenue',
@@ -541,17 +616,10 @@ const Dashboard = () => {
               <div className="card-body">
                 <div className="home-user">
                   <div className="home-head-user">
-                    <h2>Booking Summary</h2>
+                    <h2>Reservation Summary</h2>
                     <div className="home-select">
                       <div className="dropdown">
-                        <button
-                          className="btn btn-action btn-sm dropdown-toggle"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Monthly
-                        </button>
+                      
                         <ul
                           className="dropdown-menu"
                           data-popper-placement="bottom-end"
@@ -679,24 +747,26 @@ const Dashboard = () => {
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
-                    <table className="table datatable ">
-                      <DataTable
-                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
-                        currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                        value={data2}
-                      >
-                        <Column sortable field="#" header="#"></Column>
-                        <Column
-                          sortable
-                          field="providerName"
-                          header="Provider Name"
-                          body={serviceImage2}
-                        ></Column>
-                        <Column sortable field="email" header="Email"></Column>
-                        <Column sortable field="phone" header="Phone"></Column>
-                      </DataTable>
-                    </table>
-                  </div>
+  <table className="table datatable">
+    <DataTable
+      value={topUsers}
+      paginator
+      rows={5}
+      paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
+      currentPageReportTemplate="{first} to {last} of {totalRecords}"
+    >
+      <Column
+        header="#"
+        body={(rowData, { rowIndex }) => rowIndex + 1}
+        style={{ width: '50px' }}
+      />
+      <Column field="name" header="Name" sortable />
+      <Column field="email" header="Email" sortable />
+      <Column field="totalReservations" header="Reservations" sortable />
+    </DataTable>
+  </table>
+</div>
+
                 </div>
               </div>
             </div>
@@ -853,7 +923,7 @@ const Dashboard = () => {
               <div className="card-body">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Booking Statistics</h2>
+                    <h2>Reservation Statistics</h2>
                     <Link to={routes.booking} className="btn btn-viewall">
                       View All
                       <ImageWithBasePath
@@ -867,8 +937,8 @@ const Dashboard = () => {
                     <div className="row align-items-center">
                       <div className="col-lg-7 col-sm-6">
                         <ReactApexChart
-                          options={book}
-                          series={book.series}
+                          options={bookChartData.options}
+                          series={bookChartData.series}
                           type="pie"
                           height={350}
                           width={200}
@@ -876,20 +946,21 @@ const Dashboard = () => {
                       </div>
                       <div className="col-lg-5 col-sm-6">
                         <div className="bookingstatus">
-                          <ul>
-                            <li>
-                              <span />
-                              <h6>Completed</h6>
-                            </li>
-                            <li className="process-status">
-                              <span />
-                              <h6>Process</h6>
-                            </li>
-                            <li className="process-pending">
-                              <span />
-                              <h6>Pending</h6>
-                            </li>
-                          </ul>
+                        <ul>
+  <li>
+    <span style={{ backgroundColor: '#1BA345' }} />
+    <h6>Confirmed</h6>
+  </li>
+  <li>
+    <span style={{ backgroundColor: '#FEC001' }} />
+    <h6>Pending</h6>
+  </li>
+  <li>
+    <span style={{ backgroundColor: '#FF4C4C' }} />
+    <h6>Canceled</h6>
+  </li>
+</ul>
+
                         </div>
                       </div>
                     </div>
