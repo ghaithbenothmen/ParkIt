@@ -92,7 +92,7 @@ exports.register = async (req, res) => {
         lastname,
         phone,
         email,
-        password: hashedPassword,
+        password: password,
         isActive: false,
         twoFactorSecret,
         twoFactorEnabled: enable2FA || false,
