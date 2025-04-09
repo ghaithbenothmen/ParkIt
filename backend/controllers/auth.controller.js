@@ -221,10 +221,10 @@ exports.verifyActivation = async (req, res) => {
 
     // Find the user by ID
     const user = await User.findById(decoded.id);
-    if (!user) {
-      const frontendErrorUrl = `http://localhost:3000/activation-error`;
-      return res.redirect(frontendErrorUrl);
-    }
+      if (!user) {
+        const frontendErrorUrl = `http://localhost:3000/activation-error`;
+        return res.redirect(frontendErrorUrl);
+      }
     console.log("User Before Activation:", user);
 
     // Activate the user

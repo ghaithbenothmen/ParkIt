@@ -6,6 +6,7 @@ import BookingModals from '../../customers/common/bookingModals';
 import { customerOption, serviceOption, staffOption } from '../../../../core/data/json/dropDownData';
 import CustomDropdown from '../../common/dropdown/commonSelect';
 import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
+import PaymentButton from '../../home/new-home/PaymentButton';
 // adjust as needed
 import axios from "axios";
 interface Reservation {
@@ -71,6 +72,33 @@ const ProviderBooking = () => {
     }
   }, [reservations]);
   
+  
+  const handlePayment = async() => {
+    const id = "67edbb543694320831f9878d"
+    try {
+      const response = await fetch(`http://localhost:4000/api/reservations/${id}/payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error('Payment initiation failed');
+      }
+  
+      const data = await response.json();
+  
+      if (data.paymentLink) {
+        // Redirect the user to the payment page
+        window.location.href = data.paymentLink;
+      } else {
+        throw new Error('Payment link not received');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   
   return (
     <>
