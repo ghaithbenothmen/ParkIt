@@ -12,6 +12,11 @@ const reservationSchema = new mongoose.Schema({
         ref: 'Parking', // Référence au modèle Parking
         required: true
     },
+    vehicule: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Vehicule',
+        required: true
+    },
     parkingSpot: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ParkingSpot', // Référence au modèle ParkingSpot
@@ -19,11 +24,10 @@ const reservationSchema = new mongoose.Schema({
     },
     startDate: {
         type: Date,
-        required: true
+        
     },
     endDate: {
         type: Date,
-        required: true,
         validate: {
             validator: function (value) {
                 // Vérifier que endDate est après startDate

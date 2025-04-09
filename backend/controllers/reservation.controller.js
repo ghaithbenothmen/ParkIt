@@ -2,7 +2,7 @@ const Reservation = require('../models/reservation.model.js');
 
 exports.createReservation = async (req, res) => {
     try {
-        const { userId, parkingId, parkingSpot, startDate, endDate, totalPrice } = req.body;
+        const { userId, parkingId, parkingSpot,vehicule, startDate, endDate, totalPrice } = req.body;
 
         // Vérifier si la place de parking est déjà réservée pour cette période
         const existingReservation = await Reservation.findOne({
@@ -21,6 +21,7 @@ exports.createReservation = async (req, res) => {
             userId,
             parkingId,
             parkingSpot,
+            vehicule,
             startDate,
             endDate,
             totalPrice

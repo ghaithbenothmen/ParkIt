@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect ,useState } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
@@ -6,8 +6,20 @@ import BookingModals from '../../customers/common/bookingModals';
 import { customerOption, serviceOption, staffOption } from '../../../../core/data/json/dropDownData';
 import CustomDropdown from '../../common/dropdown/commonSelect';
 import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
-
-
+// adjust as needed
+import axios from "axios";
+interface Reservation {
+  _id: string;
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  parkingId: string;  // Parking ID
+  parking: {
+    nom: string;
+    image: string;
+    adresse: string;
+  } | null; // parking details will be populated later
+}
 const ProviderBooking = () => {
   const routes = all_routes;
   const [selectedItems, setSelectedItems] = useState(Array(10).fill(false));
@@ -18,6 +30,48 @@ const ProviderBooking = () => {
       return updatedSelectedItems;
     });
   };
+  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const res = await axios.get("http://localhost:4000/api/reservations");
+        console.log("Fetched reservations:", res.data);
+  
+        setReservations(res.data.data);  // Access the array inside 'data'
+      } catch (error) {
+        console.error("Failed to fetch reservations:", error);
+      }
+    };
+  
+    fetchReservations();
+  }, []);
+  useEffect(() => {
+    const fetchParkings = async () => {
+      const updatedReservations = [...reservations]; // Copy of reservations state
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingId && !reservation.parking) {
+          try {
+            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+            updatedReservations[i].parking = parkingRes.data;  // Assuming parking details come with nom, image, adresse
+          } catch (error) {
+            console.error('Error fetching parking details for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      setReservations(updatedReservations); // Update the state with parking details
+    };
+
+    if (reservations.length > 0) {
+      fetchParkings();
+    }
+  }, [reservations]);
+  
+  
   return (
     <>
   {/* Page Wrapper */}
@@ -70,402 +124,66 @@ const ProviderBooking = () => {
         </div>
       </div>
       <div className="row justify-content-center">
-        <div className="col-xxl-12 col-lg-12">
-        <div className="card shadow-none booking-list">
-              <div className="card-body d-md-flex align-items-center">
-                <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
-                  <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                    <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
-                    </Link>
-                    <div className="fav-item">
-                      <Link to="#" className={`fav-icon ${selectedItems[1] ? 'selected' : ''}`} onClick={() => handleItemClick(1)}>
-                        <i className="feather icon-heart" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="booking-det-info">
-                    <h6 className="mb-3">
-                      <Link to={routes.bookingDetails}>Computer Services</Link>
-                      <span className="badge badge-soft-danger ms-2">Cancelled</span>
-                    </h6>
-                    <ul className="booking-details">
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Booking Date</span>{" "}
-                        <small className="me-2">: </small>27 Sep, 17:00-18:00
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Amount</span>{" "}
-                        <small className="me-2">: </small> $100.00
-                        <span className="badge badge-soft-primary ms-2">Paypal</span>
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Location</span>{" "}
-                        <small className="me-2">: </small>Newyork, USA
-                      </li>
-                      <li className="d-flex align-items-center flex-wrap">
-                        <span className="book-item">Provider</span>{" "}
-                        <small className="me-2">: </small>
-                        <div className="user-book d-flex align-items-center flex-wrap me-2">
-                          <div className="avatar avatar-xs me-2">
+            <div className="col-xxl-12 col-lg-12">
+              {reservations.length > 0 ? (
+                reservations.map((reservation) => (
+                  <div key={reservation._id} className="card shadow-none booking-list">
+                    <div className="card-body d-md-flex align-items-center">
+                      <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
+                        <div className="booking-img me-sm-3 mb-3 mb-sm-0">
+                          <Link to={routes.bookingDetails} className="avatar">
                             <ImageWithBasePath
-                              className="avatar-img rounded-circle"
-                              alt="User Image"
-                              src="assets/img/parking.jpg"
+                              src={reservation.parking?.image || "assets/img/parking.jpg"}
+                              alt="Parking Image"
                             />
-                          </div>
-                          John Doe
+                          </Link>
                         </div>
-                        <p className="mb-0 me-2">
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          info@johndoe.com
-                        </p>
-                        <p>
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          +1 888 888 8888
-                        </p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div>
-                  <Link
-                    to={routes.booking}
-                    className="btn btn-light"
-                    data-bs-toggle="modal"
-                    data-bs-target="#reschedule"
-                  >
-                    Reschedule
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <div className="card shadow-none booking-list">
-              <div className="card-body d-md-flex align-items-center">
-                <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
-                  <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                    <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
-                    </Link>
-                    <div className="fav-item">
-                      <Link to="#" className={`fav-icon ${selectedItems[2] ? 'selected' : ''}`} onClick={() => handleItemClick(2)}>
-                        <i className="feather icon-heart" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="booking-det-info">
-                    <h6 className="mb-3">
-                      <Link to={routes.bookingDetails}>Car Repair Services</Link>
-                      <span className="badge badge-soft-success ms-2">Completed</span>
-                    </h6>
-                    <ul className="booking-details">
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Booking Date</span>{" "}
-                        <small className="me-2">: </small>23 Sep 2022, 10:00-11:00
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Amount</span>{" "}
-                        <small className="me-2">: </small> $50.00
-                        <span className="badge badge-soft-primary ms-2">COD</span>
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Location</span>{" "}
-                        <small className="me-2">: </small>Alabama, USA
-                      </li>
-                      <li className="d-flex align-items-center flex-wrap">
-                        <span className="book-item">Provider</span>{" "}
-                        <small className="me-2">: </small>
-                        <div className="user-book d-flex align-items-center flex-wrap me-2">
-                          <div className="avatar avatar-xs me-2">
-                            <ImageWithBasePath
-                              className="avatar-img rounded-circle"
-                              alt="User Image"
-                              src="assets/img/profiles/avatar-02.jpg"
-                            />
-                          </div>
-                          John Smith
+
+                        <div className="booking-det-info">
+                          <h6 className="mb-3">
+                            <Link to={routes.bookingDetails}>
+                              {reservation.parking?.nom || "Parking Spot"}
+                            </Link>
+                            <span className="badge badge-soft-success ms-2">Confirmed</span>
+                          </h6>
+
+                          <ul className="booking-details">
+                            <li className="d-flex align-items-center mb-2">
+                              <span className="book-item">Booking Date</span>
+                              <small className="me-2">: </small>
+                              {new Date(reservation.startDate).toLocaleDateString()}{" "}
+                              {new Date(reservation.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{" "}
+                              {new Date(reservation.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </li>
+                            <li className="d-flex align-items-center mb-2">
+                              <span className="book-item">Amount</span>
+                              <small className="me-2">: </small> ${reservation.totalPrice.toFixed(2)}
+                              <span className="badge badge-soft-primary ms-2">Paid</span>
+                            </li>
+                            <li className="d-flex align-items-center mb-2">
+                              <span className="book-item">Location</span>
+                              <small className="me-2">: </small>
+                              {reservation.parking?.adresse || "Unknown"}
+                            </li>
+                          </ul>
                         </div>
-                        <p className="mb-0 me-2">
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          info@johnsmith.com
-                        </p>
-                        <p>
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          +1 607-276-5393
-                        </p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="text-end">
-                  <div className="d-flex align-items-center flex-wrap row-gap-2">
-                    <Link to={routes.booking} className="btn btn-dark me-2">
-                      Rebook
-                    </Link>
-                    <Link
-                      to={routes.booking}
-                      className="btn btn-light"
-                      data-bs-toggle="modal"
-                      data-bs-target="#add-review"
-                    >
-                      <i className="ti ti-circle-plus me-2" />
-                      Add Review
-                    </Link>
-                  </div>
-                  <div className="view-action mt-3 mb-0 me-0 ms-0">
-                    <div className="rating">
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
+                      </div>
+
+                      <div>
+                        <Link to={routes.booking} className="btn btn-light" data-bs-toggle="modal" data-bs-target="#reschedule">
+                          Reschedule
+                        </Link>
+                      </div>
                     </div>
-                    <Link to={routes.bookingDetails} className="text-primary">
-                      View Details
-                    </Link>
                   </div>
-                </div>
-              </div>
+                ))
+              ) : (
+                <p>No reservations available.</p>
+              )}
             </div>
-            <div className="card shadow-none booking-list">
-              <div className="card-body d-md-flex align-items-center">
-                <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
-                  <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                    <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
-                    </Link>
-                    <div className="fav-item">
-                      <Link to="#" className={`fav-icon ${selectedItems[3] ? 'selected' : ''}`} onClick={() => handleItemClick(3)}>
-                        <i className="feather icon-heart" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="booking-det-info">
-                    <h6 className="mb-3">
-                      <Link to={routes.bookingDetails}>Interior Designing</Link>
-                      <span className="badge badge-soft-info ms-2">Inprogress</span>
-                    </h6>
-                    <ul className="booking-details">
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Booking Date</span>{" "}
-                        <small className="me-2">: </small>22 Sep 2022, 11:00-12:00
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Amount</span>{" "}
-                        <small className="me-2">: </small> $50.00
-                        <span className="badge badge-soft-primary ms-2">Paypal</span>
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Location</span>{" "}
-                        <small className="me-2">: </small>Washington, DC, USA
-                      </li>
-                      <li className="d-flex align-items-center flex-wrap">
-                        <span className="book-item">Provider</span>{" "}
-                        <small className="me-2">: </small>
-                        <div className="user-book d-flex align-items-center flex-wrap me-2">
-                          <div className="avatar avatar-xs me-2">
-                            <ImageWithBasePath
-                              className="avatar-img rounded-circle"
-                              alt="User Image"
-                              src="assets/img/profiles/avatar-02.jpg"
-                            />
-                          </div>
-                          Quentin
-                        </div>
-                        <p className="mb-0 me-2">
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          info@quentin.com
-                        </p>
-                        <p>
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          +1 601-810-9218
-                        </p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="text-end">
-                  <div className="d-flex align-items-center flex-wrap row-gap-2">
-                    <Link to={routes.providerChat} className="btn btn-dark me-2">
-                      <i className="ti ti-message-2 me-2" />
-                      Chat
-                    </Link>
-                    <Link
-                      to={routes.booking}
-                      className="btn btn-light"
-                      data-bs-toggle="modal"
-                      data-bs-target="#cancel_appointment"
-                    >
-                      Cancel
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="card shadow-none booking-list">
-              <div className="card-body d-md-flex align-items-center">
-                <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
-                  <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                    <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
-                    </Link>
-                    <div className="fav-item">
-                      <Link to="#" className={`fav-icon ${selectedItems[4] ? 'selected' : ''}`} onClick={() => handleItemClick(4)}>
-                        <i className="feather icon-heart" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="booking-det-info">
-                    <h6 className="mb-3">
-                      <Link to={routes.bookingDetails}>Interior Designing</Link>
-                      <span className="badge badge-soft-info ms-2">Inprogress</span>
-                    </h6>
-                    <ul className="booking-details">
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Booking Date</span>{" "}
-                        <small className="me-2">: </small>22 Sep 2022, 11:00-12:00
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Amount</span>{" "}
-                        <small className="me-2">: </small> $50.00
-                        <span className="badge badge-soft-primary ms-2">Paypal</span>
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Location</span>{" "}
-                        <small className="me-2">: </small>Washington, DC, USA
-                      </li>
-                      <li className="d-flex align-items-center flex-wrap">
-                        <span className="book-item">Provider</span>{" "}
-                        <small className="me-2">: </small>
-                        <div className="user-book d-flex align-items-center flex-wrap me-2">
-                          <div className="avatar avatar-xs me-2">
-                            <ImageWithBasePath
-                              className="avatar-img rounded-circle"
-                              alt="User Image"
-                              src="assets/img/profiles/avatar-02.jpg"
-                            />
-                          </div>
-                          Quentin
-                        </div>
-                        <p className="mb-0 me-2">
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          info@quentin.com
-                        </p>
-                        <p>
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          +1 601-810-9218
-                        </p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="text-end">
-                  <div className="d-flex align-items-center flex-wrap row-gap-2">
-                    <Link to={routes.providerChat} className="btn btn-dark me-2">
-                      <i className="ti ti-message-2 me-2" />
-                      Chat
-                    </Link>
-                    <Link
-                      to={routes.booking}
-                      className="btn btn-light"
-                      data-bs-toggle="modal"
-                      data-bs-target="#cancel_appointment"
-                    >
-                      Cancel
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="card shadow-none booking-list mb-0">
-              <div className="card-body d-md-flex align-items-center">
-                <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill  mb-3 mb-md-0">
-                  <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                    <Link to={routes.bookingDetails} className="avatar">
-                      <ImageWithBasePath src="assets/img/parking.jpg" alt="User Image" />
-                    </Link>
-                    <div className="fav-item">
-                      <Link to="#" className={`fav-icon ${selectedItems[5] ? 'selected' : ''}`} onClick={() => handleItemClick(5)}>
-                        <i className="feather icon-heart" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="booking-det-info">
-                    <h6 className="mb-3">
-                      <Link to={routes.bookingDetails}>Car Repair Services</Link>
-                      <span className="badge badge-soft-success ms-2">Completed</span>
-                    </h6>
-                    <ul className="booking-details">
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Booking Date</span>{" "}
-                        <small className="me-2">: </small>23 Sep 2022, 10:00-11:00
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Amount</span>{" "}
-                        <small className="me-2">: </small> $50.00
-                        <span className="badge badge-soft-primary ms-2">COD</span>
-                      </li>
-                      <li className="d-flex align-items-center mb-2">
-                        <span className="book-item">Location</span>{" "}
-                        <small className="me-2">: </small>Alabama, USA
-                      </li>
-                      <li className="d-flex align-items-center flex-wrap">
-                        <span className="book-item">Provider</span>{" "}
-                        <small className="me-2">: </small>
-                        <div className="user-book d-flex align-items-center flex-wrap me-2">
-                          <div className="avatar avatar-xs me-2">
-                            <ImageWithBasePath
-                              className="avatar-img rounded-circle"
-                              alt="User Image"
-                              src="assets/img/profiles/avatar-02.jpg"
-                            />
-                          </div>
-                          John Smith
-                        </div>
-                        <p className="mb-0 me-2">
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          info@johnsmith.com
-                        </p>
-                        <p>
-                          <i className="ti ti-point-filled fs-10 text-muted me-2" />
-                          +1 607-276-5393
-                        </p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="text-end">
-                  <div className="d-flex align-items-center flex-wrap row-gap-2">
-                    <Link to={routes.booking} className="btn btn-dark me-2">
-                      Rebook
-                    </Link>
-                    <Link
-                      to={routes.booking}
-                      className="btn btn-light"
-                      data-bs-toggle="modal"
-                      data-bs-target="#add-review"
-                    >
-                      <i className="ti ti-circle-plus me-2" />
-                      Add Review
-                    </Link>
-                  </div>
-                  <div className="view-action mt-3 mb-0 me-0 ms-0">
-                    <div className="rating">
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
-                      <i className="fas fa-star filled" />
-                    </div>
-                    <Link to={routes.bookingDetails} className="text-primary">
-                      View Details
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </div>
-      </div>
+          </div>
+  
+  
       <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3">
         <div className="value d-flex align-items-center">
           <span>Show</span>
