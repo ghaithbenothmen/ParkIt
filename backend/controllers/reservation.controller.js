@@ -54,7 +54,7 @@ exports.reservationPayment = async (req, res) => {
             body: JSON.stringify({
                 app_token: process.env.APP_TOKEN,
                 app_secret: process.env.PRIVATE_KEY,
-                amount: reservation.totalPrice,
+                amount: Math.round(reservation.totalPrice * 1000),
                 accept_card: true,
                 session_timeout_secs: 1200,
                 success_link: `http://localhost:4000/api/reservations/success?trackingId=${trackingId}&reservationId=${id}`,
@@ -64,8 +64,10 @@ exports.reservationPayment = async (req, res) => {
         });
     
         if (!response.ok) {
+            const errorBody = await response.text();
+            console.error("💥 Flouci returned error:", errorBody); // Add this
             throw new Error("Failed to create payment on Flouci");
-        }
+          }
     
         const data = await response.json();
     
@@ -77,9 +79,18 @@ exports.reservationPayment = async (req, res) => {
         return res.status(400).json({ error: "Failed to create payment" });
     
     } catch (error) {
-        console.error("Error creating payment:", error);
-        return res.status(500).json({ error: "Payment creation failed", message: error.message });
-    }
+        console.error("💥 Error creating payment:", error);
+      
+        if (error.response) {
+          const errorText = await error.response.text();
+          console.error("💥 Flouci error response:", errorText);
+        }
+      
+        return res.status(500).json({
+          error: "Payment creation failed",
+          message: error.message
+        });
+      }
 }
 exports.paymentSuccess = async (req, res) => {
     const { trackingId, reservationId, payment_id } = req.query;

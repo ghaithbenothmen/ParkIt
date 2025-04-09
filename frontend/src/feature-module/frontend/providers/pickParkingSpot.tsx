@@ -1,26 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+interface ParkingVisualizationProps {
+  parkingId: string;
+  selectedSpot: string | null;
+  setSelectedSpot: (spotId: string | null) => void;
+  selectedStartTime: string; // ⛔ missing
+  selectedEndTime: string;   // ⛔ missing
+}
 
-const ParkingVisualization = ({ parkingId }: { parkingId: string }) => {
+const ParkingVisualization = ({
+  parkingId,
+  selectedSpot,
+  setSelectedSpot,
+  selectedStartTime,
+  selectedEndTime
+}: ParkingVisualizationProps) => {
   const navigate = useNavigate();
-  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
   const [parkingSpots, setParkingSpots] = useState<any[]>([]);
   const [occupiedSpots, setOccupiedSpots] = useState<any[]>([]);
   const [parkingInfo, setParkingInfo] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [reservations, setReservations] = useState<any[]>([]); // Initialize as an empty array
 
+  // Fetching parking information and spots
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
+        // Fetch parking details (info such as name, rate, etc.)
         const parkingResponse = await axios.get(`http://localhost:4000/api/parking/${parkingId}`);
         if (!parkingResponse.data) throw new Error('Failed to load parking information');
         const parkingData = parkingResponse.data;
         setParkingInfo(parkingData);
 
+        // Fetch parking spots
         const spotsResponse = await axios.get(`http://localhost:4000/api/parking-spots/by-parking/${parkingId}`);
         if (!spotsResponse.data) throw new Error('Failed to load parking spots');
         const spots = spotsResponse.data.data;
@@ -51,8 +67,18 @@ const ParkingVisualization = ({ parkingId }: { parkingId: string }) => {
 
         setParkingSpots(availableSpots);
         setOccupiedSpots(unavailableSpots);
+        
+        // Fetch all reservations for the parking lot
+        const reservationResponse = await axios.get(`http://localhost:4000/api/reservations/by-parking/${parkingId}`);
+        if (Array.isArray(reservationResponse.data)) { // Ensure that it's an array
+          setReservations(reservationResponse.data);
+        } else {
+          setReservations([]); // In case the data is not an array
+        }
+        
       } catch (error) {
         console.error('Error fetching data:', error);
+        setError('Failed to load parking spots');
       } finally {
         setLoading(false);
       }
@@ -68,47 +94,42 @@ const ParkingVisualization = ({ parkingId }: { parkingId: string }) => {
 
   const determineCustomRow = (spotNumber: string) => {
     const number = parseInt(spotNumber.replace(/[^0-9]/g, ''));
-    if (number <= 2) {
-      return number;
-    } else {
-      return number - 2;
-    }
+    return number <= 2 ? number : number - 2;
   };
 
-  const handleSelectSpot = (spotId: string) => {
-    setSelectedSpot(spotId);  // This should update the selected spot
+  // Function to check if a spot is occupied based on reservation dates
+  const isSpotOccupied = (spotId: string) => {
+    return reservations.some((reservation: any) => {
+      // Check if this reservation is for the same parking spot
+      if (reservation.parkingSpot !== spotId) return false;
+  
+      const reservationStart = new Date(reservation.startDate);
+      const reservationEnd = new Date(reservation.endDate);
+      const selectedStart = new Date(selectedStartTime);
+      const selectedEnd = new Date(selectedEndTime);
+  
+      // Check if selected time range overlaps with this reservation
+      return selectedStart < reservationEnd && selectedEnd > reservationStart;
+    });
   };
+  
+  
 
-  const handleContinue = async () => {
-    if (selectedSpot) {
-      try {
-        const spotData = parkingSpots.find((spot) => spot.id === selectedSpot);
-        if (!spotData) return;
-
-        navigate('/confirmation', {
-          state: {
-            selectedSpot,
-            parkingName: parkingInfo?.nom,
-            tarif: parkingInfo?.tarif_horaire,
-          },
-        });
-      } catch (error) {
-        console.error('Error reserving spot:', error);
-        setError('Failed to reserve the spot. Please try again.');
-      }
+  const handleSelectSpot = (event: React.MouseEvent<HTMLButtonElement>, spotId: string) => {
+    event.preventDefault();
+    if (isSpotOccupied(spotId)) {
+      return; // Do not select the spot if it's occupied
     }
+    setSelectedSpot(spotId); // Save the MongoDB _id instead of spot.numero
   };
 
   const generateParkingLayout = () => {
-    const leftSideSpots = ['A01', 'A02', 'A03', 'A04', 'A05'];
-    const rightSideSpots = ['A06', 'A07'];
-
     const leftSpots: any[] = [];
     const rightSpots: any[] = [];
     const centerExitPath: any[] = [];
     const centerEntryPath: any[] = [];
 
-    const maxRows = Math.max(leftSideSpots.length, rightSideSpots.length);
+    const maxRows = Math.max(leftSpots.length, rightSpots.length);
 
     for (let i = 0; i < maxRows; i++) {
       centerExitPath.push(
@@ -120,6 +141,7 @@ const ParkingVisualization = ({ parkingId }: { parkingId: string }) => {
       );
     }
 
+    // Entry Path (Centered in the middle)
     for (let i = 0; i < maxRows; i++) {
       centerEntryPath.push(
         <div className="entry-path-segment" key={`entry-path-${i}`}>
@@ -130,71 +152,60 @@ const ParkingVisualization = ({ parkingId }: { parkingId: string }) => {
       );
     }
 
-    for (let i = 0; i < leftSideSpots.length; i++) {
-      const spotId = leftSideSpots[i];
-      const leftSpot = parkingSpots.find((spot) => spot.id === spotId);
-      const isLeftOccupied = occupiedSpots.some((spot) => spot.id === spotId);
-
-      leftSpots.push(
-        <div className="parking-side left-side mb-3" key={`left-${i}`}>
-          {leftSpot ? (
+    // Generate the left spots dynamically
+    parkingSpots.forEach((spot) => {
+      const isOccupied = isSpotOccupied(spot.id);
+      if (spot.position === 'left') {
+        leftSpots.push(
+          <div className="parking-side left-side mb-3" key={`left-${spot.id}`}>
             <button
-              className={`spot-btn ${selectedSpot === leftSpot.id ? 'active' : ''}`}
-              onClick={() => handleSelectSpot(leftSpot.id)}
+              className={`spot-btn ${selectedSpot === spot._id ? 'active' : ''}`}
+              onClick={(e) => handleSelectSpot(e, spot._id)}
+              disabled={isOccupied}
             >
-              {leftSpot.id}
+              {isOccupied ? <img src="../../../" alt="Occupied" /> : spot.id}
             </button>
-          ) : (
-            <div className="spot-placeholder">
-              {isLeftOccupied && <img src="./../assets/img/car2D.png" alt="Occupied" />}
-              {!isLeftOccupied && spotId}
-            </div>
-          )}
-        </div>
-      );
-    }
+          </div>
+        );
+      }
+    });
 
-    const emptySpacesNeeded = leftSideSpots.length - rightSideSpots.length;
-
-    for (let i = 0; i < emptySpacesNeeded; i++) {
-      rightSpots.push(
-        <div className="parking-side right-side mb-3" key={`right-empty-${i}`}>
-          <div className="spot-placeholder empty"></div>
-        </div>
-      );
-    }
-
-    for (let i = 0; i < rightSideSpots.length; i++) {
-      const spotId = rightSideSpots[i];
-      const rightSpot = parkingSpots.find((spot) => spot.id === spotId);
-      const isRightOccupied = occupiedSpots.some((spot) => spot.id === spotId);
-
-      rightSpots.push(
-        <div className="parking-side right-side mb-3" key={`right-${i}`}>
-          {rightSpot ? (
+    // Generate the right spots dynamically
+    parkingSpots.forEach((spot) => {
+      const isOccupied = isSpotOccupied(spot.id);
+      if (spot.position === 'right') {
+        rightSpots.push(
+          <div className="parking-side right-side mb-3" key={`right-${spot.id}`}>
             <button
-              className={`spot-btn ${selectedSpot === rightSpot.id ? 'active' : ''}`}
-              onClick={() => handleSelectSpot(rightSpot.id)}
+              className={`spot-btn ${selectedSpot === spot._id ? 'active' : ''}`}
+              onClick={(e) => handleSelectSpot(e, spot._id)}
+              disabled={isOccupied}
             >
-              {rightSpot.id}
+              {isOccupied ? <img src="../../../../public/assets/img/car2D.png" alt="Occupied" /> : spot.id}
             </button>
-          ) : (
-            <div className="spot-placeholder">
-              {isRightOccupied && <img src="./../assets/img/car2D.png" alt="Occupied" />}
-              {!isRightOccupied && spotId}
-            </div>
-          )}
-        </div>
-      );
-    }
+          </div>
+        );
+      }
+    });
 
     return (
       <div className="d-flex justify-content-between">
-        <div className="w-30 pe-2">{leftSpots}</div>
+        {/* Left Parking Spots */}
+        <div className="w-30 pe-2">
+          {leftSpots}
+        </div>
+
+        {/* Exit Path in the Middle */}
         <div className="exit-path-container w-15 px-1">
           <div className="exit-path">{centerExitPath}</div>
         </div>
-        <div className="w-30 px-1">{rightSpots}</div>
+
+        {/* Right Parking Spots */}
+        <div className="w-30 px-1">
+          {rightSpots}
+        </div>
+
+        {/* Entry Path in the Middle */}
         <div className="entry-path-container w-15 ps-1">
           <div className="entry-path">{centerEntryPath}</div>
         </div>
@@ -227,16 +238,6 @@ const ParkingVisualization = ({ parkingId }: { parkingId: string }) => {
             <div className="card-body p-4">
               <div className="parking-layout">
                 {generateParkingLayout()}
-              </div>
-
-              <div className="text-center mt-5 pt-3">
-                <button
-                  className={`confirm-btn ${selectedSpot ? 'active' : ''}`}
-                  onClick={handleContinue}
-                  disabled={!selectedSpot}
-                >
-                  {selectedSpot ? `Confirm Spot ${selectedSpot}` : 'Select a Spot'}
-                </button>
               </div>
             </div>
           </div>

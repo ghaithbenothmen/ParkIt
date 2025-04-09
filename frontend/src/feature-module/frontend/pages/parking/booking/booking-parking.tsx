@@ -12,6 +12,7 @@ import Calendar from 'react-calendar'; // Import react-calendar
 import 'react-calendar/dist/Calendar.css'; // Styles for the calendar
 import ParkingVisualization from '../../../providers/pickParkingSpot';
 
+
 const BookingParking = () => {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [startHour, setStartHour] = useState("09:00");
@@ -25,7 +26,7 @@ const BookingParking = () => {
   const [userVehicles, setUserVehicles] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
   const [endDate, setEndDate] = useState<Date | null>(null);
-
+  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -50,6 +51,32 @@ const BookingParking = () => {
     phone: ''
   });
 
+  const handlePayment = async () => {
+    const id = "67f68cb71f5bfe5aeced2f6e"
+    try {
+      const response = await fetch(`http://localhost:4000/api/reservations/${id}/payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Payment initiation failed');
+      }
+
+      const data = await response.json();
+
+      if (data.paymentLink) {
+        // Redirect the user to the payment page
+        window.location.href = data.paymentLink;
+      } else {
+        throw new Error('Payment link not received');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     console.log('ho' + storedUser)
@@ -176,16 +203,16 @@ const BookingParking = () => {
       const [startH, startM] = startHour.split(":").map(Number);
       const newStartDateTime = new Date(startDate);
       newStartDateTime.setHours(startH, startM, 0, 0);
-  
+
       // Save updated startDateTime
       setStartDateTime(newStartDateTime);
-  
+
       // Now calculate endDateTime by adding duration (in hours)
       const newEndDateTime = new Date(newStartDateTime);
       newEndDateTime.setHours(newEndDateTime.getHours() + duration);
-  
+
       setEndDate(newEndDateTime);
-  
+
       // Optional: update endHour string for display if needed
       const endH = newEndDateTime.getHours();
       const endM = newEndDateTime.getMinutes();
@@ -195,7 +222,7 @@ const BookingParking = () => {
   }, [startDate, startHour, duration]);
 
   // Calculate the endDate based on startDate and endHour
-  
+
   if (endDate) {
     const [endH, endM] = endHour.split(":").map(Number);
     endDate.setHours(endH, endM, 0, 0);
@@ -213,11 +240,11 @@ const BookingParking = () => {
       const reservationData = {
         userId: userInfo._id,
         parkingId: parking?._id,
-        parkingSpot: "67cfb44da934fcde03496cb0",
+        parkingSpot: selectedSpot,
         vehicule: selectedVehicleId,
         startDate: startDateTime,
         endDate: endDate,
-        totalPrice: parking?.tarif_horaire! * duration,
+        totalPrice: (parking!.tarif_horaire) * duration,
       };
 
       console.log("Reservation Data being sent:", reservationData);
@@ -237,11 +264,11 @@ const BookingParking = () => {
         alert('Reservation successful!');
         // Optional: redirect to another page, e.g., a confirmation page
         // navigate('/confirmation');
-    } else {
+      } else {
         // If the response is not successful, show an error alert with the error message
         console.error('Reservation failed:', data.message || 'Unknown error');
         alert(data.message || 'Something went wrong during checkout.');
-    }
+      }
       // Optional: redirect to another page
       // navigate('/confirmation');
     } catch (error) {
@@ -270,14 +297,14 @@ const BookingParking = () => {
                         <div className="service-info bg-white d-flex align-items-center mb-3">
                           <span className="avatar avatar-xl me-2 flex-shrink-0">
                             <ImageWithBasePath
-                              src="assets/img/service-request.jpg"
+                              src=""
                               className="border-0"
                               alt="img"
                             />
                           </span>
                           <div>
-                            <h5 className="mb-1">Removals</h5>
-                            <p className="fs-14">35 Providers Available</p>
+                            <h5 className="mb-1">{parking?.nom}</h5>
+                            <p className="fs-14">{parking?.adresse}</p>
                           </div>
                         </div>
                         <div className="booking-wizard p-0">
@@ -287,19 +314,16 @@ const BookingParking = () => {
                               <span>Basic Information</span>
                             </li>
                             <li className={`${currentStep === 2 ? 'active' : currentStep > 2 ? 'activated' : ''} pb-4`}>
-                              <span>Booking Schedule</span>
+                              <span>Reservations Schedule</span>
                             </li>
                             <li className={`${currentStep === 3 ? 'active' : currentStep > 3 ? 'activated' : ''} pb-4`}>
-                              <span>Collection Address Details</span>
+                              <span>Spot Selection</span>
                             </li>
                             <li className={`${currentStep === 4 ? 'active' : currentStep > 4 ? 'activated' : ''} pb-4`}>
-                              <span>Delivery Address Details</span>
+                              <span>Car Selections</span>
                             </li>
-                            <li className={`${currentStep === 5 ? 'active' : currentStep > 5 ? 'activated' : ''} pb-4`}>
-                              <span>Additional Items</span>
-                            </li>
-                            <li className={`${currentStep === 6 ? 'active' : currentStep > 6 ? 'activated' : ''} pb-4`}>
-                              <span>Review Order</span>
+                            <li className={`${currentStep === 5 ? 'active' : currentStep > 6 ? 'activated' : ''} pb-4`}>
+                              <span>Review Reservation</span>
                             </li>
                             <li>
                               <span>Checkout</span>
@@ -314,27 +338,12 @@ const BookingParking = () => {
                       <fieldset id="first-field">
                         <div className="card flex-fill mb-0">
                           <div className="card-body">
-                            <h5 className="mb-3">Personal Details(<p>parking nom :(badelha juste test) {parking?.nom}</p>)</h5>
+                            <h5 className="mb-3">Personal Details(<p>parking nom  {parking?.nom}</p>)</h5>
                             <form >
                               <div>
                                 <h6 className="mb-3 fs-16 fw-medium">
                                   Basic Information
                                 </h6>
-                                <div className="form-check mb-4">
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    defaultValue=""
-                                    id="remember_me"
-                                  />
-                                  <label
-                                    className="form-check-label"
-                                    htmlFor="remember_me"
-                                  >
-                                    Is the Name and Contact details the same as on your
-                                    Profile?
-                                  </label>
-                                </div>
                                 <div className="row">
                                   <div className="col-md-6">
                                     <div className="mb-4">
@@ -408,7 +417,7 @@ const BookingParking = () => {
                       <fieldset style={{ display: 'flex' }}>
                         <div className="card flex-fill mb-0">
                           <div className="card-body">
-                            <h5 className="mb-3">Book Parking Details</h5>
+                            <h5 className="mb-3">Reservation schedule</h5>
                             <form>
                               {/* Date Picker */}
                               <div className="mb-4">
@@ -460,7 +469,7 @@ const BookingParking = () => {
                               {/* Total Display */}
                               <div className="mb-4">
                                 <label className="form-label fw-semibold">Total</label>
-                                <div><strong>${(duration * parking?.tarif_horaire!).toFixed(2)}</strong> / {duration} hours</div>
+                                <div><strong>{(duration * parking!.tarif_horaire).toFixed(2)}DT</strong> / {duration} hours</div>
                               </div>
 
                               {/* Navigation Buttons */}
@@ -491,10 +500,16 @@ const BookingParking = () => {
                       <fieldset style={{ display: 'flex' }}>
                         <div className="card flex-fill mb-0">
                           <div className="card-body">
-                            <h5 className="mb-3">Collection Address Details</h5>
-                            <form >
+                            <h5 className="mb-3">Select Parking Spot</h5>
+                            <form>
                               <div>
-                                <ParkingVisualization parkingId={parking?._id!} />
+                                <ParkingVisualization
+                                  parkingId={parking!._id}
+                                  selectedSpot={selectedSpot}
+                                  setSelectedSpot={setSelectedSpot}
+                                  selectedStartTime={startDateTime ? startDateTime.toISOString() : ''}
+                                  selectedEndTime={endDate ? endDate.toISOString() : ''}
+                                />
                               </div>
                               <div className="d-flex justify-content-end align-items-center">
                                 <Link
@@ -508,6 +523,7 @@ const BookingParking = () => {
                                   type="button"
                                   onClick={handleNext}
                                   className="btn btn-linear-primary next_btn"
+                                  disabled={!selectedSpot} // Disable if no spot is selected
                                 >
                                   Next Step
                                 </button>
@@ -517,28 +533,30 @@ const BookingParking = () => {
                         </div>
                       </fieldset>
                     )}
+
+
                     {currentStep === 4 && (
                       <fieldset style={{ display: 'flex' }}>
                         <div className="card flex-fill mb-0">
                           <div className="card-body">
-                            <h5 className="mb-3">Delivery Address Details</h5>
+                            <h5 className="mb-3">Car selection</h5>
                             <form >
                               <div>
                                 <div className="row">
                                   {Array.isArray(userVehicles) && userVehicles.map((vehicule) => (
-                                    <div
-                                    className={`card h-100 shadow-sm ${selectedVehicleId === vehicule._id ? 'border-primary' : ''}`}
-                                    onClick={() => setSelectedVehicleId(vehicule._id)}
-                                    style={{ cursor: 'pointer' }}
-                                  >
-                                    <div className="card-body">
-                                      <h6 className="card-title">{vehicule.marque} - {vehicule.modele}</h6>
-                                      <p className="card-text">
-                                        <strong>Matricule:</strong> {vehicule.immatriculation}<br />
-                                        <strong>Type:</strong> {vehicule.type}
-                                      </p>
+                                    <div key={vehicule._id}
+                                      className={`card h-100 shadow-sm ${selectedVehicleId === vehicule._id ? 'border-primary' : ''}`}
+                                      onClick={() => setSelectedVehicleId(vehicule._id)}
+                                      style={{ cursor: 'pointer' }}
+                                    >
+                                      <div className="card-body">
+                                        <h6 className="card-title">{vehicule.marque} - {vehicule.modele}</h6>
+                                        <p className="card-text">
+                                          <strong>Matricule:</strong> {vehicule.immatriculation}<br />
+                                          <strong>Color:</strong> {vehicule.couleur}
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
                                   ))}
                                 </div>
                               </div>
@@ -565,66 +583,31 @@ const BookingParking = () => {
                     )}
                     {currentStep === 5 && (
                       <fieldset style={{ display: 'flex' }}>
-                        <div className="card flex-fill mb-0">
-                          <div className="card-body">
-                            <h5 className="mb-3">Additional Items</h5>
-                            <form >
-                              <div className="d-flex justify-content-end align-items-center">
-                                <Link
-                                  to="#"
-                                  onClick={handlePrev}
-                                  className="btn btn-light d-inline-flex align-items-center prev_btn me-2"
-                                >
-                                  Back
-                                </Link>
-                                <button
-                                  type="button"
-                                  className="btn btn-linear-primary next_btn"
-                                  onClick={handleNext}
-                                >
-                                  Next Step
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        </div>
-                      </fieldset>
-                    )}
-                    {currentStep === 6 && (
-                      <fieldset style={{ display: 'flex' }}>
                         <div className="flex-fill">
                           <div className="review-order">
                             <h6 className="fs-16 fw-medium border-bottom mb-3 pb-3">
-                              Order Details
+                              Payment details
                             </h6>
                             <div className="d-flex align-items-center justify-content-md-between flex-wrap gap-3">
                               <div className="rounded bg-white p-2 text-center review-item">
                                 <h6 className="fw-medium fs-16 mb-1">
-                                  Booking Charges
+                                  Parking cost/hour
                                 </h6>
-                                <span>£ 42.00</span>
+                                <span>{parking!.tarif_horaire * 1000} Millimes</span>
                               </div>
                               <div className="rounded bg-white p-2 text-center review-item">
-                                <h6 className="fw-medium fs-16 mb-1">CC Zone</h6>
-                                <span>£ 0.00</span>
+                                <h6 className="fw-medium fs-16 mb-1">Duration </h6>
+                                <span>{duration} hours</span>
                               </div>
                               <div className="rounded bg-white p-2 text-center review-item">
-                                <h6 className="fw-medium fs-16 mb-1">Subtotal</h6>
-                                <span>£ 280.00</span>
-                              </div>
-                              <div className="rounded bg-white p-2 text-center review-item">
-                                <h6 className="fw-medium fs-16 mb-1">V.A.T</h6>
-                                <span>£ 0.00</span>
-                              </div>
-                              <div className="rounded bg-white p-2 text-center review-item">
-                                <h6 className="fw-medium fs-16 mb-1">Total Payment</h6>
-                                <span>£ 322.00</span>
+                                <h6 className="fw-medium fs-16 mb-1">Total cost</h6>
+                                <span>{parking!.tarif_horaire * duration * 1000} Millimes  </span>
                               </div>
                             </div>
                           </div>
                           <div className="card mb-0">
                             <div className="card-body">
-                              <h5 className="mb-3">Review Order</h5>
+                              <h5 className="mb-3">Review Reservation</h5>
                               <div className="border-bottom mb-3">
                                 <h6 className="fs-16 fw-medium mb-3">
                                   Personal Details
@@ -636,41 +619,29 @@ const BookingParking = () => {
                                         <h6 className="fs-14 fw-medium mb-1">
                                           First Name
                                         </h6>
-                                        <span>Name</span>
+                                        <span>{userInfo.firstname}</span>
                                       </div>
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">Phone</h6>
-                                        <span>Phone</span>
+                                        <span>{userInfo.phone}</span>
                                       </div>
                                     </div>
                                   </div>
                                   <div className="col-md-4 col-sm-6">
                                     <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Last Name
-                                        </h6>
-                                        <span>Name</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Booking Estimate
-                                        </h6>
-                                        <span>2</span>
-                                      </div>
                                     </div>
                                   </div>
                                   <div className="col-md-4 col-sm-6">
                                     <div className="mb-3">
                                       <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">Email</h6>
-                                        <span>Email</span>
+                                        <h6 className="fs-14 fw-medium mb-1">Last Name</h6>
+                                        <span>{userInfo.lastname}</span>
                                       </div>
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">
-                                          CC Zone
+                                          Email
                                         </h6>
-                                        <span>CC Zone</span>
+                                        <span>{userInfo.email}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -678,16 +649,16 @@ const BookingParking = () => {
                               </div>
                               <div className="border-bottom mb-3">
                                 <h6 className="fs-16 fw-medium mb-3">
-                                  Booking Schedule
+                                  Reservation Schedule
                                 </h6>
                                 <div className="row">
                                   <div className="col-md-4 col-sm-6">
                                     <div className="mb-3">
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">
-                                          Luton Van
+                                          Start Date
                                         </h6>
-                                        <span>2, 2</span>
+                                        <span>{startHour}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -695,9 +666,9 @@ const BookingParking = () => {
                                     <div className="mb-3">
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">
-                                          Number of Luton Vans
+                                          Duration
                                         </h6>
-                                        <span>2</span>
+                                        <span>{duration} hours</span>
                                       </div>
                                     </div>
                                   </div>
@@ -705,9 +676,9 @@ const BookingParking = () => {
                                     <div className="mb-3">
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">
-                                          Booking Date/Time
+                                          End Date
                                         </h6>
-                                        <span>26 September 2024</span>
+                                        <span>{endHour}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -715,46 +686,20 @@ const BookingParking = () => {
                               </div>
                               <div className="border-bottom mb-3">
                                 <h6 className="fs-16 fw-medium mb-3">
-                                  Collection Address Details
+                                  Parking details
                                 </h6>
                                 <div className="row">
                                   <div className="col-md-4 col-sm-6">
                                     <div className="mb-3">
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">
-                                          Address
+                                          Name
                                         </h6>
-                                        <span>Address</span>
+                                        <span>{parking?.nom}</span>
                                       </div>
                                       <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Floor Level
-                                        </h6>
-                                        <span>1</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">Phone</h6>
-                                        <span>Phone</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="col-md-4 col-sm-6">
-                                    <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">Email</h6>
-                                        <span>Email</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Is there a Lift
-                                        </h6>
-                                        <span>Yes</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Property Type
-                                        </h6>
-                                        <span>House</span>
+                                        <h6 className="fs-14 fw-medium mb-1">Number of spots</h6>
+                                        <span>{parking?.nbr_place}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -762,157 +707,15 @@ const BookingParking = () => {
                                     <div className="mb-3">
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">
-                                          First Name
+                                          Adress
                                         </h6>
-                                        <span>Name</span>
+                                        <span>{parking?.adresse}</span>
                                       </div>
                                       <div className="mb-2">
                                         <h6 className="fs-14 fw-medium mb-1">
-                                          Number of Bedrooms
+                                          Cost/hour
                                         </h6>
-                                        <span>5</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="border-bottom mb-3">
-                                <h6 className="fs-16 fw-medium mb-3">
-                                  Delivery Address Details
-                                </h6>
-                                <div className="row">
-                                  <div className="col-md-4 col-sm-6">
-                                    <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Address
-                                        </h6>
-                                        <span>Address</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Floor Level
-                                        </h6>
-                                        <span>1</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">Phone</h6>
-                                        <span>Phone</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="col-md-4 col-sm-6">
-                                    <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">Email</h6>
-                                        <span>Email</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Is there a Lift
-                                        </h6>
-                                        <span>Yes</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Property Type
-                                        </h6>
-                                        <span>House</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="col-md-4 col-sm-6">
-                                    <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          First Name
-                                        </h6>
-                                        <span>Name</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Number of Bedrooms
-                                        </h6>
-                                        <span>5</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="border-bottom mb-3">
-                                <h6 className="fs-16 fw-medium mb-3">
-                                  Additional Details
-                                </h6>
-                                <div className="row">
-                                  <div className="col-md-4 col-sm-6">
-                                    <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Already have items
-                                        </h6>
-                                        <span>Nil</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Does the car start?
-                                        </h6>
-                                        <span>Nil</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Largest Items
-                                        </h6>
-                                        <span>Nil</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Special Notes
-                                        </h6>
-                                        <span>Notes</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="col-md-4 col-sm-6">
-                                    <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Already bought items
-                                        </h6>
-                                        <span>No</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Hair Done?
-                                        </h6>
-                                        <span>Nil</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Items need mounting?
-                                        </h6>
-                                        <span>Nil</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="col-md-4 col-sm-6">
-                                    <div className="mb-3">
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Does the car run and drive?
-                                        </h6>
-                                        <span>Nil</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Do you need furniture assembly?
-                                        </h6>
-                                        <span>Nil</span>
-                                      </div>
-                                      <div className="mb-2">
-                                        <h6 className="fs-14 fw-medium mb-1">
-                                          Number of Items that need Assembling
-                                        </h6>
-                                        <span>1</span>
+                                        <span>{parking!.tarif_horaire * 1000} Millimes</span>
                                       </div>
                                     </div>
                                   </div>
@@ -932,6 +735,7 @@ const BookingParking = () => {
                                 >
                                   Checkout
                                 </button>
+                                <button onClick={handlePayment} className="btn btn-dark me-2">pay</button>
                               </div>
                             </div>
                           </div>
