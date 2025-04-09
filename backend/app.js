@@ -51,7 +51,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/vehicules', vehiculeRoutes);
 app.use('/api/parking', parkingRoutes);
-
 app.use('/api/parking-spots', parkingSpotRoutes); 
 app.use('/api/reservations', reservationRoutes);
 
