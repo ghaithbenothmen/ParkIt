@@ -3,7 +3,7 @@ import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import ServiceDetails1 from './service-details/service-details1';
-import ServiceDetails2 from './service-details/service-details2';
+
 
 import ServiceGrid from './service-grid/service-grid';
 
@@ -25,12 +25,7 @@ const ServicesRoutes = () => {
       element: <ServiceDetails1 />,
       route: Route,
     },
-    {
-      path: '/service-details/service-details2',
-      name: 'service-details-2',
-      element: <ServiceDetails2 />,
-      route: Route,
-    },
+
  
     {
       path: '/service-grid',
