@@ -179,8 +179,8 @@ const Users = () => {
   return (
     <>
       <Toast ref={toast} />
-      <div className="page-wrapper page-settings">
-        <div className="content">
+      <div className="page-wrapper page-settings" style={{ height: '100vh', overflow: 'hidden' }}>
+        <div className="content" style={{ height: 'calc(100% - 60px)', overflowY: 'auto' }}>
           <div className="content-page-header content-page-headersplit">
             <h5>Users</h5>
             <div className="list-btn">
