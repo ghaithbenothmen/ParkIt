@@ -28,7 +28,7 @@ interface Parking {
   tarif_horaire: number;
 }
 
-const MapPage = () => {
+const MapPage2 = () => {
   const [parkings, setParkings] = useState<Parking[]>([]);
   const [filteredParkings, setFilteredParkings] = useState<Parking[]>([]);
   const [searchedLocation, setSearchedLocation] = useState<[number, number] | null>(null);
@@ -514,4 +514,4 @@ const MapPage = () => {
   );
 };
 
-export default MapPage;
+export default MapPage2;

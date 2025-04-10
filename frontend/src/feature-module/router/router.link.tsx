@@ -40,6 +40,7 @@ import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPas
 import path from 'path';
 import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
 import Map from '../frontend/pages/map/Map';
+import Map2 from '../frontend/pages/map/Map2';
 import Parking from '../frontend/pages/parking/parking';
 
 import PaymentSuccess from '../frontend/home/new-home/PaymentSuccess';
@@ -98,6 +99,12 @@ const publicRoutes = [
     path: '/map',
     name: 'map',
     element: <Map />,
+    route: Route,
+  },
+  {
+    path: '/map2',
+    name: 'map2',
+    element: <Map2 />,
     route: Route,
   },
   

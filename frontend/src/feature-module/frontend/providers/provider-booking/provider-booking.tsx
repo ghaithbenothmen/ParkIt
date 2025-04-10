@@ -159,7 +159,7 @@ const ProviderBooking = () => {
                     <div className="card-body d-md-flex align-items-center">
                       <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
                         <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                          <Link to={routes.bookingDetails} className="avatar">
+                          <Link to={routes.map2} className="avatar">
                             <ImageWithBasePath
                               src={reservation.parking?.image || "assets/img/parking.jpg"}
                               alt="Parking Image"

@@ -33,6 +33,7 @@ export const all_routes = {
   createService: '/services/create-service',
   providerDetails: '/services/providers/provider-details',
   map: '/map',
+  map2: '/map2',
   serviceRequest: '/services/service-request',
   searchList: '/services/search-list',
   provider: '/services/providers/provider-list',
