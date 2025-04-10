@@ -4,7 +4,6 @@ import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import { useNavigate } from 'react-router-dom';
 import PagesAuthHeader from '../../pages/authentication/common/header';
-
 const ActivationSuccess = () => {
   const routes = all_routes;
   const navigate = useNavigate()

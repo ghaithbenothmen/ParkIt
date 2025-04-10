@@ -42,13 +42,36 @@ import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
 import Map from '../frontend/pages/map/Map';
 import Parking from '../frontend/pages/parking/parking';
 
+import PaymentSuccess from '../frontend/home/new-home/PaymentSuccess';
+import PaymentError from '../frontend/home/new-home/PaymentError';
+import EmbeddedCheckoutForm from './EmbeddedCheckoutForm';
 const routes = all_routes;
+
 
 const publicRoutes = [
   {
     path: routes.homeOne,
     name: 'home-one',
     element: <HomeOne />,
+    route: Route,
+  },
+
+  {
+    path: routes.payment,
+    name: 'payment',
+    element: <EmbeddedCheckoutForm />,
+    route: Route,
+  },
+  {
+    path: routes.paymentSuccess,
+    name: 'payment-success',
+    element: <PaymentSuccess />,
+    route: Route,
+  },
+  {
+    path: routes.paymentError,
+    name: 'payment-error',
+    element: <PaymentError />,
     route: Route,
   },
 
