@@ -20,7 +20,7 @@ const ProviderBooking = () => {
     });
   };
   const handlePayment = async() => {
-    const id = "67edbb543694320831f9878d"
+    const id = "67f04db128167a5c0ccc8d54"
     try {
       const response = await fetch(`http://localhost:4000/api/reservations/${id}/payment`, {
         method: 'POST',
