@@ -27,7 +27,7 @@ const BookingParking = () => {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
-
+  const [reservationId, setReservationId] = useState<string | null>(null);
 
   useEffect(() => {
     // Replace with your actual API endpoint
@@ -52,9 +52,9 @@ const BookingParking = () => {
   });
 
   const handlePayment = async () => {
-    const id = "67f68cb71f5bfe5aeced2f6e"
+    
     try {
-      const response = await fetch(`http://localhost:4000/api/reservations/${id}/payment`, {
+      const response = await fetch(`http://localhost:4000/api/reservations/${reservationId}/payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ const BookingParking = () => {
       }
 
       const data = await response.json();
-
+      console.log( "hiii  " + data)
       if (data.paymentLink) {
         // Redirect the user to the payment page
         window.location.href = data.paymentLink;
@@ -256,14 +256,16 @@ const BookingParking = () => {
           // Add authorization headers if required
         },
         body: JSON.stringify(reservationData),
+        
       });
 
       const data = await response.json();
       if (response.ok) {
         console.log('Reservation successful:', data);
-        alert('Reservation successful!');
-        // Optional: redirect to another page, e.g., a confirmation page
-        // navigate('/confirmation');
+        alert('Reservation successful! please porceed to payment in next step');
+        setReservationId(data.data._id); 
+        console.log('Reservation ID after setting:', data._id);
+        
       } else {
         // If the response is not successful, show an error alert with the error message
         console.error('Reservation failed:', data.message || 'Unknown error');
@@ -322,7 +324,10 @@ const BookingParking = () => {
                             <li className={`${currentStep === 4 ? 'active' : currentStep > 4 ? 'activated' : ''} pb-4`}>
                               <span>Car Selections</span>
                             </li>
-                            <li className={`${currentStep === 5 ? 'active' : currentStep > 6 ? 'activated' : ''} pb-4`}>
+                            <li className={`${currentStep === 5 ? 'active' : currentStep > 5 ? 'activated' : ''} pb-4`}>
+                              <span>Payment</span>
+                            </li>
+                            <li className={`${currentStep === 6 ? 'active' : currentStep > 6 ? 'activated' : ''} pb-4`}>
                               <span>Review Reservation</span>
                             </li>
                             <li>
@@ -581,6 +586,28 @@ const BookingParking = () => {
                         </div>
                       </fieldset>
                     )}
+                    {currentStep === 6 && (
+                      <fieldset style={{ display: 'flex' }}>
+                        <div className="card flex-fill mb-0">
+                          <div className="card-body">
+                            <h5 className="mb-3">Payement</h5>
+                            <form >
+                              <div className="d-flex justify-content-end align-items-center">
+                                <Link
+                                  to="#"
+                                  onClick={handlePrev}
+                                  className="btn btn-light d-inline-flex align-items-center prev_btn me-2"
+                                >
+                                  Back
+                                </Link>
+                                
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                        <button onClick={handlePayment} className="btn btn-dark me-2">pay</button>
+                      </fieldset>
+                    )}
                     {currentStep === 5 && (
                       <fieldset style={{ display: 'flex' }}>
                         <div className="flex-fill">
@@ -735,13 +762,21 @@ const BookingParking = () => {
                                 >
                                   Checkout
                                 </button>
-                                <button onClick={handlePayment} className="btn btn-dark me-2">pay</button>
+                                <button
+                                  type="button"
+                                  className="btn btn-linear-primary next_btn"
+                                  onClick={handleNext}
+                                >
+                                  Next Step
+                                </button>
+                                
                               </div>
                             </div>
                           </div>
                         </div>
                       </fieldset>
                     )}
+                    
                   </div>
                 </div>
               </div>
