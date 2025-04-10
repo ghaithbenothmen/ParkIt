@@ -180,7 +180,7 @@ const ProvidersRoutes = () => {
       route: Route,
     },
     {
-      path: '/ParkingVisualization',
+      path: '/ParkingVisualization/:parkingId',
       name: 'ParkingVisualization',
       element: <ParkingVisualization />, 
       route: Route,
