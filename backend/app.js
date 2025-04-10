@@ -12,6 +12,9 @@ const vehiculeRoutes = require('./routes/vehicule.routes');
 const parkingRoutes = require('./routes/parking.routes');
 const parkingSpotRoutes = require('./routes/parkingSpot.route');
 const reservationRoutes = require('./routes/reservation.route');
+const lprRoutes = require('./routes/lpr.route'); // Importer la route LPR
+
+
 
 
 
@@ -33,18 +36,22 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
 app.use(cors({
-  origin: 'http://localhost:3000', // Autoriser les requêtes depuis ce domaine
+  origin: ['http://localhost:3000', 'http://192.168.34.177'], // Autoriser les requêtes depuis ce domaine
   credentials: true,
 }));
 
 
+
+
 app.listen(4000, () => {
   console.log('Serveur backend en écoute sur le port 4000');
+  console.log("Server time:", new Date());
 });
 
 // Routes
 app.get('/', (req, res) => {
   res.send('Backend is running');
+  console.log("Server time:", new Date());
 });
 
 app.use('/api/auth', authRoutes);
@@ -53,6 +60,7 @@ app.use('/api/vehicules', vehiculeRoutes);
 app.use('/api/parking', parkingRoutes);
 app.use('/api/parking-spots', parkingSpotRoutes); 
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
 
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
