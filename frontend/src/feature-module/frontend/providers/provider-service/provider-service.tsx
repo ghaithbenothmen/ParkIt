@@ -192,12 +192,18 @@ const ProviderCars = () => {
                         <div className="col-xl-4 col-md-6" key={vehicle._id}>
                           <div className="card p-0">
                             <div className="card-body p-0">
-                            <div className="img-sec w-100 image-container">
+                            <div className="img-sec w-200 image-container" style={{ height: '500px', overflow: 'hidden' }}>
                               <Link to={routes.serviceDetails1}>
                                 <img
                                   src={vehicle.imageUrl}
-                                  className="img-fluid rounded-top w-100"
+                                  className="img-fluid rounded-top "
                                   alt={`${vehicle.marque} ${vehicle.modele}`}
+                                  style={{ 
+                                    height: '600px', 
+                                    width: '410px',
+                                    objectFit: 'cover',
+                                    margin: '0 auto' // Pour centrer si nécessaire
+                                  }}
                                 />
                               </Link>
                               <div className="image-tag d-flex justify-content-end align-items-center">
