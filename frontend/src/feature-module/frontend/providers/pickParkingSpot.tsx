@@ -84,6 +84,8 @@ const ParkingVisualization = ({
       }
     };
 
+    fetchData();
+
     if (parkingId) {
       fetchData();
     } else {
@@ -190,6 +192,10 @@ const ParkingVisualization = ({
 
     return (
       <div className="d-flex justify-content-between">
+        <div className="w-30 pe-2">{renderSpots(leftSpots, 'left')}</div>
+        <div className="exit-path-container w-15 px-1">{renderPath('EXIT')}</div>
+        <div className="w-30 px-1">{renderSpots(rightSpots, 'right')}</div>
+        <div className="entry-path-container w-15 ps-1">{renderPath('ENTRY')}</div>
         {/* Left Parking Spots */}
         <div className="w-30 pe-2">
           {leftSpots}
@@ -212,6 +218,9 @@ const ParkingVisualization = ({
       </div>
     );
   };
+
+  if (loading) return <div className="text-center p-5"><span className="spinner-border"></span></div>;
+  if (error) return <div className="alert alert-danger">{error}</div>;
 
   if (loading) {
     return <div className="text-center p-5"><span className="spinner-border"></span></div>;
