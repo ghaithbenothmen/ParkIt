@@ -79,7 +79,6 @@ const BookingParking = () => {
   };
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    console.log('ho' + storedUser)
     if (storedUser) {
       try {
         // Is it a JWT token or JSON object?
@@ -143,22 +142,6 @@ const BookingParking = () => {
 
     fetchVehicles(); // ✅ Always call it, no need to wait for userInfo
   }, []);
-
-
-
-  const routes = all_routes
-  const [selectedValue1, setSelectedValue1] = useState(null);
-  const [selectedValue2, setSelectedValue2] = useState(null);
-  const value1 = [
-    { name: '0-2 Hrs' },
-    { name: '2-3 Hrs' },
-    { name: '3-4 Hrs' },
-  ];
-  const value2 = [
-    { name: '1st Floor' },
-    { name: '2st Floor' },
-    { name: '3st Floor' },
-  ];
   const [currentStep, setCurrentStep] = useState(1);
   const [count, setCount] = useState(1);
   const [count2, setCount2] = useState(1);

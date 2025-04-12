@@ -1,4 +1,24 @@
 const Reservation = require('../models/reservation.model.js');
+const ParkingSpot = require('../models/parkingSpot.model');
+const cron = require('node-cron');
+
+
+
+cron.schedule('0 0 * * *', async () => {
+    console.log('Checking for expired reservations...');
+
+    try {
+        const now = new Date();
+        const expiredReservations = await Reservation.updateMany(
+            { endDate: { $lt: now }, status: { $ne: 'over' } },
+            { $set: { status: 'over' } }
+        );
+
+        console.log(`Updated ${expiredReservations.modifiedCount} expired reservations to over.`);
+    } catch (error) {
+        console.error('Error updating expired reservations:', error);
+    }
+});
 
 exports.createReservation = async (req, res) => {
     try {
@@ -97,11 +117,40 @@ exports.paymentSuccess = async (req, res) => {
     
     if (!trackingId || !reservationId) return res.send("Invalid request");
 
-    // Update the reservation payment status to "confirmed"
-    await Reservation.findByIdAndUpdate(reservationId, { status: 'confirmed' });
-        const frontendSuccessrUrl = `http://localhost:3000/payment-success`;
-        return res.redirect(frontendSuccessrUrl);
-}
+    try {
+        // Update the reservation payment status to "confirmed"
+        const reservation = await Reservation.findByIdAndUpdate(
+            reservationId,
+            { status: 'confirmed' },
+            { new: true } // Return the updated reservation
+        );
+
+        if (!reservation) {
+            return res.status(404).json({ message: 'Reservation not found' });
+        }
+
+        // Find the associated parking spot
+        const parkingSpot = await ParkingSpot.findById(reservation.parkingSpot);
+
+        if (!parkingSpot) {
+            return res.status(404).json({ message: 'Parking spot not found' });
+        }
+
+        // Mark the parking spot as unavailable
+        parkingSpot.disponibilite = false;
+        await parkingSpot.save();
+
+        const frontendSuccessUrl = `http://localhost:3000/payment-success`;
+        return res.redirect(frontendSuccessUrl);
+
+    } catch (error) {
+        console.error("Error processing payment success:", error);
+        return res.status(500).json({
+            message: 'Erreur lors du traitement du succès de paiement',
+            error: error.message
+        });
+    }
+};
 exports.paymentFail = async (req, res) => {
         const frontendErrorUrl = `http://localhost:3000/payment-error`;
         return res.redirect(frontendErrorUrl);
@@ -111,11 +160,21 @@ exports.getAllReservations = async (req, res) => {
     try {
         const reservations = await Reservation.find();
 
+        // Check for expired reservations and update their status to 'over'
+        const now = new Date();
+        const expiredReservations = await Reservation.updateMany(
+            { endDate: { $lt: now }, status: { $ne: 'over' } },
+            { $set: { status: 'over' } }
+        );
+
+        console.log(`Updated ${expiredReservations.modifiedCount} expired reservations to over.`);
+
         res.status(200).json({ data: reservations });
     } catch (error) {
         res.status(500).json({ message: 'Erreur lors de la récupération des réservations', error: error.message });
     }
 };
+
 
 exports.getReservationById = async (req, res) => {
     try {
@@ -224,6 +283,46 @@ exports.getAllReservationsByParkingSpot = async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la récupération des réservations', error: error.message });
     }
 };
+exports.getConfirmedReservations = async (req, res) => {
+    try {
+        const confirmedReservations = await Reservation.find({ status: 'confirmed' });
+
+        if (confirmedReservations.length === 0) {
+            return res.status(404).json({ message: 'Aucune réservation confirmée trouvée.' });
+        }
+
+        res.status(200).json({ data: confirmedReservations });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des réservations confirmées', error: error.message });
+    }
+};
+exports.getPendingReservations = async (req, res) => {
+    try {
+        const pendingReservations = await Reservation.find({ status: 'pending' });
+
+        if (pendingReservations.length === 0) {
+            return res.status(404).json({ message: 'Aucune réservation pending trouvée.' });
+        }
+
+        res.status(200).json({ data: pendingReservations });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des réservations pending', error: error.message });
+    }
+};
+exports.getOverReservations = async (req, res) => {
+    try {
+        const overReservations = await Reservation.find({ status: 'over' });
+
+        if (overReservations.length === 0) {
+            return res.status(404).json({ message: 'Aucune réservation over trouvée.' });
+        }
+
+        res.status(200).json({ data: overReservations });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des réservations over', error: error.message });
+    }
+};
+
 
 module.exports = {
     createReservation: exports.createReservation,
@@ -236,5 +335,9 @@ module.exports = {
     getAllReservationsByParking: exports.getAllReservationsByParking,
     getAllReservationsByParkingSpot: exports.getAllReservationsByParkingSpot,
     paymentSuccess: exports.paymentSuccess,
-    paymentFail: exports.paymentFail
+    paymentFail: exports.paymentFail,
+    getConfirmedReservations: exports.getConfirmedReservations,
+    getPendingReservations:  exports.getPendingReservations,
+    getOverReservations: exports.getOverReservations,
+
 };

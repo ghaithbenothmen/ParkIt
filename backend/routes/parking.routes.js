@@ -9,5 +9,6 @@ router.get("/parc/count", parkingController.totalParc);
 router.put("/:id", parkingController.modifierParking);
 router.delete("/:id", parkingController.supprimerParking );
 router.post("/", parkingController.ajouterParking );
+router.post("/available" , parkingController.available)
 
 module.exports = router;
