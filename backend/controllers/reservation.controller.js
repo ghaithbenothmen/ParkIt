@@ -322,6 +322,20 @@ exports.getOverReservations = async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la récupération des réservations over', error: error.message });
     }
 };
+exports.getTotalPriceOfAllReservations = async (req, res) => {
+    try {
+        // Fetch all reservations from the database
+        const reservations = await Reservation.find();
+
+        // Calculate the total price by summing up the 'totalPrice' field of each reservation
+        const totalPrice = reservations.reduce((total, reservation) => total + reservation.totalPrice, 0);
+
+        res.status(200).json({ totalPrice });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération du prix total des réservations', error: error.message });
+    }
+};
+
 
 
 module.exports = {
@@ -339,5 +353,6 @@ module.exports = {
     getConfirmedReservations: exports.getConfirmedReservations,
     getPendingReservations:  exports.getPendingReservations,
     getOverReservations: exports.getOverReservations,
+    getTotalPriceOfAllReservations: exports.getTotalPriceOfAllReservations,
 
 };

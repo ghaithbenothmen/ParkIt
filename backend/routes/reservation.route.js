@@ -11,6 +11,7 @@ router.post('/', reservationController.createReservation);
 router.get('/confirmed', reservationController.getConfirmedReservations);
 router.get('/pending', reservationController.getPendingReservations);
 router.get('/over', reservationController.getOverReservations);
+router.get('/total', reservationController.getTotalPriceOfAllReservations);
 router.get('/', reservationController.getAllReservations);
 router.get('/:id', reservationController.getReservationById);
 router.put('/:id', reservationController.updateReservation);

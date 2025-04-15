@@ -52,7 +52,7 @@ const BookingParking = () => {
   });
 
   const handlePayment = async () => {
-    
+
     try {
       const response = await fetch(`http://localhost:4000/api/reservations/${reservationId}/payment`, {
         method: 'POST',
@@ -66,7 +66,7 @@ const BookingParking = () => {
       }
 
       const data = await response.json();
-      console.log( "hiii  " + data)
+      console.log("hiii  " + data)
       if (data.paymentLink) {
         // Redirect the user to the payment page
         window.location.href = data.paymentLink;
@@ -239,16 +239,16 @@ const BookingParking = () => {
           // Add authorization headers if required
         },
         body: JSON.stringify(reservationData),
-        
+
       });
 
       const data = await response.json();
       if (response.ok) {
         console.log('Reservation successful:', data);
         alert('Reservation successful! please porceed to payment in next step');
-        setReservationId(data.data._id); 
+        setReservationId(data.data._id);
         console.log('Reservation ID after setting:', data._id);
-        
+
       } else {
         // If the response is not successful, show an error alert with the error message
         console.error('Reservation failed:', data.message || 'Unknown error');
@@ -308,13 +308,10 @@ const BookingParking = () => {
                               <span>Car Selections</span>
                             </li>
                             <li className={`${currentStep === 5 ? 'active' : currentStep > 5 ? 'activated' : ''} pb-4`}>
-                              <span>Payment</span>
-                            </li>
-                            <li className={`${currentStep === 6 ? 'active' : currentStep > 6 ? 'activated' : ''} pb-4`}>
                               <span>Review Reservation</span>
                             </li>
-                            <li>
-                              <span>Checkout</span>
+                            <li className={`${currentStep === 6 ? 'active' : currentStep > 6 ? 'activated' : ''} pb-4`}>
+                              <span>Payement</span>
                             </li>
                           </ul>
                         </div>
@@ -569,28 +566,7 @@ const BookingParking = () => {
                         </div>
                       </fieldset>
                     )}
-                    {currentStep === 6 && (
-                      <fieldset style={{ display: 'flex' }}>
-                        <div className="card flex-fill mb-0">
-                          <div className="card-body">
-                            <h5 className="mb-3">Payement</h5>
-                            <form >
-                              <div className="d-flex justify-content-end align-items-center">
-                                <Link
-                                  to="#"
-                                  onClick={handlePrev}
-                                  className="btn btn-light d-inline-flex align-items-center prev_btn me-2"
-                                >
-                                  Back
-                                </Link>
-                                
-                              </div>
-                            </form>
-                          </div>
-                        </div>
-                        <button onClick={handlePayment} className="btn btn-dark me-2">pay</button>
-                      </fieldset>
-                    )}
+
                     {currentStep === 5 && (
                       <fieldset style={{ display: 'flex' }}>
                         <div className="flex-fill">
@@ -752,14 +728,65 @@ const BookingParking = () => {
                                 >
                                   Next Step
                                 </button>
-                                
+
                               </div>
                             </div>
                           </div>
                         </div>
                       </fieldset>
                     )}
-                    
+                    {currentStep === 6 && (
+                      <fieldset style={{ display: 'flex' }}>
+                        <div className="card flex-fill mb-0">
+                          <div className="card-body">
+                            <h5 className="mb-3">Payement</h5>
+                            <div className="review-order">
+                              <h6 className="fs-16 fw-medium border-bottom mb-3 pb-3">
+                                Payment details
+                              </h6>
+                              <div className="d-flex align-items-center justify-content-md-between flex-wrap gap-3">
+                                <div className="rounded bg-white p-2 text-center review-item">
+                                  <h6 className="fw-medium fs-16 mb-1">
+                                    Parking cost/hour
+                                  </h6>
+                                  <span>{parking!.tarif_horaire * 1000} Millimes</span>
+                                </div>
+                                <div className="rounded bg-white p-2 text-center review-item">
+                                  <h6 className="fw-medium fs-16 mb-1">Duration </h6>
+                                  <span>{duration} hours</span>
+                                </div>
+                                <div className="rounded bg-white p-2 text-center review-item">
+                                  <h6 className="fw-medium fs-16 mb-1">Total cost</h6>
+                                  <span>{parking!.tarif_horaire * duration * 1000} Millimes  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <form >
+                              <div className="d-flex justify-content-end align-items-center">
+                                <Link
+                                  to="#"
+                                  onClick={handlePrev}
+                                  className="btn btn-light d-inline-flex align-items-center prev_btn me-2"
+                                >
+                                  Back
+                                </Link>
+                                <Link
+                                  to="#"
+                                  onClick={handlePayment}
+                                  className="btn btn-linear-primary next_btn"
+                                >
+                                  Payment
+                                </Link>
+
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+
+                      </fieldset>
+                    )}
+
                   </div>
                 </div>
               </div>
