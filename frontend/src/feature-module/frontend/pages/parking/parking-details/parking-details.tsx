@@ -12,6 +12,7 @@ import VideoModal from '../../../../../core/hooks/video-modal';
 import StickyBox from 'react-sticky-box';
 import { Parking } from '../parking.model';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const ParkingDetails = () => {
   const routes = all_routes;
@@ -29,6 +30,10 @@ const ParkingDetails = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = React.useState(false);
   const [error, setError] = useState(null);
+
+  const user = localStorage.getItem('user');
+
+
 
   useEffect(() => {
     // Replace with your actual API endpoint
@@ -680,13 +685,23 @@ const ParkingDetails = () => {
                           {parking?.disponibilite ? "Available" : "Not Available"}
                         </span>
                       </div>
-                      <Link
-                        to={`/parkings/booking-parking/${parking?._id}`}
-                        className="btn btn-lg btn-primary w-100 d-flex align-items-center justify-content-center mb-3"
-                      >
-                        <i className="ti ti-calendar me-2" />
-                        Book Parking
-                      </Link>
+                      {user ? (
+                        <Link
+                          to={`/parkings/booking-parking/${parking?._id}`}
+                          className="btn btn-lg btn-primary w-100 d-flex align-items-center justify-content-center mb-3"
+                        >
+                          <i className="ti ti-calendar me-2" />
+                          Book A ParkingSpot
+                        </Link>
+                      ) : (
+                        <div className="alert alert-warning text-center mt-3">
+                          You need to be connected to access this page.{' '}
+                          <Link to="/login" className="alert-link">
+                            Sign in here
+                          </Link>
+                          .
+                        </div>
+                      )}
                       <Link
                         to="#"
                         data-bs-toggle="modal"

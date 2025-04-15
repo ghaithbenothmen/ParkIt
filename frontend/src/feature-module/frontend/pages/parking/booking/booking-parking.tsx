@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState,useRef } from 'react'
 import BreadCrumb from '../../../common/breadcrumb/breadCrumb'
 import ImageWithBasePath from '../../../../../core/img/ImageWithBasePath'
 import { Dropdown } from 'primereact/dropdown';
@@ -11,9 +11,11 @@ import CommonDatePicker from '../../../../../core/hooks/commonDatePicker';
 import Calendar from 'react-calendar'; // Import react-calendar
 import 'react-calendar/dist/Calendar.css'; // Styles for the calendar
 import ParkingVisualization from '../../../providers/pickParkingSpot';
+import { Toast } from "primereact/toast";
 
 
 const BookingParking = () => {
+  const toast = useRef(null);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [startHour, setStartHour] = useState("09:00");
   const [endHour, setEndHour] = useState("13:00");
@@ -28,6 +30,11 @@ const BookingParking = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
   const [reservationId, setReservationId] = useState<string | null>(null);
+
+  const showToast = (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string) => {
+    toast.current?.show({ severity, summary, detail, life: 3000 });
+  };
+  
 
   useEffect(() => {
     // Replace with your actual API endpoint
@@ -245,7 +252,7 @@ const BookingParking = () => {
       const data = await response.json();
       if (response.ok) {
         console.log('Reservation successful:', data);
-        alert('Reservation successful! please porceed to payment in next step');
+        showToast('success', 'Success', 'Reservation successful! please porceed to payment in next step');
         setReservationId(data.data._id);
         console.log('Reservation ID after setting:', data._id);
 
@@ -268,6 +275,7 @@ const BookingParking = () => {
 
   return (
     <>
+    <Toast ref={toast} />
       <BreadCrumb title='Book A Reservation' item1='Service' item2='Reservation' />
       <>
         {/* Page Wrapper */}
@@ -716,15 +724,12 @@ const BookingParking = () => {
                                   Back
                                 </Link>
                                 <button
-                                  className="btn btn-linear-primary"
-                                  onClick={handleCheckout}
-                                >
-                                  Checkout
-                                </button>
-                                <button
                                   type="button"
                                   className="btn btn-linear-primary next_btn"
-                                  onClick={handleNext}
+                                  onClick={() => {
+                                    handleCheckout();
+                                    handleNext();
+                                  }}
                                 >
                                   Next Step
                                 </button>

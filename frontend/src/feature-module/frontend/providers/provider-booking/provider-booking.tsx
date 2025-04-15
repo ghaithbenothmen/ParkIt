@@ -92,18 +92,20 @@ const ProviderBooking = () => {
 
   useEffect(() => {
     const fetchReservations = async () => {
+      if (userInfo._id) {
       try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/${userInfo._id}`);
+        const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
         console.log("Fetched reservations:", res.data);
 
         setReservations(res.data.data);  // Access the array inside 'data'
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
       }
+    }
     };
 
     fetchReservations();
-  }, []);
+  }, [userInfo._id]);
   useEffect(() => {
     const fetchParkings = async () => {
       const updatedReservations = [...reservations]; // Copy of reservations state
