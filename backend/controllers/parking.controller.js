@@ -104,4 +104,22 @@ exports.supprimerParking = async (req, res) => {
         }
     };
 
+    exports.getParkingCount = async (req, res) => {
+        try {
+          // Solution 1: Utilisation directe de countDocuments()
+          const count = await Parking.estimatedDocumentCount(); // Méthode optimisée
+          
+          // OU Solution 2: Si vous avez besoin de filtrer
+          // const count = await Parking.countDocuments({});
+          
+          res.status(200).json({ count });
+        } catch (error) {
+          console.error("Count error:", error);
+          res.status(500).json({ 
+            message: "Error counting parkings",
+            error: error.message 
+          });
+        }
+      };
+
 

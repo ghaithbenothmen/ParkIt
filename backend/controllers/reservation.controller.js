@@ -338,6 +338,16 @@ exports.getTotalPriceOfAllReservations = async (req, res) => {
 
 
 
+// Dans votre fichier de contrôleur (reservation.controller.js)
+exports.getReservationCount = async (req, res) => {
+    try {
+      const count = await Reservation.countDocuments();
+      res.status(200).json({ count });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+
 module.exports = {
     createReservation: exports.createReservation,
     reservationPayment: exports.reservationPayment,
@@ -350,6 +360,7 @@ module.exports = {
     getAllReservationsByParkingSpot: exports.getAllReservationsByParkingSpot,
     paymentSuccess: exports.paymentSuccess,
     paymentFail: exports.paymentFail,
+    getReservationCount: exports.getReservationCount,
     getConfirmedReservations: exports.getConfirmedReservations,
     getPendingReservations:  exports.getPendingReservations,
     getOverReservations: exports.getOverReservations,
