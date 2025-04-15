@@ -268,7 +268,7 @@ const BookingParking = () => {
 
   return (
     <>
-      <BreadCrumb title='Book a Service' item1='Service' item2='Book a Service' />
+      <BreadCrumb title='Book A Reservation' item1='Service' item2='Reservation' />
       <>
         {/* Page Wrapper */}
         <div className="page-wrapper">
@@ -323,7 +323,7 @@ const BookingParking = () => {
                       <fieldset id="first-field">
                         <div className="card flex-fill mb-0">
                           <div className="card-body">
-                            <h5 className="mb-3">Personal Details(<p>parking nom  {parking?.nom}</p>)</h5>
+                            <h5 className="mb-3">Personal Details</h5>
                             <form >
                               <div>
                                 <h6 className="mb-3 fs-16 fw-medium">

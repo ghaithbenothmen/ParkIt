@@ -314,7 +314,7 @@ const ProviderBooking = () => {
 
                       <div className="booking-det-info">
                         <h6 className="mb-3">
-                          <Link to={routes.bookingDetails}>
+                        <Link to={`${routes.bookingDetails}/${reservation._id}`}>
                             {reservation.parking?.nom || "Parking Spot"}
                           </Link>
                           <span className={`badge ms-2 ${reservation.status === 'confirmed' ? 'badge-soft-success' :
