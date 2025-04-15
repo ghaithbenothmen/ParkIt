@@ -9,6 +9,7 @@ import ServiceGrid from './service-grid/service-grid';
 
 import CreateService from './create-service/createServices';
 import ServiceRequest from './service-request/serviceRequest';
+import ProvidersCars from '../providers/provider-service/provider-service'
 
 const ServicesRoutes = () => {
   const all_services_routes = [
@@ -19,6 +20,13 @@ const ServicesRoutes = () => {
       route: Route,
     },
 
+    {
+      path: '/provider-service',
+      name: 'provider-service',
+      element: <ProvidersCars />,
+      route: Route,
+    },
+    
     {
       path: '/service-details/service-details1',
       name: 'service-details-1',

@@ -16,38 +16,51 @@ import { AdminDashboardThree } from '../../../core/data/json/admin-dashboard3';
 
 const Dashboard = () => {
   const routes = all_routes;
-  
-    const [userCount, setUserCount] = useState(null); // Initialize as null
-    const [parcCount, setParcCount] = useState(null); 
-    // Function to fetch user count from API
-    const fetchUserCount = async () => {
-      try {
-        const response = await axios.get('http://localhost:4000/api/users/users/count'); // Replace with your API endpoint
-        setUserCount(response.data.count); // Assuming your API response has a `count` field
-      } catch (error) {
-        console.error('Error fetching user count:', error);
-      }
-    };
+
+  const [userCount, setUserCount] = useState(null); // Initialize as null
+  const [parcCount, setParcCount] = useState(null);
+  const [resCount, setResCount] = useState(null);
+  // Function to fetch user count from API
+  const fetchUserCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/users/users/count'); // Replace with your API endpoint
+      setUserCount(response.data.count); // Assuming your API response has a `count` field
+    } catch (error) {
+      console.error('Error fetching user count:', error);
+    }
+  };
+  const fetchResCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/total'); // Replace with your API endpoint
+      setResCount(response.data.totalPrice); // Assuming your API response has a `count` field
+    } catch (error) {
+      console.error('Error fetching user count:', error);
+    }
+  };
 
 
-    const fetchParkingCount = async () => {
-      try {
-        const response = await axios.get('http://localhost:4000/api/parking/parc/count'); // Replace with your API endpoint
-        setParcCount(response.data.count); // Assuming your API response has a `count` field
-      } catch (error) {
-        console.error('Error fetching parc count:', error);
-      }
-    };
-  
+  const fetchParkingCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/parking/parc/count'); // Replace with your API endpoint
+      setParcCount(response.data.count); // Assuming your API response has a `count` field
+    } catch (error) {
+      console.error('Error fetching parc count:', error);
+    }
+  };
 
-    
-    useEffect(() => {
-      fetchUserCount(); // Fetch user count on component mount
-    }, []);
 
-    useEffect(() => {
-      fetchParkingCount(); // Fetch user count on component mount
-    }, []);
+
+  useEffect(() => {
+    fetchUserCount(); // Fetch user count on component mount
+  }, []);
+
+  useEffect(() => {
+    fetchResCount(); // Fetch user count on component mount
+  }, []);
+
+  useEffect(() => {
+    fetchParkingCount(); // Fetch user count on component mount
+  }, []);
 
   const serviceImage1 = (rowData: AdminDashboardInterface) => {
     const [service] = rowData.service.split('\n');
@@ -110,8 +123,8 @@ const Dashboard = () => {
     (state: AdminDashboardTwo) => state.admin_dashboard_2,
   );
   const data3 = useSelector(
-     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     (state: AdminDashboardThree) => state.admin_dashboard_3,
   );
 
@@ -311,29 +324,29 @@ const Dashboard = () => {
                           className="me-2"
                         />
                         <span className="counters" data-count={30}>
-                        {userCount !== null ? userCount : 'Loading...'}
-                        </span> 
+                          {userCount !== null ? userCount : 'Loading...'}
+                        </span>
                       </div>
                     </div>
-                    
+
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
-           
-                     
-                      
+
+
+
+
           <div className="col-lg-3 col-sm-6 col-12 d-flex widget-path widget-service">
             <div className="card">
               <div className="card-body">
                 <div className="home-user home-service">
                   <div className="home-userhead">
                     <div className="home-usercount">
-                    <span>
-  <i className="fas fa-parking"></i>
-</span>
+                      <span>
+                        <i className="fas fa-parking"></i>
+                      </span>
                       <h6>Parking</h6>
                     </div>
                     <div className="home-useraction">
@@ -379,11 +392,11 @@ const Dashboard = () => {
                           className="me-2"
                         />
                         <span className="counters" data-count={30}>
-                        {parcCount !== null ? parcCount : 'Loading...'}
-                        </span> 
+                          {parcCount !== null ? parcCount : 'Loading...'}
+                        </span>
                       </div>
                     </div>
-                    
+
                   </div>
                 </div>
               </div>
@@ -443,12 +456,12 @@ const Dashboard = () => {
                           className="me-2"
                         />
                         <span className="counters" data-count={650}>
-                          $650
+                        ${resCount !== null ? resCount : 'Loading...'}
                         </span>
                       </div>
-                      
+
                     </div>
-                    
+
                   </div>
                 </div>
               </div>
@@ -524,8 +537,8 @@ const Dashboard = () => {
                   </div>
                   <div className="chartgraph">
                     <ReactApexChart
-                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      // @ts-expect-error
                       options={Revenue}
                       series={Revenue.series}
                       type="area"
@@ -603,8 +616,8 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className="chartgraph">
-                    
-                    <ReactApexChart                    
+
+                    <ReactApexChart
                       options={chartData}
                       series={chartData.series}
                       type="bar"
@@ -780,16 +793,16 @@ const Dashboard = () => {
                           data={data}
                         /> */}
                         <div style={{ height: '400px', width: '100%' }}>
-                        <iframe
-                      src="https://www.google.com/maps/embed"
-                      style={{ border: "0", height: "265px", width: "364px" }}
-                       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                      allowFullScreen=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      className="contact-map"
-                    />
+                          <iframe
+                            src="https://www.google.com/maps/embed"
+                            style={{ border: "0", height: "265px", width: "364px" }}
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-expect-error
+                            allowFullScreen=""
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="contact-map"
+                          />
                         </div>
                       </div>
                       <div className="col-lg-5">

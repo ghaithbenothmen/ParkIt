@@ -71,7 +71,7 @@ const PagesRoutes = () => {
       route: Route,
     },
     {
-      path: '/booking/booking-details',
+      path: '/booking/booking-details/:id',
       name: 'booking-details',
       element: <BookingDetails />,
       route: Route,
