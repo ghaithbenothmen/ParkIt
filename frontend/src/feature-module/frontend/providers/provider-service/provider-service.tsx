@@ -8,14 +8,26 @@ const routes = all_routes;
 const ProviderCars = () => {
   console.log("ProvidersCars component rendered");
   const [vehicles, setVehicles] = useState([]);
-  const [selectedVehicle, setSelectedVehicle] = useState(null); // Selected vehicle for editing
-  const [showEditModal, setShowEditModal] = useState(false); // Controls the display of the edit pop-up
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // Controls the display of the delete confirmation pop-up
-  const [showSuccessModal, setShowSuccessModal] = useState(false); // Controls the display of the success pop-up
-  const [vehicleToDelete, setVehicleToDelete] = useState(null); // Vehicle to be deleted
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Filter vehicles based on search term
+  const filteredVehicles = vehicles.filter(vehicle => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      vehicle.marque.toLowerCase().includes(searchLower) ||
+      vehicle.modele.toLowerCase().includes(searchLower)
+    );
+  });
 
   const fetchVehicles = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Utilisateur non connecté');
@@ -36,7 +48,6 @@ const ProviderCars = () => {
 
       const data = await response.json();
 
-      // Ajouter l'URL de l'image pour chaque véhicule
       const vehiclesWithImages = await Promise.all(
         data.vehicules.map(async (vehicle) => {
           const imageUrl = await fetchCarImage(vehicle.marque, vehicle.modele);
@@ -44,21 +55,23 @@ const ProviderCars = () => {
         })
       );
 
-      setVehicles(vehiclesWithImages); // Mettre à jour l'état des véhicules avec les images
+      setVehicles(vehiclesWithImages);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const fetchCarImage = async (marque, modele) => {
     try {
-      const apiKey = process.env.REACT_APP_PEXELS_API_KEY; // Clé API Pexels
-      const query = `${marque} ${modele} car`; // Recherche par marque et modèle
+      const apiKey = process.env.REACT_APP_PEXELS_API_KEY;
+      const query = `${marque} ${modele} car`;
       const response = await fetch(
         `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1`,
         {
           headers: {
-            Authorization: apiKey, // Utiliser la clé API Pexels
+            Authorization: apiKey,
           },
         }
       );
@@ -69,41 +82,36 @@ const ProviderCars = () => {
 
       const data = await response.json();
       if (data.photos.length > 0) {
-        return data.photos[0].src.medium; // Retourne l'URL de la première image trouvée
+        return data.photos[0].src.medium;
       } else {
-        return 'https://via.placeholder.com/300'; // Image par défaut si aucune image n'est trouvée
+        return 'https://via.placeholder.com/300';
       }
     } catch (error) {
       console.error(error);
-      return 'https://via.placeholder.com/300'; // Image par défaut en cas d'erreur
+      return 'https://via.placeholder.com/300';
     }
   };
 
-  // Function to handle delete confirmation
   const handleDeleteConfirmation = (vehicleId) => {
-    setVehicleToDelete(vehicleId); // Set the vehicle to delete
-    setShowDeleteModal(true); // Show the delete confirmation pop-up
+    setVehicleToDelete(vehicleId);
+    setShowDeleteModal(true);
   };
 
-  // Function to delete a vehicle
   const handleDeleteVehicle = async () => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/vehicules/${vehicleToDelete}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!response.ok) {
         throw new Error('Error deleting vehicle');
       }
-      // Update local state by filtering out the deleted vehicle
       setVehicles(vehicles.filter((vehicle) => vehicle._id !== vehicleToDelete));
-
-      // Close the delete confirmation pop-up
       setShowDeleteModal(false);
-
-      // Show the success pop-up
       setShowSuccessModal(true);
-
-      // Hide the success pop-up after 2 seconds
       setTimeout(() => {
         setShowSuccessModal(false);
       }, 2000);
@@ -112,57 +120,67 @@ const ProviderCars = () => {
     }
   };
 
-  // Function to open the edit pop-up
   const handleEditClick = (vehicle) => {
-    setSelectedVehicle(vehicle); // Set the selected vehicle
-    setShowEditModal(true); // Open the edit pop-up
+    setSelectedVehicle(vehicle);
+    setShowEditModal(true);
   };
 
-  // Function to close the edit pop-up
   const handleCloseModal = () => {
     setShowEditModal(false);
     setSelectedVehicle(null);
   };
 
-  // Function to submit edits
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:4000/api/vehicules/${selectedVehicle._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(selectedVehicle),
       });
       if (!response.ok) {
         throw new Error('Error updating vehicle');
       }
-
-      // Close the edit pop-up
       handleCloseModal();
-
-      // Refresh the data
       fetchVehicles();
     } catch (error) {
       console.error(error);
     }
   };
 
-  // Fetch vehicles on component mount
   useEffect(() => {
     fetchVehicles();
   }, []);
 
   return (
     <>
-      {/* Page Wrapper */}
       <div className="page-wrapper">
         <div className="content container-fluid">
+          {/* Search Bar and Add Car Button */}
           <div className="row">
             <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
               <h5>My Cars</h5>
               <div className="d-flex align-items-center">
+                <div className="me-3">
+                  <div className="form-group mb-0">
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search by brand or model..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <span className="input-group-text">
+                        <i className="ti ti-search" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
                 <Link
                   to={routes.createService}
                   className="btn btn-dark d-flex align-items-center"
@@ -173,6 +191,8 @@ const ProviderCars = () => {
               </div>
             </div>
           </div>
+
+          {/* Vehicles List */}
           <div className="row justify-content-center">
             <div className="col-xl-12 col-lg-12">
               <div className="tab-content pt-0">
@@ -182,69 +202,73 @@ const ProviderCars = () => {
                   role="tabpanel"
                   aria-labelledby="active-service"
                 >
-                  <div className="row justify-content-center align-items-center">
-                    {vehicles.length === 0 ? (
-                      <div className="col-12 text-center">
-                        <p>No vehicles found.</p>
+                  {isLoading ? (
+                    <div className="text-center">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
                       </div>
-                    ) : (
-                      vehicles.map((vehicle) => (
-                        <div className="col-xl-4 col-md-6" key={vehicle._id}>
-                          <div className="card p-0">
-                            <div className="card-body p-0">
-                            <div className="img-sec w-200 image-container" style={{ height: '500px', overflow: 'hidden' }}>
-                              <Link to={routes.serviceDetails1}>
-                                <img
-                                  src={vehicle.imageUrl}
-                                  className="img-fluid rounded-top "
-                                  alt={`${vehicle.marque} ${vehicle.modele}`}
-                                  style={{ 
-                                    height: '600px', 
-                                    width: '410px',
-                                    objectFit: 'cover',
-                                    margin: '0 auto' // Pour centrer si nécessaire
-                                  }}
-                                />
-                              </Link>
-                              <div className="image-tag d-flex justify-content-end align-items-center">
-                                <span className="trend-tag">{vehicle.marque}</span>
-                              </div>
-                            </div>
-                              <div className="p-3">
-                                <h5 className="mb-2 text-truncate">
-                                  <Link to={routes.serviceDetails1}>
-                                    {vehicle.marque} {vehicle.modele}
-                                  </Link>
-                                </h5>
-                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                  <p className="fs-14 mb-0">
-                                    <i className="ti ti-map-pin me-2" />
-                                    {vehicle.couleur}
-                                  </p>
+                    </div>
+                  ) : (
+                    <div className="row justify-content-center align-items-center">
+                      {filteredVehicles.length === 0 ? (
+                        <div className="col-12 text-center">
+                          <p>{searchTerm ? 'No matching vehicles found' : 'No vehicles found'}</p>
+                        </div>
+                      ) : (
+                        filteredVehicles.map((vehicle) => (
+                          <div className="col-xl-4 col-md-6" key={vehicle._id}>
+                            <div className="card p-0">
+                              <div className="card-body p-0">
+                                <div className="img-sec w-200 image-container" style={{ height: '500px', overflow: 'hidden' }}>
+                                  <img
+                                    src={vehicle.imageUrl}
+                                    className="img-fluid rounded-top"
+                                    alt={`${vehicle.marque} ${vehicle.modele}`}
+                                    style={{ 
+                                      height: '600px', 
+                                      width: '410px',
+                                      objectFit: 'cover',
+                                      margin: '0 auto'
+                                    }}
+                                  />
+                                  <div className="image-tag d-flex justify-content-end align-items-center">
+                                    <span className="trend-tag">{vehicle.marque}</span>
+                                  </div>
                                 </div>
-                                <div className="d-flex justify-content-between align-items-center">
-                                  <div className="d-flex gap-3">
-                                    <Link to="#" onClick={() => handleEditClick(vehicle)}>
-                                      <i className="ti ti-edit me-2" />
-                                      Edit
+                                <div className="p-3">
+                                  <h5 className="mb-2 text-truncate">
+                                    {vehicle.marque} {vehicle.modele}
+                                  </h5>
+                                  <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <p className="fs-14 mb-0">
+                                      <i className="ti ti-map-pin me-2" />
+                                      {vehicle.couleur}
+                                    </p>
+                                  </div>
+                                  <div className="d-flex justify-content-between align-items-center">
+                                    <div className="d-flex gap-3">
+                                      <Link to="#" onClick={() => handleEditClick(vehicle)}>
+                                        <i className="ti ti-edit me-2" />
+                                        Edit
+                                      </Link>
+                                    </div>
+                                    <Link
+                                      to="#"
+                                      onClick={() => handleDeleteConfirmation(vehicle._id)}
+                                      className="btn btn-danger"
+                                    >
+                                      <i className="ti ti-trash me-2" />
+                                      Delete
                                     </Link>
                                   </div>
-                                  <Link
-                                    to="#"
-                                    onClick={() => handleDeleteConfirmation(vehicle._id)}
-                                    className="btn btn-danger"
-                                  >
-                                    <i className="ti ti-trash me-2" />
-                                    Delete
-                                  </Link>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -252,9 +276,9 @@ const ProviderCars = () => {
         </div>
       </div>
 
-      {/* Edit pop-up */}
+      {/* Edit Modal */}
       {showEditModal && selectedVehicle && (
-        <div className="modal fade show" style={{ display: 'block' }}>
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -324,7 +348,7 @@ const ProviderCars = () => {
                       Cancel
                     </button>
                     <button type="submit" className="btn btn-primary">
-                      Save
+                      Save Changes
                     </button>
                   </div>
                 </form>
@@ -334,9 +358,9 @@ const ProviderCars = () => {
         </div>
       )}
 
-      {/* Delete confirmation pop-up */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="modal fade show" style={{ display: 'block' }}>
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -348,7 +372,7 @@ const ProviderCars = () => {
                 ></button>
               </div>
               <div className="modal-body">
-                <p>Are you sure you want to delete this car?</p>
+                <p>Are you sure you want to delete this car? This action cannot be undone.</p>
               </div>
               <div className="modal-footer">
                 <button
@@ -356,14 +380,14 @@ const ProviderCars = () => {
                   className="btn btn-secondary"
                   onClick={() => setShowDeleteModal(false)}
                 >
-                  No
+                  Cancel
                 </button>
                 <button
                   type="button"
                   className="btn btn-danger"
                   onClick={handleDeleteVehicle}
                 >
-                  Yes
+                  Delete
                 </button>
               </div>
             </div>
@@ -371,9 +395,9 @@ const ProviderCars = () => {
         </div>
       )}
 
-      {/* Success pop-up */}
+      {/* Success Modal */}
       {showSuccessModal && (
-        <div className="modal fade show" style={{ display: 'block' }}>
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -385,7 +409,19 @@ const ProviderCars = () => {
                 ></button>
               </div>
               <div className="modal-body">
-                <p>Car deleted successfully.</p>
+                <div className="d-flex align-items-center">
+                  <i className="ti ti-circle-check text-success me-2" style={{ fontSize: '1.5rem' }} />
+                  <p className="mb-0">Car deleted successfully.</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => setShowSuccessModal(false)}
+                >
+                  OK
+                </button>
               </div>
             </div>
           </div>
