@@ -113,7 +113,7 @@ const CompletedBooking = () => {
   }, [reservations]);
   const renderStatusBadge = (rowData: Reservation) => {
     let badgeClass = '';
-    let label = rowData.status;
+    const label = rowData.status;
   
     switch (rowData.status.toLowerCase()) {
       case 'confirmed':
