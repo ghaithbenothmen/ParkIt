@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import QuoteModal from '../../common/modals/quote-modal'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import BecomeProvider from '../../common/modals/provider-modal'
@@ -24,6 +24,31 @@ const NewHome = () => {
   const [currentPosition, setCurrentPosition] = useState<[number, number] | null>(null)
   const [suggestions, setSuggestions] = useState<any[]>([]) // Search suggestions
   const [distanceFilter, setDistanceFilter] = useState<number | null>(null) // Distance filter in km
+  const [parkingCount, setParkingCount] = useState<number>(0);
+  const [reservationCount, setReservationCount] = useState<number>(0);
+
+  const fetchCounts = async () => {
+    try {
+      const [parkingsRes, reservationsRes] = await Promise.all([
+        axios.get('http://localhost:4000/api/parking/count'),
+        axios.get('http://localhost:4000/api/reservations/count')
+      ]);
+      
+      setParkingCount(parkingsRes.data?.count || 215);
+      setReservationCount(reservationsRes.data?.count || 90000); // Même valeur pour les deux affichages
+      
+    } catch (error) {
+      console.error('Error fetching counts:', error);
+      setParkingCount(215);
+      setReservationCount(90000); // Valeurs par défaut
+    }
+  };
+
+useEffect(() => {
+  fetchCounts();
+}, []);
+
+
 
   // Distance filter options
   const distanceOptions = [
@@ -252,20 +277,20 @@ const NewHome = () => {
                       </Link>
                     </div>
                     <div className="d-flex align-items-center flex-wrap banner-info">
-                      <div className="d-flex align-items-center me-4 mt-4">
-                        <ImageWithBasePath src="assets/img/icons/success-01.svg" alt="icon" />
-                        <div className="ms-2">
-                          <h6>215 +</h6>
-                          <p>Verified Parkings</p>
-                        </div>
+                    <div className="d-flex align-items-center me-4 mt-4">
+                      <ImageWithBasePath src="assets/img/icons/success-01.svg" alt="icon" />
+                      <div className="ms-2">
+                        <h6>{parkingCount.toLocaleString()}+</h6>
+                        <p>Verified Parkings</p>
                       </div>
-                      <div className="d-flex align-items-center me-4 mt-4">
-                        <ImageWithBasePath src="assets/img/icons/success-02.svg" alt="icon" />
-                        <div className="ms-2">
-                          <h6>90,000+</h6>
-                          <p>Reservation Completed</p>
-                        </div>
+                    </div>
+                    <div className="d-flex align-items-center me-4 mt-4">
+                      <ImageWithBasePath src="assets/img/icons/success-02.svg" alt="icon" />
+                      <div className="ms-2">
+                        <h6>{reservationCount.toLocaleString()}+</h6>
+                        <p>Reservations Completed</p>
                       </div>
+                    </div>
                       <div className="d-flex align-items-center me-4 mt-4">
                         <ImageWithBasePath src="assets/img/icons/success-03.svg" alt="icon" />
                         <div className="ms-2">
@@ -301,9 +326,11 @@ const NewHome = () => {
               </div>
               <div className="d-inline-flex bg-white p-2 rounded align-items-center shape-02 floating-x">
                 <span className="me-2">
-                  <ImageWithBasePath src="assets/img/icons/tick-banner.svg" alt="" />
+                  <ImageWithBasePath src="assets/img/icons/tick-banner.svg" alt="Reservation Icon" />
                 </span>
-                <p className="fs-12 text-dark mb-0">300 Reservation Completed</p>
+                <p className="fs-12 text-dark mb-0">
+                  {reservationCount.toLocaleString()} Reservations Completed
+                </p>
                 <i className="border-edge" />
               </div>
               <ImageWithBasePath src="assets/img/bg/bg-03.svg" alt="img" className="shape-03" />

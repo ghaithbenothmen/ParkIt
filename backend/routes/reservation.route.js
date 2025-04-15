@@ -4,6 +4,9 @@ const reservationController = require('../controllers/reservation.controller');
 
 // Routes pour les opérations CRUD
 
+// Dans votre fichier de routes (reservation.routes.js)
+router.get('/count', reservationController.getReservationCount);
+
 router.get('/success',reservationController.paymentSuccess);
 router.get('/fail',reservationController.paymentFail);
 router.post('/:id/payment',reservationController.reservationPayment);
@@ -15,6 +18,7 @@ router.delete('/:id', reservationController.deleteReservation);
 router.get('/by-user/:userId', reservationController.getAllReservationsByUser);
 router.get('/by-parking/:parkingId', reservationController.getAllReservationsByParking);
 router.get('/by-parking-spot/:parkingSpotId', reservationController.getAllReservationsByParkingSpot);
+
 
 
 module.exports = router;
