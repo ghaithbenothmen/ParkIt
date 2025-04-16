@@ -15,7 +15,7 @@ const PaymentSuccess = () => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-5 mx-auto">
-              <form onSubmit={() => navigate(routes.index)}>
+              <form onSubmit={() => navigate(routes.providerBooking)}>
                 <div className="d-flex flex-column justify-content-center vh-100">
                   <div className="card p-sm-4">
                     <div className="card-body">

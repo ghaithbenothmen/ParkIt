@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import QuoteModal from '../../common/modals/quote-modal'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
 import BecomeProvider from '../../common/modals/provider-modal'
@@ -14,73 +14,125 @@ import HomeHeader from '../header/home-header'
 import NewFooter from '../footer/newFooter'
 import AuthModals from './authModals'
 import axios from 'axios'
-import { MapPin, Search } from 'react-feather';
-
+import { MapPin, Search } from 'react-feather'
+import { Dropdown } from 'primereact/dropdown'
 
 const NewHome = () => {
   const routes = all_routes
-  const navigate = useNavigate();
-  const [location, setLocation] = useState(""); // Location entered by user
-  const [currentPosition, setCurrentPosition] = useState<[number, number] | null>(null);
-  const [suggestions, setSuggestions] = useState<any[]>([]); // Search suggestions
+  const navigate = useNavigate()
+  const [location, setLocation] = useState('') // Location entered by user
+  const [currentPosition, setCurrentPosition] = useState<[number, number] | null>(null)
+  const [suggestions, setSuggestions] = useState<any[]>([]) // Search suggestions
+  const [distanceFilter, setDistanceFilter] = useState<number | null>(null) // Distance filter in km
+  const [parkingCount, setParkingCount] = useState<number>(0);
+  const [reservationCount, setReservationCount] = useState<number>(0);
+
+  const fetchCounts = async () => {
+    try {
+      const [parkingsRes, reservationsRes] = await Promise.all([
+        axios.get('http://localhost:4000/api/parking/count'),
+        axios.get('http://localhost:4000/api/reservations/count')
+      ]);
+      
+      setParkingCount(parkingsRes.data?.count || 215);
+      setReservationCount(reservationsRes.data?.count || 90000); // Même valeur pour les deux affichages
+      
+    } catch (error) {
+      console.error('Error fetching counts:', error);
+      setParkingCount(215);
+      setReservationCount(90000); // Valeurs par défaut
+    }
+  };
+
+useEffect(() => {
+  fetchCounts();
+}, []);
+
+
+
+  // Distance filter options
+  const distanceOptions = [
+    
+    { label: 'radius of 10 km', value: 10 },
+    { label: 'radius of 20 km', value: 20 },
+    { label: 'radius of 30 km', value: 30 },
+    { label: 'radius of 40 km', value: 40 },
+    { label: 'radius of 50 km', value: 50 },
+    { label: 'All car parks', value: 1000 }
+  ]
+
+  // Helper function to calculate distance between two coordinates in km
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371 // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLon = (lon2 - lon1) * Math.PI / 180
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    return R * c // Distance in km
+  }
 
   // Fetch location suggestions from Nominatim API
   const handleLocationChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setLocation(query);
+    const query = e.target.value
+    setLocation(query)
     if (query.length > 2) {
       try {
         const response = await axios.get(
           `https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`
-        );
-        setSuggestions(response.data);
+        )
+        setSuggestions(response.data)
       } catch (error) {
-        console.error('Error fetching location suggestions:', error);
+        console.error('Error fetching location suggestions:', error)
       }
     } else {
-      setSuggestions([]);
+      setSuggestions([])
     }
-  };
+  }
 
   // Handle the selection of a location from suggestions
   const handleSelectLocation = (lat: number, lon: number, name: string) => {
-    setLocation(name); // Set the input field to the selected location name
-    setSuggestions([]); // Clear suggestions
-    navigate('/map', {
-      state: {
-        location: name,
-        currentPosition: [lat, lon],
-      },
-    });
-  };
+    setLocation(name) // Set the input field to the selected location name
+    setSuggestions([]) // Clear suggestions
+    setCurrentPosition([lat, lon]) // Set the selected position
+  }
 
   // Get user's current location if they click the button
   const handleUseCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCurrentPosition([position.coords.latitude, position.coords.longitude]);
-          setLocation('Your Location'); // Set input to "Your Location"
+          setCurrentPosition([position.coords.latitude, position.coords.longitude])
+          setLocation('Your Location') // Set input to "Your Location"
         },
         (error) => {
-          console.error('Error getting location:', error);
-          alert('Unable to retrieve location.');
+          console.error('Error getting location:', error)
+          alert('Unable to retrieve location.')
         }
-      );
+      )
     } else {
-      alert('Geolocation is not supported by your browser.');
+      alert('Geolocation is not supported by your browser.')
     }
-  };
+  }
 
   // Search button click handler
   const handleSearch = () => {
+    if (!location) {
+      alert('Please enter a location or use your current location')
+      return
+    }
+
     navigate('/map', {
       state: {
         location: location === 'Your Location' ? currentPosition : location,
         currentPosition,
-      },
-    });
-  };
+        distanceFilter
+      }
+    })
+  }
+
   return (
     <>
       <HomeHeader type={1} />
@@ -98,7 +150,7 @@ const NewHome = () => {
                   >
                     <h1 className="mb-2">
                       Find the perfect parking{" "}
-                      <span className="typed" data-type-text="Carpenters" >spot</span>
+                      <span className="typed" data-type-text="Carpenters">spot</span>
                     </h1>
                     <p className="mb-3 sub-title">
                       We can help you find the right spot, fast , effortless, save your
@@ -108,7 +160,7 @@ const NewHome = () => {
                       <form>
                         <div className="d-md-flex align-items-center">
                           {/* Address input field */}
-                          <div className="input-group mb-2">
+                          <div className="input-group mb-2" style={{ position: 'relative' }}>
                             <span className="input-group-text px-1">
                               <MapPin
                                 style={{ cursor: 'pointer', color: '#9b0e16', fontSize: '24px' }}
@@ -121,14 +173,43 @@ const NewHome = () => {
                               className="form-control"
                               placeholder="Enter Location"
                               value={location}
-                              onChange={handleLocationChange} // Handle changes to input
+                              onChange={handleLocationChange}
+                              style={{ paddingRight: '120px' }}
                             />
-                            <button onClick={handleSearch} className="btn btn-linear-primary">
-                              <Search style={{ fontSize: '15px',marginRight:'5px' }} /> Search
-                            </button>
+                            
+                            {/* Distance filter dropdown */}
+                            <div style={{
+                              position: 'absolute',
+                              right: '100px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              width: '120px',
+                              zIndex: 5
+                            }}>
+                              <Dropdown
+                                value={distanceFilter}
+                                options={distanceOptions}
+                                onChange={(e) => setDistanceFilter(e.value)}
+                                placeholder="Distance"
+                                className="border-0"
+                                disabled={!currentPosition}
+                                tooltip={!currentPosition ? "Select a location first to filter by distance" : ""}
+                              />
+                            </div>
+                            
+                           
                           </div>
+                          <button 
+                            
+                            onClick={handleSearch} 
+                            className="btn btn-linear-primary"
+                            style={{ zIndex: 5 }}
+                          >
+                            
+                            <Search style={{ fontSize: '15px', marginRight: '5px' }} /> Search
+                          </button>
 
-                          {/* Display suggestions above input */}
+                          {/* Display suggestions below input */}
                           {suggestions.length > 0 && (
                             <ul
                               style={{
@@ -137,11 +218,13 @@ const NewHome = () => {
                                 position: 'absolute',
                                 background: '#fff',
                                 border: '1px solid #ccc',
-                                width: '100%',
+                                width: 'calc(100% - 30px)',
                                 zIndex: 10,
-                                top: '100%', // Position below the input field
-                                left: 0,
-                                marginTop: '5px', // Add space between the input and suggestions
+                                top: '100%',
+                                left: '15px',
+                                marginTop: '-5px',
+                                borderRadius: '0 0 5px 5px',
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
                               }}
                             >
                               {suggestions.map((suggestion) => (
@@ -152,17 +235,18 @@ const NewHome = () => {
                                   }
                                   style={{
                                     cursor: 'pointer',
-                                    padding: '5px',
+                                    padding: '8px 15px',
+                                    borderBottom: '1px solid #eee',
+                                    transition: 'background 0.2s'
                                   }}
+                                  onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                                  onMouseLeave={(e) => e.currentTarget.style.background = '#fff'}
                                 >
                                   {suggestion.display_name}
                                 </li>
                               ))}
                             </ul>
                           )}
-
-
-
                         </div>
                       </form>
                       <ImageWithBasePath
@@ -193,20 +277,20 @@ const NewHome = () => {
                       </Link>
                     </div>
                     <div className="d-flex align-items-center flex-wrap banner-info">
-                      <div className="d-flex align-items-center me-4 mt-4">
-                        <ImageWithBasePath src="assets/img/icons/success-01.svg" alt="icon" />
-                        <div className="ms-2">
-                          <h6>215 +</h6>
-                          <p>Verified Parkings</p>
-                        </div>
+                    <div className="d-flex align-items-center me-4 mt-4">
+                      <ImageWithBasePath src="assets/img/icons/success-01.svg" alt="icon" />
+                      <div className="ms-2">
+                        <h6>{parkingCount.toLocaleString()}+</h6>
+                        <p>Verified Parkings</p>
                       </div>
-                      <div className="d-flex align-items-center me-4 mt-4">
-                        <ImageWithBasePath src="assets/img/icons/success-02.svg" alt="icon" />
-                        <div className="ms-2">
-                          <h6>90,000+</h6>
-                          <p>Reservation Completed</p>
-                        </div>
+                    </div>
+                    <div className="d-flex align-items-center me-4 mt-4">
+                      <ImageWithBasePath src="assets/img/icons/success-02.svg" alt="icon" />
+                      <div className="ms-2">
+                        <h6>{reservationCount.toLocaleString()}+</h6>
+                        <p>Reservations Completed</p>
                       </div>
+                    </div>
                       <div className="d-flex align-items-center me-4 mt-4">
                         <ImageWithBasePath src="assets/img/icons/success-03.svg" alt="icon" />
                         <div className="ms-2">
@@ -242,9 +326,11 @@ const NewHome = () => {
               </div>
               <div className="d-inline-flex bg-white p-2 rounded align-items-center shape-02 floating-x">
                 <span className="me-2">
-                  <ImageWithBasePath src="assets/img/icons/tick-banner.svg" alt="" />
+                  <ImageWithBasePath src="assets/img/icons/tick-banner.svg" alt="Reservation Icon" />
                 </span>
-                <p className="fs-12 text-dark mb-0">300 Reservation Completed</p>
+                <p className="fs-12 text-dark mb-0">
+                  {reservationCount.toLocaleString()} Reservations Completed
+                </p>
                 <i className="border-edge" />
               </div>
               <ImageWithBasePath src="assets/img/bg/bg-03.svg" alt="img" className="shape-03" />

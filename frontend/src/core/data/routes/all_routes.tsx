@@ -1,4 +1,3 @@
-import PaymentSuccess from "../../../feature-module/router/return.paypage";
 
 export const all_routes = {
   // home module path
@@ -33,11 +32,13 @@ export const all_routes = {
   createService: '/services/create-service',
   providerDetails: '/services/providers/provider-details',
   map: '/map',
+  map2: '/map2',
   serviceRequest: '/services/service-request',
   searchList: '/services/search-list',
   provider: '/services/providers/provider-list',
   serviceDetails1: '/services/service-details/service-details1',
   serviceDetails2: '/services/service-details/service-details2',
+  providerServices: '/providers/provider-service',
 
   // customers module path
   customers: '/customers/*',

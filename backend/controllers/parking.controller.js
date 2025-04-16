@@ -1,5 +1,6 @@
 const Parking = require("../models/parking.model");
-
+const ParkingSpot = require('../models/parkingSpot.model');
+const Reservation = require('../models/reservation.model');
 
 exports.ajouterParking = async (req, res) => {
     try {
@@ -71,5 +72,54 @@ exports.supprimerParking = async (req, res) => {
             return res.status(500).json({ error: 'Une erreur est survenue lors du comptage des parking.' });
         }
     };
+
+    exports.available =  async (req, res) => {
+        try {
+            const { parkingId, startDate, endDate } = req.body;
+    
+            // Find all parking spots for the given parkingId
+            const parkingSpots = await ParkingSpot.find({ parkingId });
+    
+            // Find all reservations for the parking spots during the selected date range
+            const reservedSpots = await Reservation.find({
+                parkingSpot: { $in: parkingSpots.map(spot => spot._id) },
+                $or: [
+                    { startDate: { $lt: endDate }, endDate: { $gt: startDate } }
+                ]
+            }).select('parkingSpot'); // Only get the parking spot ids
+    
+            // Mark spots that are unavailable
+            const unavailableSpotIds = reservedSpots.map(reservation => reservation.parkingSpot.toString());
+    
+            // Return spots with availability status
+            const spotsWithAvailability = parkingSpots.map(spot => ({
+                ...spot.toObject(),
+                disponibilite: !unavailableSpotIds.includes(spot._id.toString())
+            }));
+    
+            return res.json({ spots: spotsWithAvailability });
+        } catch (error) {
+            console.error('Error checking availability:', error);
+            return res.status(500).json({ message: 'Error checking availability' });
+        }
+    };
+
+    exports.getParkingCount = async (req, res) => {
+        try {
+          // Solution 1: Utilisation directe de countDocuments()
+          const count = await Parking.estimatedDocumentCount(); // Méthode optimisée
+          
+          // OU Solution 2: Si vous avez besoin de filtrer
+          // const count = await Parking.countDocuments({});
+          
+          res.status(200).json({ count });
+        } catch (error) {
+          console.error("Count error:", error);
+          res.status(500).json({ 
+            message: "Error counting parkings",
+            error: error.message 
+          });
+        }
+      };
 
 

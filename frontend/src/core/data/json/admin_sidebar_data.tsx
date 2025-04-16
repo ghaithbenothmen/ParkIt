@@ -84,10 +84,10 @@ export const adminSidebar = [
         route: routes.services,
         icon: <Icon.MapPin className="react-feather-icon" />,
         subMenus: [
-          {
-            menuValue: 'Add Parking',
-            route: routes.addServices,
-          },
+          //{
+            //menuValue: 'Add Parking',
+            //route: routes.addServices,
+          //},
           {
             menuValue: 'Parkings',
             route: routes.allServices,

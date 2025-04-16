@@ -1,4 +1,25 @@
 const Reservation = require('../models/reservation.model.js');
+const ParkingSpot = require('../models/parkingSpot.model');
+const cron = require('node-cron');
+
+
+
+cron.schedule('0 0 * * *', async () => {
+    console.log('Checking for expired reservations...');
+
+    try {
+        const now = new Date();
+        const expiredReservations = await Reservation.updateMany(
+            { endDate: { $lt: now }, status: { $ne: 'over' } },
+            { $set: { status: 'over' } }
+        );
+
+        console.log(`Updated ${expiredReservations.modifiedCount} expired reservations to over.`);
+    } catch (error) {
+        console.error('Error updating expired reservations:', error);
+    }
+});
+const User = require('../models/user.model.js');
 
 exports.createReservation = async (req, res) => {
     try {
@@ -97,11 +118,40 @@ exports.paymentSuccess = async (req, res) => {
     
     if (!trackingId || !reservationId) return res.send("Invalid request");
 
-    // Update the reservation payment status to "confirmed"
-    await Reservation.findByIdAndUpdate(reservationId, { status: 'confirmed' });
-        const frontendSuccessrUrl = `http://localhost:3000/payment-success`;
-        return res.redirect(frontendSuccessrUrl);
-}
+    try {
+        // Update the reservation payment status to "confirmed"
+        const reservation = await Reservation.findByIdAndUpdate(
+            reservationId,
+            { status: 'confirmed' },
+            { new: true } // Return the updated reservation
+        );
+
+        if (!reservation) {
+            return res.status(404).json({ message: 'Reservation not found' });
+        }
+
+        // Find the associated parking spot
+        const parkingSpot = await ParkingSpot.findById(reservation.parkingSpot);
+
+        if (!parkingSpot) {
+            return res.status(404).json({ message: 'Parking spot not found' });
+        }
+
+        // Mark the parking spot as unavailable
+        parkingSpot.disponibilite = false;
+        await parkingSpot.save();
+
+        const frontendSuccessUrl = `http://localhost:3000/payment-success`;
+        return res.redirect(frontendSuccessUrl);
+
+    } catch (error) {
+        console.error("Error processing payment success:", error);
+        return res.status(500).json({
+            message: 'Erreur lors du traitement du succès de paiement',
+            error: error.message
+        });
+    }
+};
 exports.paymentFail = async (req, res) => {
         const frontendErrorUrl = `http://localhost:3000/payment-error`;
         return res.redirect(frontendErrorUrl);
@@ -111,11 +161,21 @@ exports.getAllReservations = async (req, res) => {
     try {
         const reservations = await Reservation.find();
 
+        // Check for expired reservations and update their status to 'over'
+        const now = new Date();
+        const expiredReservations = await Reservation.updateMany(
+            { endDate: { $lt: now }, status: { $ne: 'over' } },
+            { $set: { status: 'over' } }
+        );
+
+        console.log(`Updated ${expiredReservations.modifiedCount} expired reservations to over.`);
+
         res.status(200).json({ data: reservations });
     } catch (error) {
         res.status(500).json({ message: 'Erreur lors de la récupération des réservations', error: error.message });
     }
 };
+
 
 exports.getReservationById = async (req, res) => {
     try {
@@ -136,7 +196,7 @@ exports.getReservationById = async (req, res) => {
 exports.updateReservation = async (req, res) => {
     try {
         const { id } = req.params;
-        const { startDate, endDate, status, totalPrice } = req.body;
+        const { startDate, endDate, status, totalPrice,userId } = req.body;
 
         // Vérifier si la réservation existe
         const reservation = await Reservation.findById(id);
@@ -149,6 +209,7 @@ exports.updateReservation = async (req, res) => {
         if (endDate) reservation.endDate = endDate;
         if (status) reservation.status = status;
         if (totalPrice) reservation.totalPrice = totalPrice;
+        if (userId) reservation.userId = userId;
 
         await reservation.save();
 
@@ -224,6 +285,220 @@ exports.getAllReservationsByParkingSpot = async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la récupération des réservations', error: error.message });
     }
 };
+exports.getConfirmedReservations = async (req, res) => {
+    try {
+        const confirmedReservations = await Reservation.find({ status: 'confirmed' });
+
+        if (confirmedReservations.length === 0) {
+            return res.status(404).json({ message: 'Aucune réservation confirmée trouvée.' });
+        }
+
+        res.status(200).json({ data: confirmedReservations });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des réservations confirmées', error: error.message });
+    }
+};
+exports.getPendingReservations = async (req, res) => {
+    try {
+        const pendingReservations = await Reservation.find({ status: 'pending' });
+
+        if (pendingReservations.length === 0) {
+            return res.status(404).json({ message: 'Aucune réservation pending trouvée.' });
+        }
+
+        res.status(200).json({ data: pendingReservations });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des réservations pending', error: error.message });
+    }
+};
+exports.getOverReservations = async (req, res) => {
+    try {
+        const overReservations = await Reservation.find({ status: 'over' });
+
+        if (overReservations.length === 0) {
+            return res.status(404).json({ message: 'Aucune réservation over trouvée.' });
+        }
+
+        res.status(200).json({ data: overReservations });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des réservations over', error: error.message });
+    }
+};
+exports.getTotalPriceOfAllReservations = async (req, res) => {
+    try {
+        // Fetch all reservations from the database
+        const reservations = await Reservation.find();
+
+        // Calculate the total price by summing up the 'totalPrice' field of each reservation
+        const totalPrice = reservations.reduce((total, reservation) => total + reservation.totalPrice, 0);
+
+        res.status(200).json({ totalPrice });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération du prix total des réservations', error: error.message });
+    }
+};
+
+
+
+// Dans votre fichier de contrôleur (reservation.controller.js)
+exports.getReservationCount = async (req, res) => {
+    try {
+      const count = await Reservation.countDocuments();
+      res.status(200).json({ count });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+exports.getReservationSummary = async(req, res)=>{
+    const reservations = await Reservation.find({
+        startDate:{
+            $gte: new Date(new Date().setMonth(-1)),
+            $lte: new Date(new Date().setMonth(12))
+        },
+    });   
+    const numbers = [0,0,0,0,0,0,0,0,0,0,0,0];
+    reservations.forEach(myFunction);
+    function myFunction(reservation){
+        price = reservation.totalPrice;
+        index = reservation.startDate.getMonth();
+        numbers[index]+=price;
+    }
+    return res.status(200).json({ count: numbers });
+
+
+};
+exports.getReservationStatistics = async(req, res)=>{
+    const reservations = await Reservation.find();
+    var confirmed=0;
+    var pending=0;
+    var over=0;
+    const total = reservations.length;
+    reservations.forEach(myFunction);
+    function myFunction(reservation){
+        switch(reservation.status){
+            case "confirmed":
+                confirmed+=1;
+                break;
+            case "pending":
+                pending+=1;
+                break;
+            case "over":
+                over+=1;
+                break;
+        }
+    }
+    const stat = [Math.floor(confirmed*100/total),Math.floor(over*100/total),Math.floor(pending*100/total)];
+    return res.status(200).json({count:stat});
+};
+exports.getWeekendReservationStats = async (req, res) => {
+    try {
+      const reservations = await Reservation.find();
+  
+      let weekend = 0;
+      let weekday = 0;
+  
+      const total = reservations.length;
+  
+      reservations.forEach((reservation) => {
+        const day = new Date(reservation.startDate).getDay(); // 0 = Sunday, 6 = Saturday
+        if (day === 0 || day === 6) {
+          weekend++;
+        } else {
+          weekday++;
+        }
+      });
+      const stat = [Math.floor(weekend*100/total),Math.floor(weekday*100/total)];
+      return res.status(200).json({count:stat});
+    } catch (error) {
+      console.error("Error in getWeekendReservationStats:", error);
+      return res.status(500).json({ error: "Failed to fetch weekend stats" });
+    }
+  };
+  
+
+
+exports.getTopUsers = async (req, res) => {
+  try {
+    const topUsers = await Reservation.aggregate([
+      {
+        $group: {
+          _id: '$userId', // group by userId (replace with your user field)
+          totalReservations: { $sum: 1 },
+        },
+      },
+      { $sort: { totalReservations: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'users', // this should match your actual collection name
+          localField: '_id',
+          foreignField: '_id',
+          as: 'userInfo',
+        },
+      },
+      {
+        $unwind: '$userInfo',
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          totalReservations: 1,
+          name: {
+            $concat: ['$userInfo.firstname', ' ', '$userInfo.lastname'],
+          },
+          email: '$userInfo.email',
+        },
+      },
+    ]);
+    console.log(topUsers);
+    return res.status(200).json({topUsers:topUsers});
+  } catch (error) {
+    console.error('Error fetching top users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+exports.getTopParkings = async (req, res) => {
+    try {
+      const topParkings = await Reservation.aggregate([
+        {
+          $group: {
+            _id: '$parkingId', // group by userId (replace with your user field)
+            totalReservations: { $sum: 1 },
+          },
+        },
+        { $sort: { totalReservations: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: 'parkings', // this should match your actual collection name
+            localField: '_id',
+            foreignField: '_id',
+            as: 'parkingInfo',
+          },
+        },
+        {
+          $unwind: '$parkingInfo',
+        },
+        {
+          $project: {
+            _id: 0,
+            parkingId: '$_id',
+            totalReservations: 1,
+            name:  '$parkingInfo.nom',
+            adresse: '$parkingInfo.adresse',
+          },
+        },
+      ]);
+      console.log(topParkings);
+      return res.status(200).json({topParkings:topParkings});
+    } catch (error) {
+      console.error('Error fetching top users:', error);
+      res.status(500).json({ error: 'Internal server error' })
+    ;}
+}
+    
+
 
 module.exports = {
     createReservation: exports.createReservation,
@@ -236,5 +511,15 @@ module.exports = {
     getAllReservationsByParking: exports.getAllReservationsByParking,
     getAllReservationsByParkingSpot: exports.getAllReservationsByParkingSpot,
     paymentSuccess: exports.paymentSuccess,
-    paymentFail: exports.paymentFail
-};
+    paymentFail: exports.paymentFail,
+    getReservationCount: exports.getReservationCount,
+    getConfirmedReservations: exports.getConfirmedReservations,
+    getPendingReservations:  exports.getPendingReservations,
+    getOverReservations: exports.getOverReservations,
+    getTotalPriceOfAllReservations: exports.getTotalPriceOfAllReservations,
+    getReservationSummary: exports.getReservationSummary,
+    getReservationStatistics: exports.getReservationStatistics,
+    getTopUsers: exports.getTopUsers,
+    getTopParkings: exports.getTopParkings,
+    getWeekendReservationStats: exports.getWeekendReservationStats,
+}
