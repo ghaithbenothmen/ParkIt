@@ -19,6 +19,7 @@ cron.schedule('0 0 * * *', async () => {
         console.error('Error updating expired reservations:', error);
     }
 });
+const User = require('../models/user.model.js');
 
 exports.createReservation = async (req, res) => {
     try {
@@ -195,7 +196,7 @@ exports.getReservationById = async (req, res) => {
 exports.updateReservation = async (req, res) => {
     try {
         const { id } = req.params;
-        const { startDate, endDate, status, totalPrice } = req.body;
+        const { startDate, endDate, status, totalPrice,userId } = req.body;
 
         // Vérifier si la réservation existe
         const reservation = await Reservation.findById(id);
@@ -208,6 +209,7 @@ exports.updateReservation = async (req, res) => {
         if (endDate) reservation.endDate = endDate;
         if (status) reservation.status = status;
         if (totalPrice) reservation.totalPrice = totalPrice;
+        if (userId) reservation.userId = userId;
 
         await reservation.save();
 
@@ -347,6 +349,91 @@ exports.getReservationCount = async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   };
+exports.getReservationSummary = async(req, res)=>{
+    const reservations = await Reservation.find({
+        startDate:{
+            $gte: new Date(new Date().setMonth(-1)),
+            $lte: new Date(new Date().setMonth(12))
+        },
+    });   
+    const numbers = [0,0,0,0,0,0,0,0,0,0,0,0];
+    reservations.forEach(myFunction);
+    function myFunction(reservation){
+        price = reservation.totalPrice;
+        index = reservation.startDate.getMonth();
+        numbers[index]+=price;
+    }
+    return res.status(200).json({ count: numbers });
+
+
+};
+exports.getReservationStatistics = async(req, res)=>{
+    const reservations = await Reservation.find();
+    var confirmed=0;
+    var pending=0;
+    var canceled=0;
+    const total = reservations.length;
+    reservations.forEach(myFunction);
+    function myFunction(reservation){
+        switch(reservation.status){
+            case "confirmed":
+                confirmed+=1;
+                break;
+            case "pending":
+                pending+=1;
+                break;
+            case "canceled":
+                canceled+=1;
+                break;
+        }
+    }
+    const stat = [Math.floor(confirmed*100/total),Math.floor(canceled*100/total),Math.floor(pending*100/total)];
+    return res.status(200).json({count:stat});
+};
+
+
+exports.getTopUsers = async (req, res) => {
+  try {
+    const topUsers = await Reservation.aggregate([
+      {
+        $group: {
+          _id: '$userId', // group by userId (replace with your user field)
+          totalReservations: { $sum: 1 },
+        },
+      },
+      { $sort: { totalReservations: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'users', // this should match your actual collection name
+          localField: '_id',
+          foreignField: '_id',
+          as: 'userInfo',
+        },
+      },
+      {
+        $unwind: '$userInfo',
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          totalReservations: 1,
+          name: {
+            $concat: ['$userInfo.firstname', ' ', '$userInfo.lastname'],
+          },
+          email: '$userInfo.email',
+        },
+      },
+    ]);
+    console.log(topUsers);
+    return res.status(200).json({topUsers:topUsers});
+  } catch (error) {
+    console.error('Error fetching top users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 
 module.exports = {
     createReservation: exports.createReservation,

@@ -34,7 +34,6 @@ import Parking from '../frontend/pages/parking/parking';
 
 import PaymentSuccess from '../frontend/home/new-home/PaymentSuccess';
 import PaymentError from '../frontend/home/new-home/PaymentError';
-import EmbeddedCheckoutForm from './EmbeddedCheckoutForm';
 import ProtectedRoute from './ProtectedRoute';
 import { useState, useEffect } from 'react';
 import Dashboard from '../admin/dashboard/dashboard';
