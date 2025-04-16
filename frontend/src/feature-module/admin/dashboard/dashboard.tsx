@@ -47,6 +47,7 @@ const Dashboard = () => {
   const [reservationStat, setReservationStat] = useState(null);
   const [reservationSummary, setReservationSummary] = useState(null);
   const [resCount, setResCount] = useState(null);
+  const [resCountTot, setResCountTot] = useState(null);
   const [topUsers, setTopUsers] = useState(null);
   const [topParkings, setTopParkings] = useState(null);
   const [reservationWeekendStat, setReservationWeekendStat] = useState<number | null>(null);
@@ -103,6 +104,14 @@ const Dashboard = () => {
     if (filterStatus === 'over' && reservation.status === 'over') return true;
     return false;
   });
+  const fetchResCountTot = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/total'); // Replace with your API endpoint
+      setResCountTot(response.data.totalPrice); // Assuming your API response has a `count` field
+    } catch (error) {
+      console.error('Error fetching user count:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -342,6 +351,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchResCount(); // Fetch user count on component mount
+  }, []);
+  useEffect(() => {
+    fetchResCountTot(); // Fetch user count on component mount
   }, []);
 
   useEffect(() => {
@@ -743,7 +755,7 @@ const Dashboard = () => {
                           className="me-2"
                         />
                         <span className="counters" data-count={650}>
-                          ${resCount !== null ? resCount : 'Loading...'}
+                          ${resCountTot !== null ? resCountTot : 'Loading...'}
                         </span>
                       </div>
 
