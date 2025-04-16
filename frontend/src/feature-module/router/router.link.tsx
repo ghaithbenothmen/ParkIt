@@ -31,7 +31,7 @@ import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
 import Map from '../frontend/pages/map/Map';
 import Map2 from '../frontend/pages/map/Map2';
 import Parking from '../frontend/pages/parking/parking';
-
+import EmbeddedCheckoutForm from './EmbeddedCheckoutForm';
 import PaymentSuccess from '../frontend/home/new-home/PaymentSuccess';
 import PaymentError from '../frontend/home/new-home/PaymentError';
 import ProtectedRoute from './ProtectedRoute';

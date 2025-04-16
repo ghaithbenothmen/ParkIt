@@ -371,7 +371,7 @@ exports.getReservationStatistics = async(req, res)=>{
     const reservations = await Reservation.find();
     var confirmed=0;
     var pending=0;
-    var canceled=0;
+    var over=0;
     const total = reservations.length;
     reservations.forEach(myFunction);
     function myFunction(reservation){
@@ -382,14 +382,39 @@ exports.getReservationStatistics = async(req, res)=>{
             case "pending":
                 pending+=1;
                 break;
-            case "canceled":
-                canceled+=1;
+            case "over":
+                over+=1;
                 break;
         }
     }
-    const stat = [Math.floor(confirmed*100/total),Math.floor(canceled*100/total),Math.floor(pending*100/total)];
+    const stat = [Math.floor(confirmed*100/total),Math.floor(over*100/total),Math.floor(pending*100/total)];
     return res.status(200).json({count:stat});
 };
+exports.getWeekendReservationStats = async (req, res) => {
+    try {
+      const reservations = await Reservation.find();
+  
+      let weekend = 0;
+      let weekday = 0;
+  
+      const total = reservations.length;
+  
+      reservations.forEach((reservation) => {
+        const day = new Date(reservation.startDate).getDay(); // 0 = Sunday, 6 = Saturday
+        if (day === 0 || day === 6) {
+          weekend++;
+        } else {
+          weekday++;
+        }
+      });
+      const stat = [Math.floor(weekend*100/total),Math.floor(weekday*100/total)];
+      return res.status(200).json({count:stat});
+    } catch (error) {
+      console.error("Error in getWeekendReservationStats:", error);
+      return res.status(500).json({ error: "Failed to fetch weekend stats" });
+    }
+  };
+  
 
 
 exports.getTopUsers = async (req, res) => {
@@ -433,6 +458,46 @@ exports.getTopUsers = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+exports.getTopParkings = async (req, res) => {
+    try {
+      const topParkings = await Reservation.aggregate([
+        {
+          $group: {
+            _id: '$parkingId', // group by userId (replace with your user field)
+            totalReservations: { $sum: 1 },
+          },
+        },
+        { $sort: { totalReservations: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: 'parkings', // this should match your actual collection name
+            localField: '_id',
+            foreignField: '_id',
+            as: 'parkingInfo',
+          },
+        },
+        {
+          $unwind: '$parkingInfo',
+        },
+        {
+          $project: {
+            _id: 0,
+            parkingId: '$_id',
+            totalReservations: 1,
+            name:  '$parkingInfo.nom',
+            adresse: '$parkingInfo.adresse',
+          },
+        },
+      ]);
+      console.log(topParkings);
+      return res.status(200).json({topParkings:topParkings});
+    } catch (error) {
+      console.error('Error fetching top users:', error);
+      res.status(500).json({ error: 'Internal server error' })
+    ;}
+}
+    
 
 
 module.exports = {
@@ -452,5 +517,9 @@ module.exports = {
     getPendingReservations:  exports.getPendingReservations,
     getOverReservations: exports.getOverReservations,
     getTotalPriceOfAllReservations: exports.getTotalPriceOfAllReservations,
-
-};
+    getReservationSummary: exports.getReservationSummary,
+    getReservationStatistics: exports.getReservationStatistics,
+    getTopUsers: exports.getTopUsers,
+    getTopParkings: exports.getTopParkings,
+    getWeekendReservationStats: exports.getWeekendReservationStats,
+}
