@@ -44,7 +44,7 @@ const AuthModals = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [twoFAError, setTwoFAError] = useState<string | null>(null);
 
-  
+
   const navigate = useNavigate();
 
 
@@ -58,7 +58,7 @@ const AuthModals = () => {
 
   useEffect(() => {
     console.log("Updated show2FAModal:", show2FAModal);
-  
+
     if (show2FAModal) {
       // Hide the login modal first
       const loginModalElement = document.getElementById('login-modal');
@@ -68,22 +68,22 @@ const AuthModals = () => {
           loginBsModal.hide();
         }
       }
-  
-    
-      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-  
 
-    
-        const twoFAModalElement = document.getElementById('2fa-verification-modal');
-        if (twoFAModalElement) {
-          const twoFAModal = new Modal(twoFAModalElement);
-          twoFAModal.show();
-        }
-    
+
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+
+
+
+      const twoFAModalElement = document.getElementById('2fa-verification-modal');
+      if (twoFAModalElement) {
+        const twoFAModal = new Modal(twoFAModalElement);
+        twoFAModal.show();
+      }
+
     }
   }, [show2FAModal]);
-  
-  
+
+
 
 
   useEffect(() => {
@@ -241,26 +241,66 @@ const AuthModals = () => {
       }
 
       document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
+      document.body.classList.remove('modal-open');
     } catch (error: any) {
       console.error('Error during registration:', error);
       setRegisterError(error.message);
     }
   };
 
-  /*   const handleEnable2FA = async () => {
-      try {
-        const response = await axios.post('http://localhost:4000/api/auth/enable-2fa', {
-          email: user.email,
-        });
-    
-        setQrCodeUrl(response.data.qrCodeUrl);
-        setShowQRCodeModal(true);
-      } catch (error) {
-        console.error('Error enabling 2FA:', error);
+  
+  
+
+  const handleFaceLogin = async () => {
+    try {
+      console.log("🧠 Starting face login...");
+  
+      const response = await axios.post("http://localhost:4000/api/auth/login_face");
+  
+      console.log('Face login response:', response.data);
+  
+      if (response.data.token) {
+        // Store token and user
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+  
+        // Extract and store role
+        const role = response.data.user?.role || 'user';
+        localStorage.setItem('role', role);
+  
+        console.log('Login successful. Role:', role);
+  
+        setTimeout(() => {
+          navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+          window.location.reload(); // <--- THIS
+        }, 100);
+      } else {
+        console.log("❌ Face not recognized.");
+        setError("Face not recognized. Please try again or login with email/password.");
       }
-    }; 
-   */
+    } catch (error: any) {
+      console.error('Face login error:', error);
+      if (error.response) {
+        if (error.response?.data?.message) {
+          setError(error.response.data.message);
+        } else if (error.response.statusText) {
+          setError(error.response.statusText);
+        } else {
+          setError("An unexpected error occurred. Please try again.");
+        }
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    }
+  };
+  
+  
+  
+  
+  
+
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -364,12 +404,12 @@ const AuthModals = () => {
       }, 100);
     } catch (error: any) {
       console.error("2FA Verification Error:", error);
-    
-    if (error.response?.data?.message) {
-      setTwoFAError(error.response.data.message);
-    } else {
-      setTwoFAError("Invalid 2FA code. Please try again.");
-    }
+
+      if (error.response?.data?.message) {
+        setTwoFAError(error.response.data.message);
+      } else {
+        setTwoFAError("Invalid 2FA code. Please try again.");
+      }
 
     }
   };
@@ -517,7 +557,7 @@ const AuthModals = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-            
+
               </div>
               <div className="modal-body p-4">
                 <div className="text-center mb-3">
@@ -525,7 +565,7 @@ const AuthModals = () => {
                   <p>Enter the 6-digit code from your authenticator app.</p>
                 </div>
                 <div className="mb-3">
-                {twoFAError && <div className="alert alert-danger">{twoFAError}</div>}
+                  {twoFAError && <div className="alert alert-danger">{twoFAError}</div>}
                   <label className="form-label">2FA Code</label>
                   <input
                     type="text"
@@ -749,12 +789,16 @@ const AuthModals = () => {
                     <ImageWithBasePath src="assets/img/icons/google-icon.svg" className="me-2" alt="Img" />
                     Google
                   </Link>
-                  <Link to="#" className="btn btn-light flex-fill d-flex align-items-center justify-content-center">
-                    <ImageWithBasePath src="assets/img/icons/fb-icon.svg" className="me-2" alt="Img" />
-                    Facebook
+                  <Link to="#" className="btn btn-light flex-fill d-flex align-items-center justify-content-center" onClick={handleFaceLogin}>
+                    <ImageWithBasePath src="assets/img/icons/camera-icon.svg" className="me-2" alt="Img" />
+                    Face Recognition
                   </Link>
+                  
+                    
                 </div>
+                
                 <div className="d-flex justify-content-center">
+
                   <p>
                     Don’t have an account?{' '}
                     <Link to="#" className="text-primary" data-bs-toggle="modal" data-bs-target="#register-modal">

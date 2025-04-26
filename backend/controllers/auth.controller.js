@@ -9,7 +9,7 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
-
+const FormData = require('form-data');
 const axios = require('axios');
 const { oauth2Client } = require('../utils/googleClients.js');
 
@@ -149,7 +149,27 @@ exports.login = async (req, res) => {
     
     
     console.log('hi')
-    const { email, password } = req.body;
+    const { email, password,faceData  } = req.body;
+
+    if (faceData) {
+      const response = await axios.post('http://host.docker.internal:8000/verify-face/', { face_data: faceData });
+
+      if (response.data.isMatch) {
+        // If face recognition is successful, log in the user
+        const user = await User.findOne({ email });
+        if (!user || !user.isActive) {
+          return res.status(400).json({ message: "Account is not activated or does not exist" });
+        }
+
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_EXPIRES_IN,
+        });
+
+        return res.json({ token, user });
+      } else {
+        return res.status(400).json({ message: "Face recognition failed" });
+      }
+    }
 
     // Find the user by email
     const user = await User.findOne({ email });
@@ -209,7 +229,33 @@ exports.login = async (req, res) => {
     res.status(statusCode).json({ message });
   }
 };
+exports.loginWithFace = async (req, res) => {
+  try {
+    const response = await axios.post('http://host.docker.internal:8000/verify-face/'); // FastAPI camera scan
 
+    const { isMatch, userId } = response.data;
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Face not recognized' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.status(200).json({ token, user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Face login failed' });
+  }
+};
 exports.verifyActivation = async (req, res) => {
   try {
     const { token } = req.params;
@@ -287,6 +333,27 @@ exports.logout = async (req, res) => {
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
+  }
+};
+exports.register_face_data = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const formData = new FormData();
+    formData.append('name', userId); // must match what FastAPI expects
+
+    const response = await axios.post('http://host.docker.internal:8000/register-face/', formData, {
+      headers: formData.getHeaders(),
+    });
+
+    if (response.data.message) {
+      return res.json({ message: response.data.message });
+    }
+
+    res.status(500).json({ error: 'Face registration failed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error registering face' });
   }
 };
 
