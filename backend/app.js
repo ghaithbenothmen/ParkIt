@@ -13,6 +13,7 @@ const parkingRoutes = require('./routes/parking.routes');
 const parkingSpotRoutes = require('./routes/parkingSpot.route');
 const reservationRoutes = require('./routes/reservation.route');
 const lprRoutes = require('./routes/lpr.route'); // Importer la route LPR
+const reclamationRoutes = require('./routes/reclamation.route');
 
 
 
@@ -61,6 +62,8 @@ app.use('/api/parking', parkingRoutes);
 app.use('/api/parking-spots', parkingSpotRoutes); 
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
+app.use('/api/reclamations', reclamationRoutes);
+
 
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
