@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ClaimSchema = new mongoose.Schema({
-  utilisateurId: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User',
@@ -13,23 +13,23 @@ const ClaimSchema = new mongoose.Schema({
   },
   claimType: {
     type: String,
-    enum: ['Place Occupée', 'Problème Paiement', 'Sécurité', 'Autre'],
+    enum: ['Spot Occupied', 'Payment Issue', 'Security', 'Other'],
     required: true,
   },
-  photoEvidence: {
+  image: {
     type: String,
     required: false,
   },
-  statut: {
+  status: {
     type: String,
-    enum: ['Validée', 'Pending', 'Résolue', 'Refusée'],
-    default: 'Validée',
+    enum: ['Valid', 'Pending', 'Resolved', 'Rejected'],
+    default: 'Valid',
   },
-  dateSoumission: {
+  submissionDate: {
     type: Date,
     default: Date.now,
   },
-  priorite: {
+  priority: {
     type: Number,
     default: 0,
   },
@@ -44,53 +44,58 @@ const ClaimSchema = new mongoose.Schema({
 });
 
 ClaimSchema.pre('save', async function (next) {
-  // Only run priority and statut logic for new documents
   if (this.isNew) {
     let score = 0;
-    // Type de réclamation
+
+    // Claim type scoring
     switch (this.claimType) {
-      case 'Sécurité':
+      case 'Security':
         score += 10;
         break;
-      case 'Problème Paiement':
+      case 'Payment Issue':
         score += 8;
         break;
-      case 'Place Occupée':
+      case 'Spot Occupied':
         score += 6;
         break;
-      case 'Autre':
+      case 'Other':
         score += 4;
         break;
     }
-    // Nombre de signalements similaires pour le même type
+
+    // Similar claims for the same type
     const similarClaims = await mongoose.model('Claim').countDocuments({
       claimType: this.claimType,
-      statut: { $in: ['Validée', 'En Cours'] },
+      status: { $in: ['Valid', 'Pending'] },
     });
     if (similarClaims >= 3) {
       score += 5;
     }
-    // Nombre de réclamations pour le même parking
+
+    // Claims for the same parking
     const parkingClaims = await mongoose.model('Claim').countDocuments({
       parkingId: this.parkingId,
-      statut: { $in: ['Validée', 'En Cours'] },
+      status: { $in: ['Valid', 'Pending'] },
     });
     if (parkingClaims >= 3) {
       score += 3;
     }
-    // Statut utilisateur
-    const user = await mongoose.model('User').findById(this.utilisateurId);
+
+    // User role
+    const user = await mongoose.model('User').findById(this.userId);
     if (user && user.role === 'admin') {
       score += 3;
     }
-    // Présence d’une photo
-    if (this.photoEvidence) {
+
+    // Presence of an image
+    if (this.image) {
       score += 2;
-      this.statut = 'Validée';
+      this.status = 'Valid';
     } else {
-      this.statut = 'Pending';
+      this.status = 'Pending';
     }
-    this.priorite = score;
+
+    this.priority = score;
   }
   next();
 });

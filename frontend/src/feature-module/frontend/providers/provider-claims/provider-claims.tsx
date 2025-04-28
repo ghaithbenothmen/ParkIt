@@ -11,18 +11,20 @@ import { jwtDecode } from 'jwt-decode';
 
 // adjust as needed
 import axios from "axios";
+
 interface Claim {
     _id: string;
-    utilisateurId: string; // Reference to the user ID
+    userId: string; // Reference to the user ID
     parkingId: {
         _id: string;
         nom: string; // Name of the parking
         adresse: string; // Address of the parking
-      };    claimType: 'Place Occupée' | 'Problème Paiement' | 'Sécurité' | 'Autre'; // Enum values for the claim type
-    photoEvidence?: string; // Optional URL for photo evidence
-    statut: 'Validée' | 'Pending' | 'Résolue' | 'Refusée'; // Enum values for the status
-    dateSoumission: string; // Date of submission (ISO string)
-    priorite: number; // Priority score
+      };    
+    claimType: 'Occupied Space' | 'Payment Issue' | 'Security' | 'Other'; // Enum values for the claim type
+    image?: string; // Optional URL for photo evidence
+    status: 'Valid' | 'Pending' | 'Resolved' | 'Rejected'; // Enum values for the status
+    submissionDate: string; // Date of submission (ISO string)
+    priority: number; // Priority score
     message?: string; // Optional message from the user
     feedback?: string; // Optional feedback for the claim
   }
@@ -37,7 +39,7 @@ const ProviderClaims = () => {
       return updatedSelectedItems;
     });
   };
-  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
+  const [parkings, setParkings] = useState<Record<string, { name: string; image: string; adresse: string }>>({});
   const [claims, setClaims] = useState<Claim[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [userInfo, setUserInfo] = useState({
@@ -81,14 +83,7 @@ const ProviderClaims = () => {
       }
     }
   }, []);
-  /*const filteredReservations = reservations.filter(reservation => {
-    if (filterStatus === 'all') return true;
-    if (filterStatus === 'confirmed' && reservation.status === 'confirmed') return true;
-    if (filterStatus === 'pending' && reservation.status === 'pending') return true;
-    if (filterStatus === 'over' && reservation.status === 'over') return true;
-    return false;
-  });
-*/
+  
   useEffect(() => {
     const fetchClaims = async () => {
       if (userInfo._id) {
@@ -105,97 +100,36 @@ const ProviderClaims = () => {
 
     fetchClaims();
   }, [userInfo._id]);
- /* useEffect(() => {
-    const fetchParkings = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
 
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.parkingId && !reservation.parking) {
-          try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;  // Assuming parking details come with nom, image, adresse
-          } catch (error) {
-            console.error('Error fetching parking details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations); // Update the state with parking details
-    };
-
-    if (reservations.length > 0) {
-      fetchParkings();
-    }
-  }, [reservations]);*/
- /* useEffect(() => {
-    const fetchParkingSpots = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-
-        if (reservation.parkingSpot && !reservation.parkingS) {
-          try {
-            console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
-            console.log("Parking spot fetched:", spotRes.data);
-            updatedReservations[i].parkingS = spotRes.data.data;
-          } catch (error) {
-            console.error('Error fetching parking spot for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchParkingSpots();
-    }
-  }, [reservations]);*/
-  /*const countReservationsByStatus = (reservations: Reservation[]) => {
-    const counts = {
-      confirmed: 0,
-      pending: 0,
-      over: 0,
-    };
-
-    reservations.forEach((reservation) => {
-      if (reservation.status === 'confirmed') {
-        counts.confirmed += 1;
-      } else if (reservation.status === 'pending') {
-        counts.pending += 1;
-      } else if (reservation.status === 'over') {
-        counts.over += 1;
-      }
-    });
-
-    return counts;
-  };*/
   const [reservationCounts, setReservationCounts] = useState({
     confirmed: 0,
     pending: 0,
     over: 0,
   });
 
-  /*useEffect(() => {
-    // Calculate counts whenever reservations change
-    if (reservations.length > 0) {
-      const counts = countReservationsByStatus(reservations);
-      setReservationCounts(counts);
-    }
-  }, [reservations]); // Only rerun when reservations change*/
   const percentagePending = Math.round((reservationCounts.pending / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
   const percentageConfirmed = Math.round((reservationCounts.confirmed / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
   const percentageOver = Math.round((reservationCounts.over / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
-
 
   return (
     <>
       {/* Page Wrapper */}
       <div className="page-wrapper">
         <div className="content container-fluid">
+          <div className="row">
+                      <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
+                        <h5></h5>
+                        <div className="d-flex align-items-center">
+                          <Link
+                            to={routes.createClaim}
+                            className="btn btn-dark d-flex align-items-center"
+                          >
+                            <i className="ti ti-circle-plus me-2" />
+                            New Claim
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
           <div className="col-12">
             <div className="row flex-wrap">
               <div className="col-xxl-3 col-md-4 col-sm-6 mb-3">
@@ -227,7 +161,7 @@ const ProviderClaims = () => {
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="mb-2">
-                        <p className="mb-1">Pending Reservation</p>
+                        <p className="mb-1">Pending Claim</p>
                         <h5>
                           <span className="counter">{reservationCounts.pending}</span>+
                         </h5>
@@ -306,31 +240,31 @@ const ProviderClaims = () => {
                     <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
                       <div className="booking-img me-sm-3 mb-3 mb-sm-0">
                         <Link to={routes.map2} className="avatar">
-                          <ImageWithBasePath
-                            src={"assets/img/" + claim.photoEvidence}
-                            alt="Photo Evidence"
-                          />
+                        <img src={claim.image} alt="Image" />
+
                         </Link>
                       </div>
 
                       <div className="booking-det-info">
                         <h6 className="mb-3">
                                                 <Link to={`${routes.claimDetails}/${claim._id}`}>
-                                                    {claim.parkingId.nom || "Parking"}
+                                                    {claim.claimType || "Other"}
                                                   </Link>
+                                                  <span className={`badge ms-2 ${claim?.status === 'Resolved' ? 'badge-soft-success' :
+                            claim?.status === 'Pending' ? 'badge-soft-warning' :
+                            claim?.status === 'Valid' ? 'badge-soft-warning' :
+                              claim?.status === 'Rejected' ? 'badge-soft-danger' :
+                                'badge-soft-secondary'
+                            }`}>
+                            {claim?.status}
+                          </span>
                                               
                                                 </h6>
                        
 
                         <ul className="booking-details">
+                          
                           <li className="d-flex align-items-center mb-2">
-                            <span className="book-item">Claim Submission Date</span>
-                            <small className="me-2">: </small>
-                            {new Date(claim.dateSoumission).toLocaleDateString()}{" "}
-                            {new Date(claim.dateSoumission).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{" "}
-                          </li>
-                          <li className="d-flex align-items-center mb-2">
-                         
                           </li>
 
                           <li className="d-flex align-items-center mb-2">
@@ -339,24 +273,22 @@ const ProviderClaims = () => {
                             {claim.parkingId.nom || "Unknown"}
                           </li>
                           <li className="d-flex align-items-center mb-2">
-                            <span className="book-item">Parking Spot</span>
+                            <span className="book-item">Submission Date</span>
                             <small className="me-2">: </small>
-                            {claim.statut || "Unknown"}
+                            {new Date(claim.submissionDate).toLocaleDateString()}{" "}
+                            {new Date(claim.submissionDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{" "}
                           </li>
                         </ul>
                       </div>
                     </div>
-
-               
-                  </div>
                 </div>
+              </div>
               ))
             ) : (
               <p>No claims available.</p>
             )}
           </div>
         </div>
-
 
         <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3">
           <div className="value d-flex align-items-center">
@@ -386,7 +318,7 @@ const ProviderClaims = () => {
                     2
                   </Link>
                 </li>
-                <li className="page-item ">
+                <li className="page-item">
                   <Link
                     className="page-link-1 d-flex justify-content-center align-items-center "
                     to="#"
@@ -399,9 +331,7 @@ const ProviderClaims = () => {
           </div>
         </div>
       </div>
-{/* /Page Wrapper */ }
     </>
-
   );
 };
 

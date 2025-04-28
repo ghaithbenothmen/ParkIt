@@ -66,7 +66,7 @@ const ProviderSidebar = () => {
               </li>
               <li className={activeRouterPath('/providers/provider-claims') ? 'active' : ''}>
                 <Link to="/providers/provider-claims" className="menu-item">
-                  <MessageSquareWarning size={18} /> <span>Report</span>
+                  <MessageSquareWarning size={18} /> <span>Claims</span>
                 </Link>
               </li>
 

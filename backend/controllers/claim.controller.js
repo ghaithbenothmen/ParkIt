@@ -1,156 +1,171 @@
 const mongoose = require('mongoose');
 const Claim = require('../models/claim.model');
-const Parking = require('../models/parking.model'); 
+const Parking = require('../models/parking.model');
+
+const multer = require('multer');
+const path = require('path');
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "user_images",
+    format: async (req, file) => "jpg",
+    public_id: (req, file) => Date.now() + "-" + file.originalname,
+  },
+});
+
+
+const upload = multer({ storage }).single('image');
 
 exports.createClaim = async (req, res) => {
-  try {
-    const { utilisateurId, parkingId, claimType, message, photoEvidence } = req.body;
-    // Validate ObjectId format
- console.log(utilisateurId);
- console.log(photoEvidence);
-    // Validate existence of User and Parking
-    const user = await mongoose.model('User').findById(utilisateurId);
-    const parking = await Parking.findById(parkingId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' });
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: "Image upload failed", error: err.message });
     }
-    if (!parking) {
-      return res.status(404).json({ message: 'Parking not found.' });
+
+    console.log('FormData received: ', req.body); // Should print all the other fields
+    console.log('File uploaded: ', req.file);   // Should print the uploaded image
+
+    try {
+      const { userId, parkingId, claimType, message } = req.body;
+      const user = await mongoose.model('User').findById(userId);
+      const parking = await Parking.findById(parkingId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+      if (!parking) {
+        return res.status(404).json({ message: 'Parking not found.' });
+      }
+
+      const imageUrl =  req.file.path;
+
+      const claim = new Claim({
+        userId, parkingId, claimType, message, image: imageUrl
+      });
+
+      await claim.save();
+
+      res.status(201).json({
+        message: 'Claim created successfully.',
+        claim,
+        notification: 'Your claim has been sent to the administration.'
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Error creating the claim.', error });
     }
-    const claim = new Claim({ utilisateurId, parkingId, claimType, message, photoEvidence });
-    await claim.save();
-    const notificationMessage =
-      claim.statut === 'Validée'
-        ? 'Votre réclamation a été envoyée à l’administration.'
-        : 'Votre réclamation nécessite une vérification manuelle.';
-    res.status(201).json({ message: 'Réclamation créée avec succès.', claim, notification: notificationMessage });
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la création de la réclamation.', error });
-  }
+  });
 };
+
 
 exports.getAllClaims = async (req, res) => {
   try {
     const claims = await Claim.find()
-      .sort({ priorite: -1, dateSoumission: -1 })
-      .populate('utilisateurId', 'firstname lastname role')
-      .populate('parkingId', 'nom adresse'); 
-      console.log("aaaaaaaaaaaaaaa");
+      .sort({ priority: -1, submissionDate: -1 })
+      .populate('userId', 'firstname lastname role')
+      .populate('parkingId', 'nom adresse');
     res.status(200).json(claims);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération des réclamations.', error });
+    res.status(500).json({ message: 'Error fetching claims.', error });
   }
 };
+
 exports.getClaimByUser = async (req, res) => {
   try {
-    // Extract the user ID from the request parameters
     const { userId } = req.params;
 
-    // Find claims that belong to the specified user
-    const claims = await Claim.find({ utilisateurId: userId })
-      .sort({ priorite: -1, dateSoumission: -1 })  // Optional sorting
-      .populate('utilisateurId', 'firstname lastname role')
+    const claims = await Claim.find({ userId })
+      .sort({ priority: -1, submissionDate: -1 })
+      .populate('userId', 'firstname lastname role')
       .populate('parkingId', 'nom adresse');
 
-    // Ensure claims is an array before checking its length
     if (!claims || claims.length === 0) {
-      return res.status(404).json({ message: 'Aucune réclamation trouvée pour cet utilisateur.' });
+      return res.status(404).json({ message: 'No claims found for this user.' });
     }
 
-    // Return the found claims
     res.status(200).json(claims);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération des réclamations de l\'utilisateur.', error });
+    res.status(500).json({ message: 'Error fetching user claims.', error });
   }
 };
 
 exports.getClaimById = async (req, res) => {
   try {
-    // Extract the claim ID from the request parameters
     const { id } = req.params;
 
-    // Find the claim by its ID
     const claim = await Claim.findById(id)
-      .populate('utilisateurId', 'firstname lastname role')  // Populate user details (only specified fields)
-      .populate('parkingId', 'nom adresse');  // Populate parking details (only specified fields)
+      .populate('userId', 'firstname lastname role')
+      .populate('parkingId', 'nom adresse');
 
-    // If no claim is found with the provided ID, return a 404 error
     if (!claim) {
       return res.status(404).json({ message: 'Claim not found.' });
     }
 
-    // Return the found claim
-    res.status(200).json({data: claim});
+    res.status(200).json({ data: claim });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching the claim.', error });
   }
 };
 
-
-
-
-
 exports.getArchivedClaims = async (req, res) => {
   try {
-    const archivedClaims = await Claim.find({ statut: 'Pending' })
-      .sort({ dateSoumission: -1 })
-      .populate('utilisateurId', 'firstname lastname role')
-      .populate('parkingId', 'nom adresse'); 
+    const archivedClaims = await Claim.find({ status: 'Pending' })
+      .sort({ submissionDate: -1 })
+      .populate('userId', 'firstname lastname role')
+      .populate('parkingId', 'nom adresse');
     res.status(200).json(archivedClaims);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération des réclamations archivées.', error });
+    res.status(500).json({ message: 'Error fetching archived claims.', error });
   }
 };
 
 exports.updateClaimStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { statut, feedback, photoEvidence } = req.body;
+    const { status, feedback, image, message } = req.body;
 
-    // Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid claim ID format.' });
     }
 
-    // Validate statut
-    const validStatuts = ['Validée', 'Pending', 'Résolue', 'Refusée'];
-    if (statut && !validStatuts.includes(statut)) {
-      return res.status(400).json({ message: `Invalid statut value. Must be one of: ${validStatuts.join(', ')}` });
+    const validStatuses = ['Valid', 'Pending', 'Resolved', 'Rejected'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
     }
 
-    // Find claim
     const claim = await Claim.findById(id);
     if (!claim) {
-      return res.status(404).json({ message: 'Réclamation non trouvée.' });
+      return res.status(404).json({ message: 'Claim not found.' });
     }
 
-    // Update fields
-    if (statut) {
-      claim.statut = statut;
-    }
-    if (feedback) {
-      claim.feedback = feedback;
-    }
-    if (photoEvidence) {
-      claim.photoEvidence = photoEvidence;
-    }
+    if (status) claim.status = status;
+    if (feedback) claim.feedback = feedback;
+    if (image) claim.image = image;
+    if (message) claim.message = message;
 
-    // Save and re-fetch to ensure accurate state
     await claim.save();
-    const updatedClaim = await Claim.findById(id); // Re-fetch to confirm
+    const updatedClaim = await Claim.findById(id);
 
-    // Generate notification based on saved statut
     let notificationMessage = '';
-    if (updatedClaim.statut === 'Résolue') {
-      notificationMessage = 'Votre réclamation a été résolue. Feedback: ' + (updatedClaim.feedback || 'N/A');
-    } else if (updatedClaim.statut === 'Refusée') {
-      notificationMessage = 'Votre réclamation a été refusée. Feedback: ' + (updatedClaim.feedback || 'N/A');
-    } else if (updatedClaim.statut === 'Validée') {
-      notificationMessage = 'Votre réclamation est en cours de traitement.';
+    if (updatedClaim.status === 'Resolved') {
+      notificationMessage = 'Your claim has been resolved. Feedback: ' + (updatedClaim.feedback || 'N/A');
+    } else if (updatedClaim.status === 'Rejected') {
+      notificationMessage = 'Your claim has been rejected. Feedback: ' + (updatedClaim.feedback || 'N/A');
+    } else if (updatedClaim.status === 'Valid') {
+      notificationMessage = 'Your claim is being processed.';
     }
 
     res.status(200).json({
-      message: 'Réclamation mise à jour avec succès.',
+      message: 'Claim updated successfully.',
       claim: updatedClaim,
       notification: notificationMessage
     });
@@ -159,7 +174,7 @@ exports.updateClaimStatus = async (req, res) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: 'Validation error.', error: error.message });
     }
-    res.status(500).json({ message: 'Erreur lors de la mise à jour de la réclamation.', error: error.message });
+    res.status(500).json({ message: 'Error updating the claim.', error: error.message });
   }
 };
 
@@ -168,10 +183,10 @@ exports.deleteClaim = async (req, res) => {
     const { id } = req.params;
     const claim = await Claim.findByIdAndDelete(id);
     if (!claim) {
-      return res.status(404).json({ message: 'Réclamation non trouvée.' });
+      return res.status(404).json({ message: 'Claim not found.' });
     }
-    res.status(200).json({ message: 'Réclamation supprimée avec succès.' });
+    res.status(200).json({ message: 'Claim deleted successfully.' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la suppression de la réclamation.', error });
+    res.status(500).json({ message: 'Error deleting the claim.', error });
   }
 };

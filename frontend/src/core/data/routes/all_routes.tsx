@@ -40,7 +40,7 @@ export const all_routes = {
   serviceDetails1: '/services/service-details/service-details1',
   serviceDetails2: '/services/service-details/service-details2',
   providerServices: '/providers/provider-service',
-  providerClaims:'providers/proivder-claims',
+  providerClaims:'/providers/provider-claims',
 
   // customers module path
   customers: '/customers/*',
@@ -233,6 +233,7 @@ export const all_routes = {
   review: '/admin/review',
   reviewType: '/admin/review-type',
   roles: '/admin/roles',
+  claims: '/admin/claims',
  
   walletHistory: '/admin/wallet-history',
   membershipTransaction: '/admin/reports/membership-transaction',

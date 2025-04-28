@@ -17,7 +17,8 @@ const CreateClaim = () => {
   const [claimType, setclaimType] = useState('');
   const [message, setMessage] = useState('');
   const [parkingId, setParkingId] = useState('');
-  const [photoEvidence, setPhotoEvidence] = useState<File | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [parkings, setParkings] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -29,12 +30,12 @@ const CreateClaim = () => {
   });
 
   const token = localStorage.getItem('token');
-  const [utilisateurId, setUserId] = useState('');
+  const [userId, setUserId] = useState('');
   const claimTypes = [
-    'Place Occupée',
-    'Problème Paiement',
-    'Sécurité',
-    'Autre',
+    'Spot Occupied',
+    'Payment Issue',
+    'Security',
+    'Other',
   ];
 
   useEffect(() => {
@@ -106,8 +107,17 @@ const CreateClaim = () => {
 
     if (!validateFields()) return;
 
-    const claimData = { utilisateurId, parkingId, claimType, message, photoEvidence };
-
+    const claimData = new FormData();
+    if (image) {
+      claimData.append('image', image); // Append the selected image
+    }    claimData.append('message', message);
+    claimData.append('claimType', claimType);
+    claimData.append('userId', userId); // Replace with actual userId
+    claimData.append('parkingId', parkingId); // Replace with actual parkingId
+      console.log("testestestestestestestestes");
+claimData.forEach((value, key) => {
+  console.log(key, value);
+});
     try {
       const url = isEditMode
         ? `http://localhost:4000/api/claims/${id}`
@@ -116,13 +126,8 @@ const CreateClaim = () => {
 
       const response = await fetch(url, {
         method,
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(claimData),
+        body: claimData,
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error saving claim');
@@ -131,6 +136,13 @@ const CreateClaim = () => {
       setShowModal(true);
     } catch (error) {
       console.error(error);
+    }
+  };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
@@ -208,11 +220,12 @@ const CreateClaim = () => {
             <div className="row">
               <div className="col-md-6 d-flex align-items-center">
                 <div className="contact-img flex-fill">
-                  <ImageWithBasePath
-                    src="assets/img/services/service-76.jpg"
-                    className="img-fluid"
-                    alt="img"
-                  />
+                                <img
+                  src={imagePreview || ''}
+                  alt="Image"
+                  style={{ maxHeight: '700px', width: 'auto', objectFit: 'contain' }}
+                />
+
                 </div>
               </div>
               <div className="col-md-6 d-flex align-items-center justify-content-center">
@@ -253,18 +266,41 @@ const CreateClaim = () => {
                           </div>
                         </div>
                       <div className="col-md-12">
-                        <div className="mb-3">
-                          <div className="form-group">
-                            <input
-                              className="form-control"
-                              type="file"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) setPhotoEvidence(file);
-                              }}
-                            />
-                          </div>
-                        </div>
+                      <div className="card-body">
+          <h6 className="user-title">Proof Picture</h6>
+          <div className="pro-picture">
+            <div className="pro-info">
+              <div className="d-flex mb-2">
+                <label
+                  htmlFor="image-upload"
+                  className="btn btn-dark btn-sm d-flex align-items-center me-3"
+                >
+                  <i className="ti ti-cloud-upload me-1" />
+                  Upload
+                </label>
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+                <button
+                  className="btn btn-light btn-sm d-flex align-items-center"
+                  onClick={() => {
+                    setImage(null);
+                    setImagePreview(null);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+              <p className="fs-14">
+                *image size should be at least 320px big, and less than 500kb. Allowed files .png and .jpg.
+              </p>
+            </div>
+          </div>
+        </div>
                         <div className="mb-3">
                           <div className="form-group">
                           <textarea

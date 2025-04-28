@@ -11,7 +11,7 @@ import { useParams } from 'react-router-dom';
 import axios from "axios";
 interface Claim {
     _id: string;
-    utilisateurId: {
+    userId: {
       _id: string;
       firstname: string;
       lastname: string;
@@ -22,11 +22,11 @@ interface Claim {
       nom: string;
       adresse: string;
     };
-    claimType: 'Place Occupée' | 'Problème Paiement' | 'Sécurité' | 'Autre';
-    photoEvidence?: string;
-    statut: 'Validée' | 'Pending' | 'Résolue' | 'Refusée';
-    dateSoumission: string;
-    priorite: number;
+    claimType: 'Spot Occupied' |'Payment Issue' | 'Security'| 'Other';
+    image?: string;
+    status: 'Valid' | 'Pending' | 'Resolved' | 'Rejected';
+    submissionDate: string;
+    priority: number;
     message?: string;
     feedback?: string;
   }
@@ -70,7 +70,7 @@ const ClaimDetails = () => {
         const parkingSpotData = parkingSpotRes.data.data;
 */
         // Step 4: Fetch user
-        const userRes = await axios.get(`http://localhost:4000/api/users/${claimData.utilisateurId._id}`);
+        const userRes = await axios.get(`http://localhost:4000/api/users/${claimData.userId._id}`);
         const userData = userRes.data;
 
         setClaim(claimData);
@@ -154,7 +154,7 @@ const ClaimDetails = () => {
                     <div>
                       <h4 className="mb-2">Claim: {claim?.claimType}</h4>
                       <p className="fs-12">
-                        <i className="feather icon-calendar me-1" /> {claim?.dateSoumission}
+                        <i className="feather icon-calendar me-1" /> {claim?.submissionDate}
                       </p>
                     </div>
                   </div>
@@ -209,9 +209,14 @@ const ClaimDetails = () => {
                     <div className="col-md-3">
                       <div className="slot-action">
                         <h6>Claim Status</h6>
-                        <span className="badge badge-success-100 p-2 me-3">
-                          {claim?.statut}
-                        </span>
+                        <span className={`badge ms-2 ${claim?.status === 'Resolved' ? 'badge-soft-success' :
+                            claim?.status === 'Pending' ? 'badge-soft-warning' :
+                            claim?.status === 'Valid' ? 'badge-soft-warning' :
+                              claim?.status === 'Rejected' ? 'badge-soft-danger' :
+                                'badge-soft-secondary'
+                            }`}>
+                            {claim?.status}
+                          </span>
                       </div>
                     </div>
                   </div>
@@ -226,10 +231,8 @@ const ClaimDetails = () => {
                         <div className="order-amt">
                           <div className="order-info">
                             <div className="order-img">
-                              <ImageWithBasePath
-                            src={"assets/img/" + claim?.photoEvidence}
-                            alt="Claim Image"
-                              />
+                            <img src={claim?.image} alt="Image" />
+
                             </div>
                             <div className="order-profile">
 
@@ -244,125 +247,41 @@ const ClaimDetails = () => {
                     <br />
                     <br />
                     <div className="row ">
-                  <div className="col-xxl-12 col-lg-12">
-                    <div className="card shadow-none">
-                      <div className="card-body">
-                        <div className="d-md-flex align-items-center">
-                          <div className="review-widget d-sm-flex flex-fill">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                              <div className="d-flex">
-                                <div>
-                                  <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <div className="d-flex align-items-center">
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center">
-                                  </div>
-                                </div>
-                              </div>
+                    {claim?.message && (
+                    <div>
+                      <h6 className="order-title">Complaint Details</h6>
+                      <div className="col-xxl-12 col-lg-12">
+                        <div className="card shadow-none">
+                          <div className="card-body">
+                            <div>
+                              <p className="fs-14">
+                                {claim?.message}
+                              </p>
                             </div>
                           </div>
-                          <div className="user-icon d-inline-flex">
-                            <Link to="#" className="me-2">
-                              <i className="ti ti-edit" />
-                            </Link>
-                            <Link to="#" className="">
-                              <i className="ti ti-trash" />
-                            </Link>
-                          </div>
                         </div>
-                        <div>
-                          <p className="fs-14">
-                            {claim?.message}
-                          </p>
+                      </div>
+                    </div>
+                  )}
+
+                  
+                                  {claim?.feedback && (
+                  <div>
+                    <h6 className="order-title">Admin Feedback</h6>
+                    <div className="col-xxl-12 col-lg-12">
+                      <div className="card shadow-none">
+                        <div className="card-body">
+                          <div>
+                            <p className="fs-14">
+                              {claim?.feedback}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="col-xxl-12 col-lg-12">
-                    <div className="card shadow-none">
-                      <div className="card-body">
-                        <div className="d-md-flex align-items-center">
-                          <div className="review-widget d-sm-flex flex-fill">
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                              <div className="d-flex">
-                                <span className="review-img me-2">
-                                  <ImageWithBasePath
-                                    src="assets/img/providers/provider-20.jpg"
-                                    className="rounded img-fluid"
-                                    alt="User Image"
-                                  />
-                                </span>
-                                <div>
-                                  <div className="d-flex justify-content-between align-items-center mb-2">
-                                    <div className="d-flex align-items-center">
-                                      <h6 className="fs-14 me-2">
-                                        Commercial Painting Services.
-                                      </h6>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                      <span>
-                                        <i className="ti ti-star-filled text-warning" />
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="d-flex align-items-center">
-                                    <span className="avatar avatar-sm me-2">
-                                      <ImageWithBasePath
-                                        src="assets/img/user/user-11.jpg"
-                                        className="rounded-circle "
-                                        alt="Img"
-                                      />
-                                    </span>
-                                    <h6 className="fs-13 me-2">Nancy Olson,</h6>
-                                    <span className="fs-12">July 18, 2024 04:30 pm</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="user-icon d-inline-flex">
-                            <Link to="#" className="me-2">
-                              <i className="ti ti-edit" />
-                            </Link>
-                            <Link to="#" className="">
-                              <i className="ti ti-trash" />
-                            </Link>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="fs-14">
-                            {claim?.feedback}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                )}
+
                   </div>
                   </div>
                     {/* /Service Location */}
