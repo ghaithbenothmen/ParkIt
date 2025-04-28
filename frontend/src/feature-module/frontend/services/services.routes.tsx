@@ -10,6 +10,7 @@ import ServiceGrid from './service-grid/service-grid';
 import CreateService from './create-service/createServices';
 import ServiceRequest from './service-request/serviceRequest';
 import ProvidersCars from '../providers/provider-service/provider-service'
+import CreateClaim from './create-claim/create-claim';
 
 const ServicesRoutes = () => {
   const all_services_routes = [
@@ -17,6 +18,12 @@ const ServicesRoutes = () => {
       path: '/create-service',
       name: 'create-service',
       element: <CreateService />,
+      route: Route,
+    },
+    {
+      path: '/create-claim',
+      name: 'create-claim',
+      element: <CreateClaim />,
       route: Route,
     },
 

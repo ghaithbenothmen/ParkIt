@@ -22,8 +22,11 @@ import CustomerDetails from './customer/customerDetails';
 import CustomerList from './customer/customerList';
 import CustomerGrid from './customer/customerGrid';
 import CreateVehicule from '../services/create-service/createServices'; // Import the new page
+import CreateClaim from '../services/create-claim/create-claim'; // Import the new page
 import ParkingVisualization from './pickParkingSpot';
 import ProtectedRoute from '../../router/ProtectedRoute';
+import ProviderClaims from '../providers/provider-claims/provider-claims';
+
 
 const ProvidersRoutes = () => {
   const all_providers_routes = [
@@ -31,6 +34,12 @@ const ProvidersRoutes = () => {
       path: '/provider-addon',
       name: 'providerAddon',
       element: <ProviderAddon />,
+    },
+    {
+      path: '/provider-claims',
+      name: 'provider-claims',
+      element: <ProviderClaims />,
+      route: Route,
     },
     {
       path: '/providers/provider-edit-service',
@@ -141,6 +150,11 @@ const ProvidersRoutes = () => {
       path: '/provider-service/create-vehicule',
       name: 'create-vehicule',
       element: <CreateVehicule />, // New route for creating vehicles
+    },
+    {
+      path: '/provider-claims/create-claim',
+      name: 'create-claim',
+      element: <CreateClaim />, // New route for creating vehicles
     },
     {
       path: '/provider-service/edit-vehicule/:id',

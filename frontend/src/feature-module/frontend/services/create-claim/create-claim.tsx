@@ -3,16 +3,18 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Modal } from 'react-bootstrap';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import BreadCrumb from '../../common/breadcrumb/breadCrumb';
-import { jwtDecode } from 'jwt-decode'; 
+import { jwtDecode } from 'jwt-decode'; // Import correct de jwt-decode
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
+
 import { Dropdown } from 'primereact/dropdown';
 
 const routes = all_routes;
 
-const CustomerReclamation = () => {
+
+const CreateClaim = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
-  const [typeReclamation, setTypeReclamation] = useState('');
+  const [claimType, setclaimType] = useState('');
   const [message, setMessage] = useState('');
   const [parkingId, setParkingId] = useState('');
   const [photoEvidence, setPhotoEvidence] = useState<File | null>(null);
@@ -22,13 +24,13 @@ const CustomerReclamation = () => {
 
   const [errors, setErrors] = useState({
     message: '',
-    typeReclamation: '',
+    claimType: '',
     parkingId: '',
   });
 
   const token = localStorage.getItem('token');
   const [utilisateurId, setUserId] = useState('');
-  const reclamationTypes = [
+  const claimTypes = [
     'Place Occupée',
     'Problème Paiement',
     'Sécurité',
@@ -49,7 +51,7 @@ const CustomerReclamation = () => {
   useEffect(() => {
     if (id) {
       setIsEditMode(true);
-      fetchReclamationDetails(id);
+      fetchClaimDetails(id);
     }
   }, [id]);
 
@@ -64,12 +66,12 @@ const CustomerReclamation = () => {
     }
   };
 
-  const fetchReclamationDetails = async (reclamationId: string) => {
+  const fetchClaimDetails = async (claimId: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/reclamations/${reclamationId}`);
-      if (!response.ok) throw new Error('Error fetching reclamation details');
+      const response = await fetch(`http://localhost:4000/api/claims/${claimId}`);
+      if (!response.ok) throw new Error('Error fetching claim details');
       const data = await response.json();
-      setTypeReclamation(data.typeReclamation);
+      setclaimType(data.claimType);
       setMessage(data.message);
       setParkingId(data.parkingId?._id || '');
     } catch (error) {
@@ -80,13 +82,13 @@ const CustomerReclamation = () => {
   const validateFields = () => {
     const newErrors = {
         message: '',
-      typeReclamation: '',
+      claimType: '',
       parkingId: '',
     };
     let isValid = true;
 
-    if (!typeReclamation.trim()) {
-      newErrors.typeReclamation = 'Type of reclamation is required.';
+    if (!claimType.trim()) {
+      newErrors.claimType = 'Type of Claim is required.';
       isValid = false;
     }
     
@@ -104,12 +106,12 @@ const CustomerReclamation = () => {
 
     if (!validateFields()) return;
 
-    const reclamationData = { utilisateurId, parkingId, typeReclamation, message, photoEvidence };
+    const claimData = { utilisateurId, parkingId, claimType, message, photoEvidence };
 
     try {
       const url = isEditMode
-        ? `http://localhost:4000/api/reclamations/${id}`
-        : 'http://localhost:4000/api/reclamations';
+        ? `http://localhost:4000/api/claims/${id}`
+        : 'http://localhost:4000/api/claims';
       const method = isEditMode ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -118,12 +120,12 @@ const CustomerReclamation = () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(reclamationData),
+        body: JSON.stringify(claimData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error saving reclamation');
+        throw new Error(errorData.message || 'Error saving claim');
       }
 
       setShowModal(true);
@@ -134,7 +136,7 @@ const CustomerReclamation = () => {
 
   return (
     <>
-     <BreadCrumb title='Reclamation' item1='customers' item2='customer-reclamation'/>
+     <BreadCrumb title='Claim' item1='customers' item2='customer-claim'/>
      <div className="page-wrapper">
       <div className="content">
         <div className="container">
@@ -222,13 +224,13 @@ const CustomerReclamation = () => {
                         <div className="mb-3">
                           <div className="form-group">
                           <Dropdown
-                                value={typeReclamation}
-                                onChange={(e) => setTypeReclamation(e.value)}  // Update typeReclamation on change
-                                options={reclamationTypes}  // Dropdown options
-                                placeholder="Select Reclamation Type"
+                                value={claimType}
+                                onChange={(e) => setclaimType(e.value)}  // Update claimType on change
+                                options={claimTypes}  // Dropdown options
+                                placeholder="Select Claim Type"
                                 className="w-100"  // Full width, if needed, adjust the width here
                               />
-                            {errors.typeReclamation && <small className="text-danger">{errors.typeReclamation}</small>}
+                            {errors.claimType && <small className="text-danger">{errors.claimType}</small>}
                           </div>
                         </div>
                       </div>
@@ -313,7 +315,7 @@ const CustomerReclamation = () => {
                   <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
                     Close
                   </button>
-                  <Link to={routes.providerServices} className="btn btn-linear-primary">
+                  <Link to={routes.providerClaims} className="btn btn-linear-primary">
                     View List
                   </Link>
                 </div>
@@ -325,4 +327,4 @@ const CustomerReclamation = () => {
   );
 };
 
-export default CustomerReclamation;
+export default CreateClaim;

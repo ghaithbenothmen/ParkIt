@@ -18,20 +18,12 @@ import Booking2 from '../pages/booking/booking-2';
 import Booking1 from '../pages/booking/booking-1';
 import BookingDone from '../pages/booking/booking-done';
 import BookingPayment from '../pages/booking/booking-payment';
-import CustomerReclamtion from './customer-reclamation/customer-reclamation';
-
 const CustomersRoutes = () => {
   const all_customers_routes = [
     {
       path: '/customer-booking',
       name: 'customer-booking',
       element: <CustomerBooking />,
-      route: Route,
-    },
-    {
-      path: '/customer-reclamation',
-      name: 'customer-reclamation',
-      element: <CustomerReclamtion />,
       route: Route,
     },
    

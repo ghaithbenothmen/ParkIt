@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const ReclamationSchema = new mongoose.Schema({
+const ClaimSchema = new mongoose.Schema({
   utilisateurId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
@@ -11,7 +11,7 @@ const ReclamationSchema = new mongoose.Schema({
     required: true,
     ref: 'Parking',
   },
-  typeReclamation: {
+  claimType: {
     type: String,
     enum: ['Place Occupée', 'Problème Paiement', 'Sécurité', 'Autre'],
     required: true,
@@ -43,12 +43,12 @@ const ReclamationSchema = new mongoose.Schema({
   },
 });
 
-ReclamationSchema.pre('save', async function (next) {
+ClaimSchema.pre('save', async function (next) {
   // Only run priority and statut logic for new documents
   if (this.isNew) {
     let score = 0;
     // Type de réclamation
-    switch (this.typeReclamation) {
+    switch (this.claimType) {
       case 'Sécurité':
         score += 10;
         break;
@@ -63,19 +63,19 @@ ReclamationSchema.pre('save', async function (next) {
         break;
     }
     // Nombre de signalements similaires pour le même type
-    const similarReclamations = await mongoose.model('Reclamation').countDocuments({
-      typeReclamation: this.typeReclamation,
+    const similarClaims = await mongoose.model('Claim').countDocuments({
+      claimType: this.claimType,
       statut: { $in: ['Validée', 'En Cours'] },
     });
-    if (similarReclamations >= 3) {
+    if (similarClaims >= 3) {
       score += 5;
     }
     // Nombre de réclamations pour le même parking
-    const parkingReclamations = await mongoose.model('Reclamation').countDocuments({
+    const parkingClaims = await mongoose.model('Claim').countDocuments({
       parkingId: this.parkingId,
       statut: { $in: ['Validée', 'En Cours'] },
     });
-    if (parkingReclamations >= 3) {
+    if (parkingClaims >= 3) {
       score += 3;
     }
     // Statut utilisateur
@@ -95,4 +95,4 @@ ReclamationSchema.pre('save', async function (next) {
   next();
 });
 
-module.exports = mongoose.model('Reclamation', ReclamationSchema);
+module.exports = mongoose.model('Claim', ClaimSchema);
