@@ -131,6 +131,20 @@ export const adminSidebar = [
       
     ],
   },
+  {
+    tittle: 'Reviews',
+    showAsTab: false,
+    separateRoute: false,
+    menu: [
+      {
+        menuValue: 'Reviews',
+        hasSubRoute: false,
+        showSubRoute: false,
+        route: routes.reviews,
+        icon: <Icon.Calendar className="react-feather-icon" />, // Icône mise à jour
+      },
+    ],
+  },
   
     {
       tittle: 'Booking',
