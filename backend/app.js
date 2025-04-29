@@ -12,6 +12,7 @@ const vehiculeRoutes = require('./routes/vehicule.routes');
 const parkingRoutes = require('./routes/parking.routes');
 const parkingSpotRoutes = require('./routes/parkingSpot.route');
 const reservationRoutes = require('./routes/reservation.route');
+const reviewRoutes = require('./routes/review.route');
 const lprRoutes = require('./routes/lpr.route'); // Importer la route LPR
 
 
@@ -60,6 +61,7 @@ app.use('/api/vehicules', vehiculeRoutes);
 app.use('/api/parking', parkingRoutes);
 app.use('/api/parking-spots', parkingSpotRoutes); 
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
 
 
