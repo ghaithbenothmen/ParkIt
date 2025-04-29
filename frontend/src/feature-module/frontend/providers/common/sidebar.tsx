@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { set_mouseoversidebar_data } from '../../../../core/data/redux/action';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import { AppState } from '../../../../core/models/interface';
-import { LayoutGrid, Car, Calendar, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { LayoutGrid, Car,MessageSquareWarning, Calendar, Settings, LogOut, ChevronRight } from 'lucide-react';
 
 const ProviderSidebar = () => {
   const routes = all_routes;
@@ -54,14 +54,19 @@ const ProviderSidebar = () => {
                   <LayoutGrid size={18} /> <span>Dashboard</span>
                 </Link>
               </li>
-              <li className={activeRouterPath('/providers/provider-service') ? 'active' : ''}>
-                <Link to="/providers/provider-service" className="menu-item">
+              <li className={activeRouterPath('/providers/cars') ? 'active' : ''}>
+                <Link to="/providers/cars" className="menu-item">
                   <Car size={18} /> <span>Cars</span>
                 </Link>
               </li>
-              <li className={activeRouterPath('/providers/provider-booking') ? 'active' : ''}>
-                <Link to="/providers/provider-booking" className="menu-item">
+              <li className={activeRouterPath('/providers/booking') ? 'active' : ''}>
+                <Link to="/providers/booking" className="menu-item">
                   <Calendar size={18} /> <span>Bookings</span>
+                </Link>
+              </li>
+              <li className={activeRouterPath('/providers/claims') ? 'active' : ''}>
+                <Link to="/providers/claims" className="menu-item">
+                  <MessageSquareWarning size={18} /> <span>Claims</span>
                 </Link>
               </li>
 

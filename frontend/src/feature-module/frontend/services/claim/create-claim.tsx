@@ -3,36 +3,39 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Modal } from 'react-bootstrap';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import BreadCrumb from '../../common/breadcrumb/breadCrumb';
-import { jwtDecode } from 'jwt-decode'; 
+import { jwtDecode } from 'jwt-decode'; // Import correct de jwt-decode
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
+
 import { Dropdown } from 'primereact/dropdown';
 
 const routes = all_routes;
 
-const CustomerReclamation = () => {
+
+const CreateClaim = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
-  const [typeReclamation, setTypeReclamation] = useState('');
+  const [claimType, setclaimType] = useState('');
   const [message, setMessage] = useState('');
   const [parkingId, setParkingId] = useState('');
-  const [photoEvidence, setPhotoEvidence] = useState<File | null>(null);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [parkings, setParkings] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const [errors, setErrors] = useState({
     message: '',
-    typeReclamation: '',
+    claimType: '',
     parkingId: '',
   });
 
   const token = localStorage.getItem('token');
-  const [utilisateurId, setUserId] = useState('');
-  const reclamationTypes = [
-    'Place Occupée',
-    'Problème Paiement',
-    'Sécurité',
-    'Autre',
+  const [userId, setUserId] = useState('');
+  const claimTypes = [
+    'Spot Occupied',
+    'Payment Issue',
+    'Security',
+    'Other',
   ];
 
   useEffect(() => {
@@ -49,7 +52,7 @@ const CustomerReclamation = () => {
   useEffect(() => {
     if (id) {
       setIsEditMode(true);
-      fetchReclamationDetails(id);
+      fetchClaimDetails(id);
     }
   }, [id]);
 
@@ -64,12 +67,12 @@ const CustomerReclamation = () => {
     }
   };
 
-  const fetchReclamationDetails = async (reclamationId: string) => {
+  const fetchClaimDetails = async (claimId: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/reclamations/${reclamationId}`);
-      if (!response.ok) throw new Error('Error fetching reclamation details');
+      const response = await fetch(`http://localhost:4000/api/claims/${claimId}`);
+      if (!response.ok) throw new Error('Error fetching claim details');
       const data = await response.json();
-      setTypeReclamation(data.typeReclamation);
+      setclaimType(data.claimType);
       setMessage(data.message);
       setParkingId(data.parkingId?._id || '');
     } catch (error) {
@@ -80,13 +83,13 @@ const CustomerReclamation = () => {
   const validateFields = () => {
     const newErrors = {
         message: '',
-      typeReclamation: '',
+      claimType: '',
       parkingId: '',
     };
     let isValid = true;
 
-    if (!typeReclamation.trim()) {
-      newErrors.typeReclamation = 'Type of reclamation is required.';
+    if (!claimType.trim()) {
+      newErrors.claimType = 'Type of Claim is required.';
       isValid = false;
     }
     
@@ -104,26 +107,30 @@ const CustomerReclamation = () => {
 
     if (!validateFields()) return;
 
-    const reclamationData = { utilisateurId, parkingId, typeReclamation, message, photoEvidence };
-
+    const claimData = new FormData();
+    if (image) {
+      claimData.append('image', image); // Append the selected image
+    }    claimData.append('message', message);
+    claimData.append('claimType', claimType);
+    claimData.append('userId', userId); // Replace with actual userId
+    claimData.append('parkingId', parkingId); // Replace with actual parkingId
+      console.log("testestestestestestestestes");
+claimData.forEach((value, key) => {
+  console.log(key, value);
+});
     try {
       const url = isEditMode
-        ? `http://localhost:4000/api/reclamations/${id}`
-        : 'http://localhost:4000/api/reclamations';
+        ? `http://localhost:4000/api/claims/${id}`
+        : 'http://localhost:4000/api/claims';
       const method = isEditMode ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(reclamationData),
+        body: claimData,
       });
-
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Error saving reclamation');
+        throw new Error(errorData.message || 'Error saving claim');
       }
 
       setShowModal(true);
@@ -131,10 +138,17 @@ const CustomerReclamation = () => {
       console.error(error);
     }
   };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   return (
     <>
-     <BreadCrumb title='Reclamation' item1='customers' item2='customer-reclamation'/>
+     <BreadCrumb title='Claim' item1='customers' item2='customer-claim'/>
      <div className="page-wrapper">
       <div className="content">
         <div className="container">
@@ -206,11 +220,12 @@ const CustomerReclamation = () => {
             <div className="row">
               <div className="col-md-6 d-flex align-items-center">
                 <div className="contact-img flex-fill">
-                  <ImageWithBasePath
-                    src="assets/img/services/service-76.jpg"
-                    className="img-fluid"
-                    alt="img"
-                  />
+                                <img
+                  src={imagePreview || ''}
+                  alt="Image"
+                  style={{ maxHeight: '700px', width: 'auto', objectFit: 'contain' }}
+                />
+
                 </div>
               </div>
               <div className="col-md-6 d-flex align-items-center justify-content-center">
@@ -222,13 +237,13 @@ const CustomerReclamation = () => {
                         <div className="mb-3">
                           <div className="form-group">
                           <Dropdown
-                                value={typeReclamation}
-                                onChange={(e) => setTypeReclamation(e.value)}  // Update typeReclamation on change
-                                options={reclamationTypes}  // Dropdown options
-                                placeholder="Select Reclamation Type"
+                                value={claimType}
+                                onChange={(e) => setclaimType(e.value)}  // Update claimType on change
+                                options={claimTypes}  // Dropdown options
+                                placeholder="Select Claim Type"
                                 className="w-100"  // Full width, if needed, adjust the width here
                               />
-                            {errors.typeReclamation && <small className="text-danger">{errors.typeReclamation}</small>}
+                            {errors.claimType && <small className="text-danger">{errors.claimType}</small>}
                           </div>
                         </div>
                       </div>
@@ -251,18 +266,41 @@ const CustomerReclamation = () => {
                           </div>
                         </div>
                       <div className="col-md-12">
-                        <div className="mb-3">
-                          <div className="form-group">
-                            <input
-                              className="form-control"
-                              type="file"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) setPhotoEvidence(file);
-                              }}
-                            />
-                          </div>
-                        </div>
+                      <div className="card-body">
+          <h6 className="user-title">Proof Picture</h6>
+          <div className="pro-picture">
+            <div className="pro-info">
+              <div className="d-flex mb-2">
+                <label
+                  htmlFor="image-upload"
+                  className="btn btn-dark btn-sm d-flex align-items-center me-3"
+                >
+                  <i className="ti ti-cloud-upload me-1" />
+                  Upload
+                </label>
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+                <button
+                  className="btn btn-light btn-sm d-flex align-items-center"
+                  onClick={() => {
+                    setImage(null);
+                    setImagePreview(null);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+              <p className="fs-14">
+                *image size should be at least 320px big, and less than 500kb. Allowed files .png and .jpg.
+              </p>
+            </div>
+          </div>
+        </div>
                         <div className="mb-3">
                           <div className="form-group">
                           <textarea
@@ -313,7 +351,7 @@ const CustomerReclamation = () => {
                   <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
                     Close
                   </button>
-                  <Link to={routes.providerServices} className="btn btn-linear-primary">
+                  <Link to={routes.providerClaims} className="btn btn-linear-primary">
                     View List
                   </Link>
                 </div>
@@ -325,4 +363,4 @@ const CustomerReclamation = () => {
   );
 };
 
-export default CustomerReclamation;
+export default CreateClaim;

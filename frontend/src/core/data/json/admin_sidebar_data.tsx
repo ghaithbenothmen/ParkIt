@@ -124,7 +124,7 @@ export const adminSidebar = [
           },
           {
             menuValue: 'Claims',
-            route: routes.review,
+            route: routes.claims,
           },
         ],
       },

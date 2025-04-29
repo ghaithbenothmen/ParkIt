@@ -6,7 +6,7 @@ import BreadCrumb from '../../common/breadcrumb/breadCrumb';
 import { jwtDecode } from 'jwt-decode'; // Import correct de jwt-decode
 const routes = all_routes;
 
-const CreateVehicule = () => {
+const CreateCar = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const [marque, setMarque] = useState('');
@@ -247,7 +247,7 @@ const CreateVehicule = () => {
               <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
                 Close
               </button>
-              <Link to={routes.providerServices} className="btn btn-linear-primary">
+              <Link to={routes.providerCars} className="btn btn-linear-primary">
                 View List
               </Link>
             </div>
@@ -258,4 +258,4 @@ const CreateVehicule = () => {
   );
 };
 
-export default CreateVehicule;
+export default CreateCar;

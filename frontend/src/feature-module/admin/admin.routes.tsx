@@ -23,6 +23,7 @@ import PendingServices from './services/pending-services';
 
 import CategoriesList from './categories/categories-list';
 import SubCategoriesList from './categories/subcategories-list';
+import Claims from './claims/claims';
 
 import Review from './services/review';
 import ReviewType from './services/review-type';
@@ -64,6 +65,13 @@ const AdminRoutes = () => {
       path: '/management/menu-management',
       name: 'menu-management',
       element: <MenuManagement />,
+      route: Route,
+    },
+    
+    {
+      path: '/claims',
+      name: 'Claims',
+      element: <Claims />,
       route: Route,
     },
  
