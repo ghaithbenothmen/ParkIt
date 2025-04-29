@@ -164,7 +164,7 @@ const ProviderCars = () => {
               <h5>My Cars</h5>
               <div className="d-flex align-items-center">
                 <Link
-                  to={routes.createService}
+                  to={routes.createCar}
                   className="btn btn-dark d-flex align-items-center"
                 >
                   <i className="ti ti-circle-plus me-2" />

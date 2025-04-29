@@ -7,17 +7,17 @@ import ServiceDetails1 from './service-details/service-details1';
 
 import ServiceGrid from './service-grid/service-grid';
 
-import CreateService from './create-service/createServices';
+import CreateCar from './car/create-car';
 import ServiceRequest from './service-request/serviceRequest';
-import ProvidersCars from '../providers/provider-service/provider-service'
-import CreateClaim from './create-claim/create-claim';
+import ProvidersCars from '../providers/cars/provider-cars'
+import CreateClaim from './claim/create-claim';
 
 const ServicesRoutes = () => {
   const all_services_routes = [
     {
-      path: '/create-service',
-      name: 'create-service',
-      element: <CreateService />,
+      path: '/create-car',
+      name: 'create-car',
+      element: <CreateCar />,
       route: Route,
     },
     {

@@ -126,7 +126,6 @@ const ClaimDetails = () => {
 
   return (
     <>
-      <BreadCrumb title='Reservation Details' item1='Pages' item2='Reservation Details' />
       {/* /Breadcrumb */}
       {/* Page Wrapper */}
       <div className="page-wrapper">
@@ -141,7 +140,7 @@ const ClaimDetails = () => {
                         <Link to={routes.index}>Home</Link>
                       </li>
                       <li className="breadcrumb-item" aria-current="page">
-                        Claims
+                      <Link to={routes.providerClaims}>Claims</Link>
                       </li>
                       <li className="breadcrumb-item" aria-current="page">
                         {claim?.claimType}

@@ -12,7 +12,6 @@ import Error404 from './Error page/error404';
 import Error500 from './Error page/error500';
 
 import BookingDetails from './booking/booking-details';
-import ClaimDetails from './claim/claim-details';
 import PaymentSetting from '../providers/settings/payment-setting';
 
 import BookingWizard from './booking/booking-wizard';
@@ -75,12 +74,6 @@ const PagesRoutes = () => {
       path: '/booking/booking-details/:id',
       name: 'booking-details',
       element: <BookingDetails />,
-      route: Route,
-    },
-    {
-      path: '/claim/claim-details/:id',
-      name: 'claim-details',
-      element: <ClaimDetails />,
       route: Route,
     },
     {

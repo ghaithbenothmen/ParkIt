@@ -131,7 +131,7 @@ exports.getArchivedClaims = async (req, res) => {
 exports.updateClaimStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, feedback, image, message } = req.body;
+    const { status, feedback, image, message, userId} = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid claim ID format.' });
@@ -151,7 +151,7 @@ exports.updateClaimStatus = async (req, res) => {
     if (feedback) claim.feedback = feedback;
     if (image) claim.image = image;
     if (message) claim.message = message;
-
+    if (userId) claim.userId = userId;
     await claim.save();
     const updatedClaim = await Claim.findById(id);
 

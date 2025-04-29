@@ -29,7 +29,7 @@ export const all_routes = {
   services: '/services/*',
   serviceGrid: '/services/service-grid',
   serviceList: '/services/service-list',
-  createService: '/services/create-service',
+  createCar: '/services/create-car',
   createClaim: '/services/create-claim',
   providerDetails: '/services/providers/provider-details',
   map: '/map',
@@ -39,8 +39,8 @@ export const all_routes = {
   provider: '/services/providers/provider-list',
   serviceDetails1: '/services/service-details/service-details1',
   serviceDetails2: '/services/service-details/service-details2',
-  providerServices: '/providers/provider-service',
-  providerClaims:'/providers/provider-claims',
+  providerCars: '/providers/cars',
+  providerClaims:'/providers/claims',
 
   // customers module path
   customers: '/customers/*',
@@ -80,8 +80,7 @@ export const all_routes = {
     '/providers/settings/provider-appointment-settings',
   providerConnectedApps: '/providers/settings/provider-connected-apps',
   providerAvailability: '/providers/provider-availability',
-  providerBookDetails: '/providers/provider-book-details',
-  providerBooking: '/providers/provider-booking',
+  providerBooking: '/providers/booking',
   providerChat: '/providers/provider-chat',
   providerCoupons: '/providers/provider-coupons',
   providerDashboard: '/providers/dashboard',
@@ -120,7 +119,7 @@ export const all_routes = {
   bookings: '/pages/booking',
   booking2: '/customers/user-bookings',
   bookingDetails: '/pages/booking/booking-details',
-  claimDetails: '/pages/claim/claim-details',
+
   invoice: '/pages/invoice',
   bookingDone: '/customers/booking-done',
   bookingPayment: '/customers/booking-payment',

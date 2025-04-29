@@ -54,8 +54,8 @@ const ProviderSidebar = () => {
                   <LayoutGrid size={18} /> <span>Dashboard</span>
                 </Link>
               </li>
-              <li className={activeRouterPath('/providers/provider-service') ? 'active' : ''}>
-                <Link to="/providers/provider-service" className="menu-item">
+              <li className={activeRouterPath('/providers/cars') ? 'active' : ''}>
+                <Link to="/providers/cars" className="menu-item">
                   <Car size={18} /> <span>Cars</span>
                 </Link>
               </li>
@@ -64,8 +64,8 @@ const ProviderSidebar = () => {
                   <Calendar size={18} /> <span>Bookings</span>
                 </Link>
               </li>
-              <li className={activeRouterPath('/providers/provider-claims') ? 'active' : ''}>
-                <Link to="/providers/provider-claims" className="menu-item">
+              <li className={activeRouterPath('/providers/claims') ? 'active' : ''}>
+                <Link to="/providers/claims" className="menu-item">
                   <MessageSquareWarning size={18} /> <span>Claims</span>
                 </Link>
               </li>

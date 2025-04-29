@@ -247,7 +247,7 @@ const ProviderClaims = () => {
 
                       <div className="booking-det-info">
                         <h6 className="mb-3">
-                                                <Link to={`${routes.claimDetails}/${claim._id}`}>
+                                                <Link to={`${routes.providerClaims}/${claim._id}`}>
                                                     {claim.claimType || "Other"}
                                                   </Link>
                                                   <span className={`badge ms-2 ${claim?.status === 'Resolved' ? 'badge-soft-success' :
