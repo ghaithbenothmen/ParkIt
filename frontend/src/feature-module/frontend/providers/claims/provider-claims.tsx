@@ -89,7 +89,7 @@ const ProviderClaims = () => {
       if (userInfo._id) {
       try {
         const res = await axios.get(`http://localhost:4000/api/claims/by-user/${userInfo._id}`);
-        console.log("Fetched reservations:", res.data);
+        console.log("Fetched claims:", res.data);
 
         setClaims(res.data);  // Access the array inside 'data'
       } catch (error) {
@@ -101,15 +101,41 @@ const ProviderClaims = () => {
     fetchClaims();
   }, [userInfo._id]);
 
-  const [reservationCounts, setReservationCounts] = useState({
-    confirmed: 0,
-    pending: 0,
-    over: 0,
+  const countClaimsByStatus = (claims: Claim[]) => {
+    const counts = {
+      Valid: 0,
+      Resolved: 0,
+      Rejected: 0
+    };
+
+    claims.forEach((claim) => {
+
+       if (claim.status === 'Valid') {
+        counts.Valid += 1;
+      } else if (claim.status === 'Resolved') {
+        counts.Resolved += 1;
+      }else if (claim.status === 'Rejected') {
+        counts.Rejected += 1;
+      }
+    });
+    return counts;
+  };
+  const [claimCount, setClaimCount] = useState({
+      Valid: 0,
+      Resolved: 0,
+      Rejected: 0
   });
 
-  const percentagePending = Math.round((reservationCounts.pending / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
-  const percentageConfirmed = Math.round((reservationCounts.confirmed / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
-  const percentageOver = Math.round((reservationCounts.over / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
+   useEffect(() => {
+      // Calculate counts whenever claims change
+      if (claims.length > 0) {
+        const counts = countClaimsByStatus(claims);
+        setClaimCount(counts);
+      }
+    }, [claims]); // Only rerun when claims change
+    const percentageValid = Math.round((claimCount.Valid / (claimCount.Resolved + claimCount.Valid + claimCount.Rejected)) * 100);
+    const percentageResolved = Math.round((claimCount.Resolved / (claimCount.Resolved + claimCount.Valid + claimCount.Rejected)) * 100);
+    const percentageRejected = Math.round((claimCount.Rejected / (claimCount.Resolved + claimCount.Valid + claimCount.Rejected)) * 100);
 
   return (
     <>
@@ -137,9 +163,9 @@ const ProviderClaims = () => {
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="mb-2">
-                        <p className="mb-1">Confirmed Reservations</p>
+                        <p className="mb-1">Resolved claims</p>
                         <h5>
-                          <span className="counter">{reservationCounts.confirmed}</span>+
+                          <span className="counter">{claimCount.Resolved}</span>+
                         </h5>
                       </div>
                       <span className="prov-icon bg-success d-flex justify-content-center align-items-center rounded">
@@ -148,9 +174,9 @@ const ProviderClaims = () => {
                     </div>
                     <p className="fs-12">
                       <span className="text-success me-2">
-                        {percentageConfirmed}% <i className="ti ti-arrow-badge-up-filled" />
+                        {percentageResolved}% <i className="ti ti-arrow-badge-up-filled" />
                       </span>
-                      from all reservations
+                      from all claims
                     </p>
                   </div>
                 </div>
@@ -161,9 +187,9 @@ const ProviderClaims = () => {
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="mb-2">
-                        <p className="mb-1">Pending Claim</p>
+                        <p className="mb-1">Valid Claim</p>
                         <h5>
-                          <span className="counter">{reservationCounts.pending}</span>+
+                          <span className="counter">{claimCount.Valid}</span>+
                         </h5>
                       </div>
                       <span className="prov-icon bg-info d-flex justify-content-center align-items-center rounded">
@@ -172,9 +198,9 @@ const ProviderClaims = () => {
                     </div>
                     <p className="fs-12">
                       <span className="text-info me-2">
-                        {percentagePending}% <i className="ti ti-arrow-badge-down-filled" />
+                        {percentageValid}% <i className="ti ti-arrow-badge-down-filled" />
                       </span>
-                      from all reservations
+                      from all claims
                     </p>
                   </div>
                 </div>
@@ -185,9 +211,9 @@ const ProviderClaims = () => {
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="mb-2">
-                        <p className="mb-1">Expired Reservations</p>
+                        <p className="mb-1">Expired claims</p>
                         <h5>
-                          <span className="counter">{reservationCounts.over}</span>+
+                          <span className="counter">{claimCount.Rejected}</span>+
                         </h5>
                       </div>
                       <span className="prov-icon bg-danger d-flex justify-content-center align-items-center rounded">
@@ -195,7 +221,7 @@ const ProviderClaims = () => {
                       </span>
                     </div>
                     <p className="fs-12">
-                      <span className="text-danger me-2">{percentageOver}%</span> from all reservations
+                      <span className="text-danger me-2">{percentageRejected}%</span> from all claims
                     </p>
                   </div>
                 </div>
@@ -216,13 +242,13 @@ const ProviderClaims = () => {
                 <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('all')}>
                   All
                 </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('confirmed')}>
-                  Confirmed
+                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Resolved')}>
+                  Resolved
                 </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('pending')}>
+                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Pending')}>
                   Pending
                 </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('over')}>
+                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Rejected')}>
                   Expired
                 </Link>
               </div>
