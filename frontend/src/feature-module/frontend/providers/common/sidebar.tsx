@@ -59,8 +59,8 @@ const ProviderSidebar = () => {
                   <Car size={18} /> <span>Cars</span>
                 </Link>
               </li>
-              <li className={activeRouterPath('/providers/provider-booking') ? 'active' : ''}>
-                <Link to="/providers/provider-booking" className="menu-item">
+              <li className={activeRouterPath('/providers/booking') ? 'active' : ''}>
+                <Link to="/providers/booking" className="menu-item">
                   <Calendar size={18} /> <span>Bookings</span>
                 </Link>
               </li>

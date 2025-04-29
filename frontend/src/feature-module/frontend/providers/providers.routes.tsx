@@ -27,6 +27,7 @@ import ParkingVisualization from './pickParkingSpot';
 import ProtectedRoute from '../../router/ProtectedRoute';
 import ProviderClaims from './claims/provider-claims';
 import ClaimDetails from './claims/provider-claim-details';
+import BookingDetails from './provider-booking/booking-details';
 
 
 const ProvidersRoutes = () => {
@@ -93,6 +94,12 @@ const ProvidersRoutes = () => {
       name: 'provider-booking',
       element: <ProviderBooking />,
     },
+    {
+      path: '/booking/:id',
+      name: 'provider-booking-details',
+      element: <BookingDetails />,
+    },
+    
     {
       path: '/dashboard',
       name: 'provider-dashboard',

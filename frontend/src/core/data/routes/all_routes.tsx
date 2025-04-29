@@ -118,8 +118,6 @@ export const all_routes = {
   booking1: '/pages/booking/booking-1',
   bookings: '/pages/booking',
   booking2: '/customers/user-bookings',
-  bookingDetails: '/pages/booking/booking-details',
-
   invoice: '/pages/invoice',
   bookingDone: '/customers/booking-done',
   bookingPayment: '/customers/booking-payment',
