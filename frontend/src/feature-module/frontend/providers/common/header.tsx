@@ -318,6 +318,11 @@ const ProviderHeader = () => {
                 aria-expanded="true"
               >
                 <i className="ti ti-bell" style={{ fontSize: '22px', color: '#5F6980' }} />
+                {getUnreadCount(notifications) > 0 && (
+                  <span className="notification-indicator">
+                    {getUnreadCount(notifications)}
+                  </span>
+                )}
               </Link>
               <div className="dropdown-menu dropdown-menu-end notification-dropdown p-3">
                 <div className="d-flex dropdown-body align-items-center justify-content-between border-bottom p-0 pb-3 mb-3">
