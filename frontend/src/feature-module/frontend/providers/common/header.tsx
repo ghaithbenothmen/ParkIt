@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { AppState } from '../../../../core/models/interface';
+import io from 'socket.io-client';
 
 const ProviderHeader = () => {
   const routes = all_routes;
@@ -67,6 +68,87 @@ const ProviderHeader = () => {
     setDarkMode(localStorage.getItem("darkMode"));
     LayoutDark();
   }, [darkMode]);
+
+  const [notifications, setNotifications] = useState([]);
+
+  useEffect(() => {
+    // Initial fetch of notifications
+    fetchNotifications();
+
+    // Connect to Socket.IO server
+    const socket = io('http://localhost:4000', {
+      withCredentials: true,
+      transports: ['websocket']
+    });
+
+    socket.on('connect', () => {
+      console.log('Connected to Socket.IO server');
+    });
+
+    socket.on('newNotification', (newNotification) => {
+      console.log('New notification received:', newNotification);
+      setNotifications(prev => [newNotification, ...prev]);
+    });
+
+    socket.on('reminderNotification', (reminder) => {
+      console.log('Reminder received:', reminder);
+      // Afficher une alerte ou une notification système
+      if (Notification.permission === "granted") {
+        new Notification("Rappel de réservation", {
+          body: reminder.message,
+          icon: "/assets/img/full-parkit.png"
+        });
+      }
+      // Ajouter le rappel à la liste des notifications
+      setNotifications(prev => [reminder, ...prev]);
+    });
+
+    // Demander la permission pour les notifications système
+    if (Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    // Cleanup on component unmount
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/notifications/all');
+      const data = await response.json();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getTimeDifference = (dateString) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+    return `${Math.floor(diffInMinutes / 1440)} days ago`;
+  };
+
   return (
     <div className="header provider-header">
       {/* Logo */}
@@ -156,7 +238,7 @@ const ProviderHeader = () => {
               <div className="dropdown-menu dropdown-menu-end notification-dropdown p-3">
                 <div className="d-flex dropdown-body align-items-center justify-content-between border-bottom p-0 pb-3 mb-3">
                   <h6 className="notification-title">
-                    Notifications <span className="fs-16 text-gray"> (2)</span>
+                    Notifications <span className="fs-16 text-gray"> ({notifications.length})</span>
                   </h6>
                   <div className="d-flex align-items-center">
                     <Link to="#" className="text-primary fs-15 me-3 lh-1">
@@ -203,115 +285,35 @@ const ProviderHeader = () => {
                 </div>
                 <div className="noti-content">
                   <div className="d-flex flex-column">
-                    <div className="border-bottom mb-3 pb-3">
-                      <Link to={routes.commonNotification}>
-                        <div className="d-flex">
-                          <span className="avatar avatar-lg me-2 flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/profiles/avatar-52.jpg"
-                              alt="Profile"
-                              className="rounded-circle"
-                            />
-                          </span>
-                          <div className="flex-grow-1">
-                            <div className="d-flex align-items-center">
-                              <p className="mb-1 w-100">
-                                <span className="text-dark fw-semibold">
-                                  Stephan Peralt
-                                </span>{' '}
-                                rescheduled the service to 14/01/2024.{' '}
-                              </p>
-                              <span className="d-flex justify-content-end ">
-                                {' '}
-                                <i className="ti ti-point-filled text-primary" />
-                              </span>
-                            </div>
-                            <span>Just Now</span>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
-                    <div className="border-bottom mb-3 pb-3">
-                      <Link to={routes.commonNotification} className="pb-0">
-                        <div className="d-flex">
-                          <span className="avatar avatar-lg me-2 flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/profiles/avatar-36.jpg"
-                              alt="Profile"
-                              className="rounded-circle"
-                            />
-                          </span>
-                          <div className="flex-grow-1">
-                            <div className="d-flex align-items-center">
-                              <p className="mb-1 w-100">
-                                <span className="text-dark fw-semibold">
-                                  Harvey Smith
-                                </span>{' '}
-                                has requested your service.
-                              </p>
-                              <span className="d-flex justify-content-end ">
-                                {' '}
-                                <i className="ti ti-point-filled text-primary" />
-                              </span>
-                            </div>
-                            <span>5 mins ago</span>
-                            <div className="d-flex justify-content-start align-items-center mt-2">
-                              <span className="btn btn-light btn-sm me-2">
-                                Deny
-                              </span>
-                              <span className="btn btn-dark btn-sm">
-                                Accept
-                              </span>
+                    {notifications.map((notification) => (
+                      <div key={notification._id} className="border-bottom mb-3 pb-3">
+                        <Link to={routes.commonNotification}>
+                          <div className="d-flex">
+                            <span className="avatar avatar-lg me-2 flex-shrink-0">
+                              <ImageWithBasePath
+                                src="assets/img/user.jpg"
+                                alt="Profile"
+                                className="rounded-circle"
+                              />
+                            </span>
+                            <div className="flex-grow-1">
+                              <div className="d-flex align-items-center">
+                                <p className="mb-1 w-100">
+                                  You have made a reservation from{' '}
+                                  <span className="text-primary">{formatDate(notification.startDate)}</span>
+                                  {' '}to{' '}
+                                  <span className="text-primary">{formatDate(notification.endDate)}</span>
+                                </p>
+                                <span className="d-flex justify-content-end">
+                                  <i className="ti ti-point-filled text-primary" />
+                                </span>
+                              </div>
+                              <span>{getTimeDifference(notification.createdAt)}</span>
                             </div>
                           </div>
-                        </div>
-                      </Link>
-                    </div>
-                    <div className="border-bottom mb-3 pb-3">
-                      <Link to={routes.commonNotification}>
-                        <div className="d-flex">
-                          <span className="avatar avatar-lg me-2 flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/user.jpg"
-                              alt="Profile"
-                              className="rounded-circle"
-                            />
-                          </span>
-                          <div className="flex-grow-1">
-                            <p className="mb-1">
-                              <span className="text-dark fw-semibold">
-                                {' '}
-                                Anthony Lewis
-                              </span>{' '}
-                              has left feedback for your recent service{' '}
-                            </p>
-                            <span>10 mins ago</span>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
-                    <div className="border-0 mb-3 pb-0">
-                      <Link to={routes.commonNotification}>
-                        <div className="d-flex">
-                          <span className="avatar avatar-lg me-2 flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/profiles/avatar-22.jpg"
-                              alt="Profile"
-                              className="rounded-circle"
-                            />
-                          </span>
-                          <div className="flex-grow-1">
-                            <p className="mb-1">
-                              <span className="text-dark fw-semibold">
-                                Brian Villaloboshas{' '}
-                              </span>{' '}
-                              cancelled the service scheduled for 14/01/2024.
-                            </p>
-                            <span>15 mins ago</span>
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
+                        </Link>
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div className="d-flex p-0 notification-footer-btn">
