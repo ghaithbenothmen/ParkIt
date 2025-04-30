@@ -2,7 +2,7 @@ const Notification = require('../models/notification.model.js');
 
 exports.createNotification = async (reservation) => {
     try {
-        // Notification de création
+        // Notification de création immédiate
         const notification = new Notification({
             userId: reservation.userId,
             startDate: reservation.startDate,
@@ -13,63 +13,65 @@ exports.createNotification = async (reservation) => {
             createdAt: new Date()
         });
         await notification.save();
-        
-        // Calculer les temps de rappel
-        const startReminderTime = new Date(reservation.startDate);
-        startReminderTime.setMinutes(startReminderTime.getMinutes() - 15);
-        
-        const endReminderTime = new Date(reservation.endDate);
-        endReminderTime.setMinutes(endReminderTime.getMinutes() - 15);
-        
-        const now = new Date();
-        const timeUntilStartReminder = startReminderTime.getTime() - now.getTime();
-        const timeUntilEndReminder = endReminderTime.getTime() - now.getTime();
-        
-        // Rappel pour le début
-        if (timeUntilStartReminder > 0) {
-            setTimeout(async () => {
+
+        // Rappels programmés avec setInterval pour plus de fiabilité
+        const checkAndSendReminders = async () => {
+            const now = new Date();
+            const startDate = new Date(reservation.startDate);
+            const endDate = new Date(reservation.endDate);
+            
+            // Calculer les temps restants en minutes
+            const minutesUntilStart = Math.floor((startDate.getTime() - now.getTime()) / (1000 * 60));
+            const minutesUntilEnd = Math.floor((endDate.getTime() - now.getTime()) / (1000 * 60));
+
+            // Rappel de début (15 minutes avant)
+            if (minutesUntilStart <= 15 && minutesUntilStart > 14) {
                 const startReminder = new Notification({
                     userId: reservation.userId,
                     startDate: reservation.startDate,
                     endDate: reservation.endDate,
                     reservationId: reservation._id,
                     type: 'start_reminder',
-                    message: "Reminder: Your reservation starts in 15 minutes",
+                    message: "Your reservation starts in 15 minutes",
                     createdAt: new Date()
                 });
                 await startReminder.save();
-                
                 if (global.io) {
                     global.io.emit('reminderNotification', startReminder.toObject());
                 }
-            }, timeUntilStartReminder);
-        }
+            }
 
-        // Rappel pour la fin
-        if (timeUntilEndReminder > 0) {
-            setTimeout(async () => {
+            // Rappel de fin (15 minutes avant)
+            if (minutesUntilEnd <= 15 && minutesUntilEnd > 14) {
                 const endReminder = new Notification({
                     userId: reservation.userId,
                     startDate: reservation.startDate,
                     endDate: reservation.endDate,
                     reservationId: reservation._id,
                     type: 'end_reminder',
-                    message: "Reminder: Your reservation ends in 15 minutes",
+                    message: "Your reservation ends in 15 minutes",
                     createdAt: new Date()
                 });
                 await endReminder.save();
-                
                 if (global.io) {
                     global.io.emit('reminderNotification', endReminder.toObject());
                 }
-            }, timeUntilEndReminder);
-        }
+            }
+        };
 
-        // Émettre la notification immédiate
+        // Vérifier toutes les minutes
+        const checkInterval = setInterval(checkAndSendReminders, 60000);
+
+        // Arrêter les vérifications après la fin de la réservation
+        setTimeout(() => {
+            clearInterval(checkInterval);
+        }, new Date(reservation.endDate).getTime() - new Date().getTime() + 900000); // +15 minutes pour être sûr
+
+        // Émettre la notification de création
         if (global.io) {
             global.io.emit('newNotification', notification.toObject());
         }
-        
+
         return notification;
     } catch (error) {
         console.error('Error creating notification:', error.message);
