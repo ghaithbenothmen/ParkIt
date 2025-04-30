@@ -1993,3 +1993,8 @@ margin-right: 20px;
   font-size: 14px;
   font-weight: 500;
 }
+
+.dropdown-item.active {
+  background-color: #f8f9fa;
+  color: #FF008A;
+}

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const NotificationController = require('../controllers/notification.controller.js');
+const Notification = require('../models/notification.model.js');
 
 // Route pour créer une notification
 router.post('/create', async (req, res) => {
@@ -15,15 +16,15 @@ router.post('/create', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const notifications = await NotificationController.getAllNotifications();
+        const notifications = await Notification.find()
+            .sort({ createdAt: -1 }); // Trie par date de création décroissante
         res.status(200).json(notifications);
     } catch (error) {
-        res.status(500).json({ 
-            message: 'Erreur lors de la récupération des notifications', 
-            error: error.message 
-        });
+        res.status(500).json({ message: 'Error fetching notifications', error: error.message });
     }
 });
+
+router.post('/mark-all-read', NotificationController.markAllAsRead);
 
 router.delete('/:id', async (req, res) => {
     try {

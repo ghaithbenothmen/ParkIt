@@ -1,21 +1,15 @@
 const mongoose = require('mongoose');
 
-// Définir le schéma de la notification
 const notificationSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Référence au modèle User
-        required: true
-    },
-    startDate: {
-        type: Date,
-        required: true
-    },
-    endDate: {
-        type: Date,
-        required: true
-    }
-}, { timestamps: true });
+    userId: { type: String, required: true },
+    reservationId: { type: String },
+    type: { type: String, enum: ['creation', 'start_reminder', 'end_reminder'] },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    message: { type: String },
+    read: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
+  });
 
 // Exporter le modèle
 module.exports = mongoose.model('Notification', notificationSchema);

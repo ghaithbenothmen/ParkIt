@@ -12,10 +12,21 @@ import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { AppState } from '../../../../core/models/interface';
 import io from 'socket.io-client';
 
+interface NotificationType {
+  _id: string;
+  userId: string;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  message?: string;
+  type?: string;
+  reservationId?: string;
+  read?: boolean;  // Ajout de la propriété read
+}
+
 const ProviderHeader = () => {
   const routes = all_routes;
   const toggle_data = useSelector((state: AppState) => state.toggleSidebar2);
- 
   const dispatch = useDispatch();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const toggleFullscreen = () => {
@@ -64,18 +75,68 @@ const ProviderHeader = () => {
       htmlElement.classList.remove('dark');
     }
   };
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/notifications/all');
+      const data = await response.json();
+      // S'assurer que les notifications sont triées par date décroissante
+      const sortedNotifications = Array.isArray(data) ? 
+        data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : 
+        [];
+      setNotifications(sortedNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setNotifications([]);
+    }
+  };
+
   useEffect(() => {
     setDarkMode(localStorage.getItem("darkMode"));
     LayoutDark();
   }, [darkMode]);
 
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState('today');
+
+  const filterNotificationsByPeriod = (notifications: NotificationType[], period: string) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - today.getDay());
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+    return notifications.filter(notification => {
+      const notifDate = new Date(notification.createdAt);
+      switch (period) {
+        case 'today':
+          return notifDate >= today;
+        case 'thisWeek':
+          return notifDate >= thisWeekStart;
+        case 'lastWeek':
+          return notifDate >= lastWeekStart && notifDate < thisWeekStart;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const [filteredNotifications, setFilteredNotifications] = useState<NotificationType[]>([]);
 
   useEffect(() => {
-    // Initial fetch of notifications
+    setFilteredNotifications(filterNotificationsByPeriod(notifications, selectedPeriod));
+  }, [notifications, selectedPeriod]);
+
+  const handlePeriodChange = (period: string) => {
+    setSelectedPeriod(period);
+  };
+
+  useEffect(() => {
+    // Charger les notifications existantes au démarrage
     fetchNotifications();
 
-    // Connect to Socket.IO server
+    // Configurer Socket.IO pour les nouvelles notifications
     const socket = io('http://localhost:4000', {
       withCredentials: true,
       transports: ['websocket']
@@ -85,27 +146,38 @@ const ProviderHeader = () => {
       console.log('Connected to Socket.IO server');
     });
 
-    socket.on('newNotification', (newNotification) => {
+    socket.on('newNotification', (newNotification: NotificationType) => {
       console.log('New notification received:', newNotification);
+      // Ajouter la nouvelle notification au début de la liste
       setNotifications(prev => [newNotification, ...prev]);
-    });
-
-    socket.on('reminderNotification', (reminder) => {
-      console.log('Reminder received:', reminder);
-      // Afficher une alerte ou une notification système
+      
       if (Notification.permission === "granted") {
-        new Notification("Rappel de réservation", {
-          body: reminder.message,
+        new Notification("New Reservation", {
+          body: newNotification.message || "Your reservation has been created successfully",
           icon: "/assets/img/full-parkit.png"
         });
       }
-      // Ajouter le rappel à la liste des notifications
+    });
+    
+    socket.on('reminderNotification', (reminder: NotificationType) => {
+      console.log('Reminder received:', reminder);
       setNotifications(prev => [reminder, ...prev]);
+      
+      if (Notification.permission === "granted") {
+        new Notification("Reservation Reminder", {
+          body: reminder.message || "Reservation Reminder",
+          icon: "/assets/img/full-parkit.png"
+        });
+      }
     });
 
     // Demander la permission pour les notifications système
     if (Notification.permission === "default") {
-      Notification.requestPermission();
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          console.log("Notification permission granted");
+        }
+      });
     }
 
     socket.on('connect_error', (error) => {
@@ -118,17 +190,7 @@ const ProviderHeader = () => {
     };
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch('http://localhost:4000/api/notifications/all');
-      const data = await response.json();
-      setNotifications(data);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
-
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', {
       year: 'numeric',
@@ -139,14 +201,36 @@ const ProviderHeader = () => {
     });
   };
 
-  const getTimeDifference = (dateString) => {
+  const getTimeDifference = (dateString: string) => {
     const now = new Date();
     const date = new Date(dateString);
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+  
     if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
     return `${Math.floor(diffInMinutes / 1440)} days ago`;
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+        const response = await fetch('http://localhost:4000/api/notifications/mark-all-read', {
+            method: 'POST',
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Mettre à jour l'état avec les notifications mises à jour depuis le serveur
+            setNotifications(data.notifications);
+            setFilteredNotifications(filterNotificationsByPeriod(data.notifications, selectedPeriod));
+        }
+    } catch (error) {
+        console.error('Error marking notifications as read:', error);
+    }
+};
+
+  // Fonction pour compter les notifications non lues
+  const getUnreadCount = (notifications: NotificationType[]) => {
+    return notifications.filter(notif => !notif.read).length;
   };
 
   return (
@@ -238,10 +322,14 @@ const ProviderHeader = () => {
               <div className="dropdown-menu dropdown-menu-end notification-dropdown p-3">
                 <div className="d-flex dropdown-body align-items-center justify-content-between border-bottom p-0 pb-3 mb-3">
                   <h6 className="notification-title">
-                    Notifications <span className="fs-16 text-gray"> ({notifications.length})</span>
+                    Notifications <span className="fs-16 text-gray"> ({getUnreadCount(filteredNotifications)})</span>
                   </h6>
                   <div className="d-flex align-items-center">
-                    <Link to="#" className="text-primary fs-15 me-3 lh-1">
+                    <Link 
+                      to="#" 
+                      className="text-primary fs-15 me-3 lh-1"
+                      onClick={handleMarkAllAsRead}
+                    >
                       Mark all as read
                     </Link>
                     <div className="dropdown">
@@ -252,13 +340,25 @@ const ProviderHeader = () => {
                         data-bs-auto-close="outside"
                       >
                         <i className="ti ti-calendar-due me-1" />
-                        Today
+                        {selectedPeriod === 'today' ? 'Today' : 
+                         selectedPeriod === 'thisWeek' ? 'This Week' : 
+                         selectedPeriod === 'lastWeek' ? 'Last Week' : 'Today'}
                       </Link>
                       <ul className="dropdown-menu mt-2 p-3">
                         <li>
                           <Link
                             to="#"
-                            className="dropdown-item rounded-1"
+                            className={`dropdown-item rounded-1 ${selectedPeriod === 'today' ? 'active' : ''}`}
+                            onClick={() => handlePeriodChange('today')}
+                          >
+                            Today
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            to="#"
+                            className={`dropdown-item rounded-1 ${selectedPeriod === 'thisWeek' ? 'active' : ''}`}
+                            onClick={() => handlePeriodChange('thisWeek')}
                           >
                             This Week
                           </Link>
@@ -266,15 +366,8 @@ const ProviderHeader = () => {
                         <li>
                           <Link
                             to="#"
-                            className="dropdown-item rounded-1"
-                          >
-                            Last Week
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            to="#"
-                            className="dropdown-item rounded-1"
+                            className={`dropdown-item rounded-1 ${selectedPeriod === 'lastWeek' ? 'active' : ''}`}
+                            onClick={() => handlePeriodChange('lastWeek')}
                           >
                             Last Week
                           </Link>
@@ -283,47 +376,58 @@ const ProviderHeader = () => {
                     </div>
                   </div>
                 </div>
-                <div className="noti-content">
+                <div className="noti-content" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                   <div className="d-flex flex-column">
-                    {notifications.map((notification) => (
-                      <div key={notification._id} className="border-bottom mb-3 pb-3">
-                        <Link to={routes.commonNotification}>
-                          <div className="d-flex">
-                            <span className="avatar avatar-lg me-2 flex-shrink-0">
-                              <ImageWithBasePath
-                                src="assets/img/user.jpg"
-                                alt="Profile"
-                                className="rounded-circle"
-                              />
-                            </span>
-                            <div className="flex-grow-1">
-                              <div className="d-flex align-items-center">
-                                <p className="mb-1 w-100">
-                                  You have made a reservation from{' '}
-                                  <span className="text-primary">{formatDate(notification.startDate)}</span>
-                                  {' '}to{' '}
-                                  <span className="text-primary">{formatDate(notification.endDate)}</span>
-                                </p>
-                                <span className="d-flex justify-content-end">
-                                  <i className="ti ti-point-filled text-primary" />
-                                </span>
-                              </div>
-                              <span>{getTimeDifference(notification.createdAt)}</span>
+                  {Array.isArray(filteredNotifications) && filteredNotifications.map((notification: NotificationType) => (
+                    <div 
+                      key={notification._id} 
+                      className={`border-bottom mb-3 pb-3 ${notification.read ? 'opacity-50' : ''}`} // Ajouter une opacité réduite si lue
+                      style={{ 
+                        backgroundColor: notification.read ? '#f8f9fa' : 'white',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      <Link to={routes.commonNotification}>
+                        <div className="d-flex">
+                          <span className="avatar avatar-lg me-2 flex-shrink-0">
+                            <ImageWithBasePath
+                              src="assets/img/user.jpg"
+                              alt="Profile"
+                              className="rounded-circle"
+                            />
+                          </span>
+                          <div className="flex-grow-1">
+                            <div className="d-flex align-items-center">
+                              <p className={`mb-1 w-100 ${notification.read ? 'text-muted' : ''}`}>
+                                {notification.type === 'creation' && (
+                                  <>You created a reservation from </>
+                                )}
+                                {notification.type === 'start_reminder' && (
+                                  <>Reminder: Your reservation starts in 15 minutes (from </>
+                                )}
+                                {notification.type === 'end_reminder' && (
+                                  <>Reminder: Your reservation ends in 15 minutes (from </>
+                                )}
+                                <span className="text-primary">{formatDate(notification.startDate)}</span>
+                                {' to '}
+                                <span className="text-primary">{formatDate(notification.endDate)}</span>
+                                {notification.type !== 'creation' && ')'}
+                              </p>
+                              <span className="d-flex justify-content-end">
+                                <i className={`ti ti-point-filled ${notification.read ? 'text-muted' : 'text-primary'}`} />
+                              </span>
                             </div>
+                            <span className={notification.read ? 'text-muted' : ''}>
+                              {getTimeDifference(notification.createdAt)}
+                            </span>
                           </div>
-                        </Link>
-                      </div>
-                    ))}
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
                   </div>
                 </div>
-                <div className="d-flex p-0 notification-footer-btn">
-                  <Link to="#" className="btn btn-light rounded  me-2">
-                    Cancel
-                  </Link>
-                  <Link to="#" className="btn btn-dark rounded ">
-                    View All
-                  </Link>
-                </div>
+                {/* Suppression des boutons Cancel et View All */}
               </div>
             </div>
             <div className="provider-head-links">
