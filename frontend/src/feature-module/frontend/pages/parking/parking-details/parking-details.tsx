@@ -11,6 +11,7 @@ import BreadCrumb from '../../../common/breadcrumb/breadCrumb';
 import StickyBox from 'react-sticky-box';
 import { Parking } from '../parking.model';
 import axios from 'axios';
+import jwtDecode from 'jwt-decode';
 
 const ParkingDetails = () => {
   const routes = all_routes;
@@ -24,6 +25,47 @@ const ParkingDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const user = localStorage.getItem('user');
+    const [userInfo, setUserInfo] = useState({
+      _id: '',
+      firstname: '',
+      lastname: '',
+      email: '',
+      phone: ''
+    });
+  
+    useEffect(() => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          // Is it a JWT token or JSON object?
+          if (storedUser.startsWith('{')) {
+            // It's a JSON string (not a token)
+            const user = JSON.parse(storedUser);
+            console.log("Loaded user object from localStorage:", user);
+            setUserInfo({
+              _id: user._id || '',
+              firstname: user.firstname || '',
+              lastname: user.lastname || '',
+              email: user.email || '',
+              phone: user.phone || ''
+            });
+          } else {
+            // It's probably a JWT token
+            const decoded: any = jwtDecode(storedUser);
+            console.log("Decoded user from JWT token:", decoded);
+            setUserInfo({
+              _id: decoded._id || '',
+              firstname: decoded.firstname || '',
+              lastname: decoded.lastname || '',
+              email: decoded.email || '',
+              phone: decoded.phone || ''
+            });
+          }
+        } catch (err) {
+          console.error('Error processing stored user:', err);
+        }
+      }
+    }, []);
 
   // État pour le formulaire d'avis
   const [reviewForm, setReviewForm] = useState({
@@ -45,35 +87,37 @@ const ParkingDetails = () => {
     setReviewMessage('');
 
     try {
-      const response = await axios.post('http://localhost:4000/api/reviews', {
-        parkingId: reviewForm.parkingId,
-        rating: Number(reviewForm.rating),
-        comment: reviewForm.comment,
-      });
+      const response = await axios.post(
+        'http://localhost:4000/api/reviews',
+        {
+          parkingId: reviewForm.parkingId,
+          rating: Number(reviewForm.rating),
+          comment: reviewForm.comment,
+          userId: userInfo._id,
+        },
+      );
+
       setReviewMessage('Avis soumis avec succès !');
-      console.log('Réponse du serveur:', response.data);
-      // Ajouter le nouvel avis à la liste
       setReviews([...reviews, response.data]);
-      // Réinitialiser le formulaire
-      setReviewForm({
-        parkingId: id,
-        rating: 5,
-        comment: '',
-      });
-      // Fermer le modal après 2 secondes
+      setReviewForm({ parkingId: id, rating: 5, comment: '' });
+
+      // Ferme la modale et recharge la page
       setTimeout(() => {
-        document.getElementById('add-review').classList.remove('show');
+        document.getElementById('add-review')?.classList.remove('show');
         document.body.classList.remove('modal-open');
         const modalBackdrop = document.querySelector('.modal-backdrop');
         if (modalBackdrop) modalBackdrop.remove();
+        // Recharge la page pour afficher le nouvel avis
+        window.location.reload();
       }, 2000);
     } catch (error) {
       setReviewMessage(
-        error.response?.data?.message || 'Erreur lors de la soumission de l\'avis'
+        error.response?.data?.message || "Erreur lors de la soumission de l'avis"
       );
       console.error('Erreur:', error);
     }
   };
+  
 
   // Calculer la note moyenne et le nombre d'avis
   const averageRating =

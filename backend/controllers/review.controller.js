@@ -5,7 +5,7 @@ exports.createReview = async (req, res) => {
   try {
     console.log('Requête reçue:', req.body);
 
-    const { parkingId, rating, comment } = req.body;
+    const { parkingId, rating, comment,userId } = req.body;
 
     console.log('Recherche du parking:', parkingId);
     const parking = await Parking.findById(parkingId);
@@ -13,11 +13,9 @@ exports.createReview = async (req, res) => {
       console.log('Erreur: Parking non trouvé');
       return res.status(404).json({ message: 'Parking non trouvé' });
     }
-
-    console.log('Création de l\'avis pour userId: 680e9954746064bff5609a4e');
     const review = new Review({
       parkingId,
-      userId: '680e9954746064bff5609a4e',
+      userId,
       rating,
       comment,
     });
@@ -34,7 +32,6 @@ exports.createReview = async (req, res) => {
     res.status(500).json({ message: 'Erreur lors de la création de l\'avis', error: error.message });
   }
 };
-
 exports.getAllReviews = async (req, res) => {
   try {
     console.log('Récupération de tous les avis');
