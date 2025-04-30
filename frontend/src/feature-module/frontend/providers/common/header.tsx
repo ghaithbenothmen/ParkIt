@@ -317,7 +317,7 @@ const ProviderHeader = () => {
                 data-bs-auto-close="outside"
                 aria-expanded="true"
               >
-                <i className="feather icon-bell" />
+                <i className="ti ti-bell" style={{ fontSize: '22px', color: '#5F6980' }} />
               </Link>
               <div className="dropdown-menu dropdown-menu-end notification-dropdown p-3">
                 <div className="d-flex dropdown-body align-items-center justify-content-between border-bottom p-0 pb-3 mb-3">
