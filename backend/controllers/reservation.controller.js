@@ -1,7 +1,7 @@
 const Reservation = require('../models/reservation.model.js');
 const ParkingSpot = require('../models/parkingSpot.model');
 const cron = require('node-cron');
-
+const NotificationController = require('./notification.controller.js');
 
 cron.schedule('0 0 * * *', async () => {
     console.log('Checking for expired reservations...');
@@ -48,6 +48,9 @@ exports.createReservation = async (req, res) => {
             totalPrice
         });
         await newReservation.save();
+
+        // Créer une notification après la création de la réservation
+        NotificationController.createNotification(newReservation);
 
         res.status(201).json({ message: 'Réservation créée avec succès', data: newReservation });
 
