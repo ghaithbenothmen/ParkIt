@@ -144,3 +144,25 @@ exports.getReviewsByUser = async (req, res) => {
     });
   }
 };
+
+
+exports.getReviewStats = async (req, res) => {
+  try {
+    const reviews = await Review.find();
+    const totalReviews = reviews.length;
+    const averageRating = reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
+      : 0;
+
+    res.status(200).json({
+      totalReviews,
+      averageRating: parseFloat(averageRating.toFixed(1))
+    });
+  } catch (error) {
+    console.error('Error in getReviewStats:', error);
+    res.status(500).json({ 
+      message: 'Error getting review statistics', 
+      error: error.message 
+    });
+  }
+};
