@@ -34,6 +34,7 @@ interface Parking {
   disponibilite: boolean;
   latitude: number;
   longitude: number;
+  averageRating:number;
   createdAt: string;
   updatedAt: string;
 }
@@ -539,7 +540,7 @@ const ProviderDashboard = () => {
                               <span>{parking.nbr_place} spots</span>
                               <span>
                                 <i className="ti ti-star-filled text-warning me-1" />
-                                4.9
+                                {parking.averageRating}/5
                               </span>
                             </div>
                           </div>
