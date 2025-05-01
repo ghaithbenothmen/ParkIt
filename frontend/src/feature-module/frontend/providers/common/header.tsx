@@ -392,7 +392,7 @@ const ProviderHeader = () => {
                         transition: 'all 0.3s ease'
                       }}
                     >
-                      <Link to={routes.commonNotification}>
+                      <Link to={routes.providerBooking}>  {/* Modification ici */}
                         <div className="d-flex">
                           <span className="avatar avatar-lg me-2 flex-shrink-0">
                             <ImageWithBasePath
