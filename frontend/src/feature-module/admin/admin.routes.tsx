@@ -56,6 +56,7 @@ import PluginManager from './management/plugin-manager';
 import DeleteAccountrequests from './user-management/deleteAccountrequests';
 import AddService from './services/add-service';
 import EditService from './services/edit-service';
+import Reviews from './review/review';
 
 const AdminRoutes = () => {
   const all_admin_routes = [
@@ -125,7 +126,12 @@ const AdminRoutes = () => {
       element: <Users />,
       route: Route,
     },
-   
+    {
+      path: '/reviews',
+      name: 'reviews',
+      element: <Reviews />,
+      route: Route,
+    },
  
   
     {

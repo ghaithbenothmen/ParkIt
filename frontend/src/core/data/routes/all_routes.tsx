@@ -228,6 +228,7 @@ export const all_routes = {
   gdpr: '/admin/setting/gdbr',
   emailTemplates: '/admin/management/email-templates',
   review: '/admin/review',
+  reviews: '/admin/reviews',
   reviewType: '/admin/review-type',
   roles: '/admin/roles',
   claims: '/admin/claims',
