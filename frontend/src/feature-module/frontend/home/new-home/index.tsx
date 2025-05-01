@@ -26,21 +26,33 @@ const NewHome = () => {
   const [distanceFilter, setDistanceFilter] = useState<number | null>(null) // Distance filter in km
   const [parkingCount, setParkingCount] = useState<number>(0);
   const [reservationCount, setReservationCount] = useState<number>(0);
+  const [reviewCount, setReviewCount] = useState<number>(0);
+  const [averageRating, setAverageRating] = useState<number>(0);
 
   const fetchCounts = async () => {
     try {
-      const [parkingsRes, reservationsRes] = await Promise.all([
+      const [parkingsRes, reservationsRes, reviewsRes] = await Promise.all([
         axios.get('http://localhost:4000/api/parking/count'),
-        axios.get('http://localhost:4000/api/reservations/count')
+        axios.get('http://localhost:4000/api/reservations/count'),
+        axios.get('http://localhost:4000/api/reviews')
       ]);
       
       setParkingCount(parkingsRes.data?.count || 215);
-      setReservationCount(reservationsRes.data?.count || 90000); // Même valeur pour les deux affichages
+      setReservationCount(reservationsRes.data?.count || 90000);
+      
+      // Calculate average rating and count from reviews
+      if (reviewsRes.data && reviewsRes.data.length > 0) {
+        const totalRating = reviewsRes.data.reduce((sum: number, review: any) => sum + review.rating, 0);
+        setAverageRating(parseFloat((totalRating / reviewsRes.data.length).toFixed(1)));
+        setReviewCount(reviewsRes.data.length);
+      }
       
     } catch (error) {
       console.error('Error fetching counts:', error);
       setParkingCount(215);
-      setReservationCount(90000); // Valeurs par défaut
+      setReservationCount(90000);
+      setAverageRating(4.9);
+      setReviewCount(255);
     }
   };
 
@@ -294,7 +306,7 @@ useEffect(() => {
                       <div className="d-flex align-items-center me-4 mt-4">
                         <ImageWithBasePath src="assets/img/icons/success-03.svg" alt="icon" />
                         <div className="ms-2">
-                          <h6>2,390,968 </h6>
+                          <h6>{reviewCount.toLocaleString()} </h6>
                           <p>Reviews Globally</p>
                         </div>
                       </div>
@@ -320,7 +332,7 @@ useEffect(() => {
                   <i className="ti ti-star-filled" />
                 </span>
                 <span>
-                  4.9 / 5<small className="d-block">(255 reviews)</small>
+                  {averageRating} / 5<small className="d-block">({reviewCount} reviews)</small>
                 </span>
                 <i className="border-edge" />
               </div>

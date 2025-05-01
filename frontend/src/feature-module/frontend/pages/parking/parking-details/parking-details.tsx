@@ -11,7 +11,7 @@ import BreadCrumb from '../../../common/breadcrumb/breadCrumb';
 import StickyBox from 'react-sticky-box';
 import { Parking } from '../parking.model';
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const ParkingDetails = () => {
   const routes = all_routes;
