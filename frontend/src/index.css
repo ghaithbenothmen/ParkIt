@@ -307,13 +307,11 @@ span.p-calendar.p-component.p-inputwrapper {
 /* .car-blogs-section .car-blog-slider button.slick-prev {
   left: 47%;
   bottom: 0;
-  top: unset;
 }
 
 .car-blogs-section .car-blog-slider button.slick-next {
   right: 45%;
   bottom: 0;
-  top: unset;
 } */
 
 .home-banner-three .search-box-five .select.p-dropdown {
@@ -2017,4 +2015,83 @@ margin-right: 20px;
 
 .notify-link {
   position: relative;
+}
+
+/* Styles pour les boutons d'action */
+.action-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.action-button i {
+  font-size: 14px;
+  min-width: 14px; /* Assure une largeur minimale pour l'icône */
+}
+
+.action-button span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+  display: none; /* Caché par défaut */
+}
+
+.action-button:hover {
+  width: auto;
+  padding: 0 12px;
+}
+
+.action-button:hover span {
+  opacity: 1;
+  display: inline; /* Afficher au survol */
+}
+
+.action-button-edit {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #333;
+}
+
+.action-button-delete {
+  background-color: #dc3545;
+  border: none;
+  color: white;
+}
+
+.action-button i {
+  font-size: 14px;
+}
+
+.action-button span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+}
+
+.action-button:hover {
+  width: auto;
+  padding: 0 12px;
+}
+
+.action-button:hover span {
+  opacity: 1;
+}
+
+.action-button-edit:hover {
+  background-color: #e9ecef;
+}
+
+.action-button-delete:hover {
+  background-color: #c82333;
 }
