@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
@@ -8,6 +8,7 @@ import CustomDropdown from '../../common/dropdown/commonSelect';
 import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
 import PaymentButton from '../../home/new-home/PaymentButton';
 import { jwtDecode } from 'jwt-decode';
+
 
 // adjust as needed
 import axios from "axios";
@@ -34,7 +35,7 @@ const ProviderBooking = () => {
   const handleItemClick = (index: number) => {
     setSelectedItems((prevSelectedItems) => {
       const updatedSelectedItems = [...prevSelectedItems];
-      updatedSelectedItems[index] = !updatedSelectedItems[index]; 
+      updatedSelectedItems[index] = !updatedSelectedItems[index];
       return updatedSelectedItems;
     });
   };
@@ -48,6 +49,53 @@ const ProviderBooking = () => {
     email: '',
     phone: ''
   });
+  const RESERVATIONS_PER_PAGE = 5;
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'week'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Calculate total pages
+
+
+  // Get paginated reservations
+  const filteredReservations = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+
+    return reservations.filter(reservation => {
+      const resDate = new Date(reservation.startDate);
+      const matchesStatus = filterStatus === 'all' || reservation.status === filterStatus;
+      const matchesDate =
+        dateFilter === 'all' ||
+        (dateFilter === 'today' && resDate.toDateString() === today.toDateString()) ||
+        (dateFilter === 'tomorrow' && resDate.toDateString() === tomorrow.toDateString()) ||
+        (dateFilter === 'week' && resDate >= startOfWeek && resDate <= endOfWeek);
+
+      return matchesStatus && matchesDate;
+    });
+  }, [reservations, filterStatus, dateFilter]);
+
+
+  const paginatedReservations = useMemo(() => {
+    const startIndex = (currentPage - 1) * RESERVATIONS_PER_PAGE;
+    return filteredReservations.slice(startIndex, startIndex + RESERVATIONS_PER_PAGE);
+  }, [currentPage, filteredReservations]);
+
+  const totalPages = Math.ceil(filteredReservations.length / RESERVATIONS_PER_PAGE);
+
+
+  // Pagination click handler
+  const handlePageChange = (pageNumber: number) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -82,26 +130,19 @@ const ProviderBooking = () => {
       }
     }
   }, []);
-  const filteredReservations = reservations.filter(reservation => {
-    if (filterStatus === 'all') return true;
-    if (filterStatus === 'confirmed' && reservation.status === 'confirmed') return true;
-    if (filterStatus === 'pending' && reservation.status === 'pending') return true;
-    if (filterStatus === 'over' && reservation.status === 'over') return true;
-    return false;
-  });
 
   useEffect(() => {
     const fetchReservations = async () => {
       if (userInfo._id) {
-      try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
-        console.log("Fetched reservations:", res.data);
+        try {
+          const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
+          console.log("Fetched reservations:", res.data);
 
-        setReservations(res.data.data);  // Access the array inside 'data'
-      } catch (error) {
-        console.error("Failed to fetch reservations:", error);
+          setReservations(res.data.data);  // Access the array inside 'data'
+        } catch (error) {
+          console.error("Failed to fetch reservations:", error);
+        }
       }
-    }
     };
 
     fetchReservations();
@@ -228,17 +269,17 @@ const ProviderBooking = () => {
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="mb-2">
-                        <p className="mb-1">Pending Reservation</p>
+                        <p className="mb-1">Pending Reservations</p>
                         <h5>
                           <span className="counter">{reservationCounts.pending}</span>+
                         </h5>
                       </div>
-                      <span className="prov-icon bg-info d-flex justify-content-center align-items-center rounded">
+                      <span className="prov-icon bg-warning d-flex justify-content-center align-items-center rounded">
                         <i className="ti ti-calendar-check" />
                       </span>
                     </div>
                     <p className="fs-12">
-                      <span className="text-info me-2">
+                      <span className="text-warning me-2">
                         {percentagePending}% <i className="ti ti-arrow-badge-down-filled" />
                       </span>
                       from all reservations
@@ -271,37 +312,70 @@ const ProviderBooking = () => {
           </div>
 
           <div className="row">
-        <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-4">
-          <h4>Reservation List</h4>
-          <div className="d-flex align-items-center flex-wrap row-gap-3">
-            <span className="fs-14 me-2">Sort With Status</span>
-            <div className="dropdown me-2">
-              <Link to="#" className="dropdown-toggle" data-bs-toggle="dropdown">
-                All
-              </Link>
-              <div className="dropdown-menu">
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('all')}>
-                  All
-                </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('confirmed')}>
-                  Confirmed
-                </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('pending')}>
-                  Pending
-                </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('over')}>
-                  Expired
-                </Link>
+            <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-4">
+              <h4>Reservation List</h4>
+              <div className="d-flex align-items-center flex-wrap row-gap-3">
+                <div className="btn-group me-2">
+                  <button
+                    className={`btn ${dateFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'all' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'all' ? '#ff6f61' : '', color: dateFilter === 'all' ? 'white' : '' }}
+                    onClick={() => setDateFilter('all')}
+                  >
+                    All Dates
+                  </button>
+                  <button
+                    className={`btn ${dateFilter === 'today' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'today' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'today' ? '#ff6f61' : '', color: dateFilter === 'today' ? 'white' : '' }}
+                    onClick={() => setDateFilter('today')}
+                  >
+                    Today
+                  </button>
+                  <button
+                    className={`btn ${dateFilter === 'tomorrow' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'tomorrow' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'tomorrow' ? '#ff6f61' : '', color: dateFilter === 'tomorrow' ? 'white' : '' }}
+                    onClick={() => setDateFilter('tomorrow')}
+                  >
+                    Tomorrow
+                  </button>
+                  <button
+                    className={`btn ${dateFilter === 'week' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'week' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'week' ? '#ff6f61' : '', color: dateFilter === 'week' ? 'white' : '' }}
+                    onClick={() => setDateFilter('week')}
+                  >
+                    This Week
+                  </button>
+                </div>
               </div>
+              <div className="d-flex align-items-center flex-wrap row-gap-3">
+                <span className="fs-14 me-2">Sort With Status</span>
+                <div className="dropdown me-2">
+                  <Link to="#" className="dropdown-toggle" data-bs-toggle="dropdown">
+                    {filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+                  </Link>
+                  <div className="dropdown-menu">
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('all')}>
+                      All
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('confirmed')}>
+                      Confirmed
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('pending')}>
+                      Pending
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('over')}>
+                      Over
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
-      </div>
-        </div>
         <div className="row justify-content-center">
           <div className="col-xxl-12 col-lg-12">
-            {reservations.length > 0 ? (
-              reservations.map((reservation) => (
+            {paginatedReservations.length > 0 ? (
+              paginatedReservations.map((reservation) => (
                 <div key={reservation._id} className="card shadow-none booking-list">
                   <div className="card-body d-md-flex align-items-center">
                     <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
@@ -316,7 +390,7 @@ const ProviderBooking = () => {
 
                       <div className="booking-det-info">
                         <h6 className="mb-3">
-                        <Link to={`${routes.providerBooking}/${reservation._id}`}>
+                          <Link to={`${routes.providerBooking}/${reservation._id}`}>
                             {reservation.parking?.nom || "Parking Spot"}
                           </Link>
                           <span className={`badge ms-2 ${reservation.status === 'confirmed' ? 'badge-soft-success' :
@@ -374,49 +448,40 @@ const ProviderBooking = () => {
         </div>
 
 
-        <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3">
+        <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3 mt-4">
           <div className="value d-flex align-items-center">
             <span>Show</span>
-            <select>
-              <option>7</option>
+            <select value={RESERVATIONS_PER_PAGE} disabled>
+              <option>{RESERVATIONS_PER_PAGE}</option>
             </select>
             <span>entries</span>
           </div>
+
           <div className="d-flex align-items-center justify-content-center">
-            <span className="me-2 text-gray-9">1 - 07 of 10</span>
+            <span className="me-2 text-gray-9">
+              {((currentPage - 1) * RESERVATIONS_PER_PAGE) + 1} -{" "}
+              {Math.min(currentPage * RESERVATIONS_PER_PAGE, reservations.length)} of {reservations.length}
+            </span>
             <nav aria-label="Page navigation">
               <ul className="paginations d-flex justify-content-center align-items-center">
-                <li className="page-item me-2">
-                  <Link
-                    className="page-link-1 active d-flex justify-content-center align-items-center "
-                    to="#"
-                  >
-                    1
-                  </Link>
-                </li>
-                <li className="page-item me-2">
-                  <Link
-                    className="page-link-1 d-flex justify-content-center align-items-center "
-                    to="#"
-                  >
-                    2
-                  </Link>
-                </li>
-                <li className="page-item ">
-                  <Link
-                    className="page-link-1 d-flex justify-content-center align-items-center "
-                    to="#"
-                  >
-                    3
-                  </Link>
-                </li>
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                  <li className="page-item me-2" key={pageNum}>
+                    <button
+                      className={`page-link-1 d-flex justify-content-center align-items-center ${pageNum === currentPage ? "active" : ""}`}
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  </li>
+                ))}
               </ul>
             </nav>
           </div>
         </div>
+
       </div>
-{/* /Page Wrapper */ }
-<BookingModals />
+      {/* /Page Wrapper */}
+      <BookingModals />
     </>
 
   );

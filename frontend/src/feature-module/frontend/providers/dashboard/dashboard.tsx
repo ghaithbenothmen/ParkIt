@@ -69,9 +69,9 @@ const ProviderDashboard = () => {
         try {
           const res = await axios.get(`http://localhost:4000/api/reservations/countweek/${userInfo._id}`);
           const data = res.data.data;
-  
+
           const totalReservations = Object.values(data).reduce((acc, val) => acc + val, 0);
-  
+
           setReservationCount({
             ...data,
             totalReservations,
@@ -81,10 +81,10 @@ const ProviderDashboard = () => {
         }
       }
     };
-  
+
     fetchWeeklyReservationCount();
   }, [userInfo._id]);
-  
+
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -428,7 +428,7 @@ const ProviderDashboard = () => {
                         Performance is 30% better last month
                       </span>
                       <Link
-                        to={routes.bookings}
+                        to={routes.providerBooking}
                         className="btn btn-dark"
                       >
                         View All Reservations
@@ -531,13 +531,17 @@ const ProviderDashboard = () => {
                           <Link to={`/parkings/parking-details/${parking._id}`} className="fw-medium mb-0">
                             {parking.nom}
                           </Link>
-                          <div className="fs-12 d-flex align-items-center gap-2">
-                            <span className="pe-2 border-end">{parking.adresse}</span>
-                            <span className="pe-2 border-end">{parking.nbr_place} spots</span>
-                            <span>
-                              <i className="ti ti-star-filled text-warning me-1" />
-                              4.9
+                          <div className="d-flex justify-content-between align-items-center" style={{ width: '100%' }}>
+                            <span className="text-truncate me-3" style={{ maxWidth: '200px' }}>
+                              {parking.adresse}
                             </span>
+                            <div className="d-flex align-items-center gap-3">
+                              <span>{parking.nbr_place} spots</span>
+                              <span>
+                                <i className="ti ti-star-filled text-warning me-1" />
+                                4.9
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
