@@ -25,49 +25,49 @@ const ParkingDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const user = localStorage.getItem('user');
-    const [userInfo, setUserInfo] = useState({
-      _id: '',
-      firstname: '',
-      lastname: '',
-      email: '',
-      phone: ''
-    });
-  
-    useEffect(() => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          // Is it a JWT token or JSON object?
-          if (storedUser.startsWith('{')) {
-            // It's a JSON string (not a token)
-            const user = JSON.parse(storedUser);
-            console.log("Loaded user object from localStorage:", user);
-            setUserInfo({
-              _id: user._id || '',
-              firstname: user.firstname || '',
-              lastname: user.lastname || '',
-              email: user.email || '',
-              phone: user.phone || ''
-            });
-          } else {
-            // It's probably a JWT token
-            const decoded: any = jwtDecode(storedUser);
-            console.log("Decoded user from JWT token:", decoded);
-            setUserInfo({
-              _id: decoded._id || '',
-              firstname: decoded.firstname || '',
-              lastname: decoded.lastname || '',
-              email: decoded.email || '',
-              phone: decoded.phone || ''
-            });
-          }
-        } catch (err) {
-          console.error('Error processing stored user:', err);
-        }
-      }
-    }, []);
+  const [userInfo, setUserInfo] = useState({
+    _id: '',
+    firstname: '',
+    lastname: '',
+    email: '',
+    phone: ''
+  });
 
-  // État pour le formulaire d'avis
+  // State to track if the user has already reviewed this parking
+  const [userReview, setUserReview] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        if (storedUser.startsWith('{')) {
+          const user = JSON.parse(storedUser);
+          console.log("Loaded user object from localStorage:", user);
+          setUserInfo({
+            _id: user._id || '',
+            firstname: user.firstname || '',
+            lastname: user.lastname || '',
+            email: user.email || '',
+            phone: user.phone || ''
+          });
+        } else {
+          const decoded = jwtDecode(storedUser);
+          console.log("Decoded user from JWT token:", decoded);
+          setUserInfo({
+            _id: decoded._id || '',
+            firstname: decoded.firstname || '',
+            lastname: decoded.lastname || '',
+            email: decoded.email || '',
+            phone: decoded.phone || ''
+          });
+        }
+      } catch (err) {
+        console.error('Error processing stored user:', err);
+      }
+    }
+  }, []);
+
   const [reviewForm, setReviewForm] = useState({
     parkingId: id,
     rating: 5,
@@ -75,39 +75,62 @@ const ParkingDetails = () => {
   });
   const [reviewMessage, setReviewMessage] = useState('');
 
-  // Gérer les changements dans le formulaire
   const handleReviewChange = (e) => {
     const { name, value } = e.target;
     setReviewForm({ ...reviewForm, [name]: value });
   };
 
-  // Gérer la soumission du formulaire
+  const handleStarClick = (rating) => {
+    setReviewForm({ ...reviewForm, rating });
+  };
+
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     setReviewMessage('');
 
     try {
-      const response = await axios.post(
-        'http://localhost:4000/api/reviews',
-        {
-          parkingId: reviewForm.parkingId,
-          rating: Number(reviewForm.rating),
-          comment: reviewForm.comment,
-          userId: userInfo._id,
-        },
-      );
+      if (isEditing && userReview) {
+        // Update existing review
+        const response = await axios.put(
+          `http://localhost:4000/api/reviews/${userReview._id}`,
+          {
+            parkingId: reviewForm.parkingId,
+            rating: Number(reviewForm.rating),
+            comment: reviewForm.comment,
+            userId: userInfo._id,
+          }
+        );
 
-      setReviewMessage('Avis soumis avec succès !');
-      setReviews([...reviews, response.data]);
+        setReviewMessage('Avis modifié avec succès !');
+        setReviews(
+          reviews.map((review) =>
+            review._id === userReview._id ? response.data : review
+          )
+        );
+      } else {
+        // Create new review
+        const response = await axios.post(
+          'http://localhost:4000/api/reviews',
+          {
+            parkingId: reviewForm.parkingId,
+            rating: Number(reviewForm.rating),
+            comment: reviewForm.comment,
+            userId: userInfo._id,
+          }
+        );
+
+        setReviewMessage('Avis soumis avec succès !');
+        setReviews([...reviews, response.data]);
+      }
+
       setReviewForm({ parkingId: id, rating: 5, comment: '' });
+      setIsEditing(false);
 
-      // Ferme la modale et recharge la page
       setTimeout(() => {
         document.getElementById('add-review')?.classList.remove('show');
         document.body.classList.remove('modal-open');
         const modalBackdrop = document.querySelector('.modal-backdrop');
         if (modalBackdrop) modalBackdrop.remove();
-        // Recharge la page pour afficher le nouvel avis
         window.location.reload();
       }, 2000);
     } catch (error) {
@@ -117,9 +140,7 @@ const ParkingDetails = () => {
       console.error('Erreur:', error);
     }
   };
-  
 
-  // Calculer la note moyenne et le nombre d'avis
   const averageRating =
     reviews.length > 0
       ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
@@ -132,7 +153,6 @@ const ParkingDetails = () => {
   });
 
   useEffect(() => {
-    // Récupérer les détails du parking
     axios
       .get(`http://localhost:4000/api/parking/${id}`)
       .then((response) => {
@@ -145,26 +165,51 @@ const ParkingDetails = () => {
         setLoading(false);
       });
 
-    // Récupérer les avis du parking
     axios
       .get(`http://localhost:4000/api/reviews/parking/${id}`)
       .then((response) => {
         setReviews(response.data);
+        // Check if the current user has already reviewed this parking
+        const existingReview = response.data.find(
+          (review) => review.userId?._id === userInfo._id
+        );
+        if (existingReview) {
+          setUserReview(existingReview);
+          setReviewForm({
+            parkingId: id,
+            rating: existingReview.rating,
+            comment: existingReview.comment,
+          });
+        }
       })
       .catch((error) => {
         console.error('Erreur lors du chargement des avis:', error);
       });
-  }, [id]);
+  }, [id, userInfo._id]);
 
   useEffect(() => {
     setNav1(sliderRef1.current);
     setNav2(sliderRef2.current);
   }, []);
 
+  // Handle opening the modal for editing
+  const handleOpenReviewModal = () => {
+    if (userReview) {
+      setIsEditing(true);
+      setReviewForm({
+        parkingId: id,
+        rating: userReview.rating,
+        comment: userReview.comment,
+      });
+    } else {
+      setIsEditing(false);
+      setReviewForm({ parkingId: id, rating: 5, comment: '' });
+    }
+  };
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
-  // Valeurs par défaut pour les champs manquants
   const defaultImages = ['assets/img/parking.jpg'];
   const defaultDescription = 'Parking sécurisé avec caméras et service 24h.';
   const defaultReviewCount = 0;
@@ -235,7 +280,6 @@ const ParkingDetails = () => {
                         <div className="d-flex align-items-center flex-wrap"></div>
                       </div>
                     </div>
-                    {/* Slider */}
                     <div className="service-wrap mb-4">
                       <div className="slider-wrap">
                         <Slider
@@ -285,7 +329,6 @@ const ParkingDetails = () => {
                             />
                           </div>
                         </Slider>
-
                       </div>
                       <Slider
                         {...settings2}
@@ -335,9 +378,6 @@ const ParkingDetails = () => {
                         </div>
                       </Slider>
                     </div>
-
-                    {/* /Slider */}
-                              
                     <div className="accordion service-accordion">
                       <div className="accordion-item mb-4">
                         <h2 className="accordion-header">
@@ -409,8 +449,9 @@ const ParkingDetails = () => {
                           data-bs-toggle="modal"
                           data-bs-target="#add-review"
                           className="btn btn-dark btn-sm mb-3"
+                          onClick={handleOpenReviewModal}
                         >
-                          Write a Review
+                          {userReview ? 'Edit Review' : 'Write a Review'}
                         </Link>
                       ) : (
                         <p>
@@ -427,12 +468,16 @@ const ParkingDetails = () => {
                           <h5 className="mb-3">Customer Reviews & Ratings</h5>
                           <div className="d-inline-flex align-items-center justify-content-center">
                             {[1, 2, 3, 4, 5].map((star) => (
-                              <i
+                              <span
                                 key={star}
-                                className={`ti ti-star-filled text-warning me-1 ${
-                                  star <= Math.round(averageRating) ? '' : 'text-muted'
-                                }`}
-                              />
+                                style={{
+                                  fontSize: '24px',
+                                  marginRight: '5px',
+                                  color: star <= Math.round(averageRating) ? '#f5c518' : '#d3d3d3',
+                                }}
+                              >
+                                ★
+                              </span>
                             ))}
                           </div>
                           <p className="mb-3">({averageRating} out of 5.0)</p>
@@ -502,7 +547,7 @@ const ParkingDetails = () => {
                                     review.rating >= 4 ? 'success' : 'danger'
                                   } d-inline-flex align-items-center mb-2`}
                                 >
-                                  <i className="ti ti-star-filled me-1" />
+                                  <span style={{ marginRight: '5px' }}>★</span>
                                   {review.rating}
                                 </span>
                               </div>
@@ -676,7 +721,6 @@ const ParkingDetails = () => {
         </div>
       </div>
 
-      {/* Modal pour soumettre un avis */}
       <div
         className="modal fade"
         id="add-review"
@@ -688,7 +732,7 @@ const ParkingDetails = () => {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="addReviewLabel">
-                Soumettre un avis
+                {isEditing ? 'Modifier un avis' : 'Soumettre un avis'}
               </h5>
               <button
                 type="button"
@@ -712,20 +756,22 @@ const ParkingDetails = () => {
                   <label htmlFor="rating" className="form-label">
                     Note (1 à 5)
                   </label>
-                  <select
-                    className="form-select"
-                    id="rating"
-                    name="rating"
-                    value={reviewForm.rating}
-                    onChange={handleReviewChange}
-                    required
-                  >
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                  </select>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        onClick={() => handleStarClick(star)}
+                        style={{
+                          cursor: 'pointer',
+                          fontSize: '24px',
+                          marginRight: '5px',
+                          color: star <= reviewForm.rating ? '#f5c518' : '#d3d3d3',
+                        }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <div className="mb-3">
                   <label htmlFor="comment" className="form-label">
@@ -741,8 +787,17 @@ const ParkingDetails = () => {
                     required
                   ></textarea>
                 </div>
-                <button type="submit" className="btn btn-primary">
-                  Soumettre
+                <button
+                  type="submit"
+                  className="btn"
+                  style={{
+                    backgroundColor: '#d32f2f',
+                    color: 'white',
+                    border: 'none',
+                    padding: '10px 20px',
+                  }}
+                >
+                  {isEditing ? 'Modifier' : 'Soumettre'}
                 </button>
               </form>
             </div>
