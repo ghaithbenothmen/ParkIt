@@ -3,6 +3,7 @@ const router = express.Router();
 const parkingController = require("../controllers/parking.controller");
 
 router.get('/count', parkingController.getParkingCount);
+router.get("/top-rated", parkingController.getTopRatedParkings);
 router.get("/", parkingController.getAllParkings);
 router.get("/:id", parkingController.getParkingById);
 

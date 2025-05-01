@@ -23,6 +23,7 @@ import PendingServices from './services/pending-services';
 
 import CategoriesList from './categories/categories-list';
 import SubCategoriesList from './categories/subcategories-list';
+import Claims from './claims/claims';
 
 import Review from './services/review';
 import ReviewType from './services/review-type';
@@ -55,6 +56,7 @@ import PluginManager from './management/plugin-manager';
 import DeleteAccountrequests from './user-management/deleteAccountrequests';
 import AddService from './services/add-service';
 import EditService from './services/edit-service';
+import Reviews from './review/review';
 
 const AdminRoutes = () => {
   const all_admin_routes = [
@@ -64,6 +66,13 @@ const AdminRoutes = () => {
       path: '/management/menu-management',
       name: 'menu-management',
       element: <MenuManagement />,
+      route: Route,
+    },
+    
+    {
+      path: '/claims',
+      name: 'Claims',
+      element: <Claims />,
       route: Route,
     },
  
@@ -117,7 +126,12 @@ const AdminRoutes = () => {
       element: <Users />,
       route: Route,
     },
-   
+    {
+      path: '/reviews',
+      name: 'reviews',
+      element: <Reviews />,
+      route: Route,
+    },
  
   
     {
