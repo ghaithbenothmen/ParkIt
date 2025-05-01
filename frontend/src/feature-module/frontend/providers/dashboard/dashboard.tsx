@@ -34,9 +34,19 @@ interface Parking {
   disponibilite: boolean;
   latitude: number;
   longitude: number;
-  averageRating:number;
+  averageRating: number;
   createdAt: string;
   updatedAt: string;
+}
+interface Review {
+  _id: string;
+  parkingId: {
+    nom: string;
+    image: string;
+  };
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
 
@@ -44,7 +54,9 @@ const ProviderDashboard = () => {
   const routes = all_routes;
   const [showModal, setShowModal] = useState(false);
   const [value, onChange] = useState(new Date());
+  const [latestReviews, setLatestReviews] = useState<Review[]>([]);
   const [parkings, setParkings] = useState<Parking[]>([]);
+  const [Topparkings, setTopParkings] = useState<Parking[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [reservation, setReservation] = useState<Reservation[]>([]);
   const [userInfo, setUserInfo] = useState({
@@ -64,6 +76,20 @@ const ProviderDashboard = () => {
     Sunday: 0,
     totalReservations: 0, // New field for the total reservations count
   });
+  useEffect(() => {
+    const fetchLatestReviews = async () => {
+      if (userInfo._id) {
+        try {
+          const res = await axios.get(`http://localhost:4000/api/reviews/user/${userInfo._id}`);
+          setLatestReviews(res.data.slice(0, 3)); // Only keep latest 3
+        } catch (error) {
+          console.error("Failed to fetch latest reviews:", error);
+        }
+      }
+    };
+
+    fetchLatestReviews();
+  }, [userInfo._id]);
   useEffect(() => {
     const fetchWeeklyReservationCount = async () => {
       if (userInfo._id) {
@@ -92,6 +118,7 @@ const ProviderDashboard = () => {
     const day = `${date.getDate()}`.padStart(2, '0');
     return `${year}-${month}-${day}`;  // example: "2025-04-17"
   };
+
 
   const handleDateChange = async (date: Date) => {
     onChange(date); // update the calendar's selected date
@@ -125,6 +152,18 @@ const ProviderDashboard = () => {
     };
 
     fetchParkings();
+  }, []);
+  useEffect(() => {
+    const fetchTopParkings = async () => {
+      try {
+        const response = await axios.get<Parking[]>('http://localhost:4000/api/parking/top-rated');
+        setTopParkings(response.data);
+      } catch (error) {
+        console.error('Error fetching parkings:', error);
+      }
+    };
+
+    fetchTopParkings();
   }, []);
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -281,52 +320,58 @@ const ProviderDashboard = () => {
       }
     }]
   })
-  const [sCol2] = useState<any>({
-    series: [{
-      name: "sales",
-      colors: ['#FFC38F'],
-      data: [{
-        x: 'Inpipeline',
-        y: 400,
+  useEffect(() => {
+    const fetchTopLocationsData = async () => {
+      if (!userInfo._id) return;
+      try {
+        const res = await axios.get(`http://localhost:4000/api/reservations/reservation/parkuser/${userInfo._id}`);
+        const data = res.data.data;
 
-      }, {
-        x: 'Follow Up',
-        y: 130
-      }, {
-        x: 'Schedule',
-        y: 248
-      }, {
-        x: 'Conversation',
-        y: 470
-      }, {
-        x: 'Won',
-        y: 470
-      }, {
-        x: 'Lost',
-        y: 180
-      }]
-    }],
-    chart: {
-      type: 'bar',
-      height: 260,
-    },
-    plotOptions: {
-      bar: {
-        borderRadiusApplication: 'around',
-        columnWidth: '40%',
+        const transformedData = Object.entries(data).map(([parkingName, count]: any) => ({
+          x: parkingName,
+          y: count
+        }));
+
+        setTopLocationChart({
+          ...topLocationChart,
+          series: [{
+            name: 'Reservations',
+            data: transformedData
+          }]
+        });
+      } catch (error) {
+        console.error('Error fetching top location chart data:', error);
       }
-    },
-    colors: ['#00918E'],
-    xaxis: {
-      type: 'category',
-      group: {
-        style: {
-          fontSize: '7px',
-          fontWeight: 700,
-        },
-      }
-    },
-  })
+    };
+
+    fetchTopLocationsData();
+  }, [userInfo._id]);
+
+  const [topLocationChart, setTopLocationChart] = useState<any>({
+    series: [],
+    options: {
+      chart: {
+        type: 'bar',
+        height: 260,
+      },
+      plotOptions: {
+        bar: {
+          borderRadiusApplication: 'around',
+          columnWidth: '40%',
+        }
+      },
+      colors: ['#00918E'],
+      xaxis: {
+        type: 'category',
+        labels: {
+          style: {
+            fontSize: '12px'
+          }
+        }
+      },
+    }
+  });
+
   return (
     <>
       {/* Page Wrapper */}
@@ -620,35 +665,12 @@ const ProviderDashboard = () => {
                   <h6 className="mb-4">Top Locations</h6>
                   <div id="deals-chart" >
                     <ReactApexChart
-                      options={sCol2}
-                      series={sCol2.series}
+                      options={topLocationChart.options}
+                      series={topLocationChart.series}
                       type="bar"
                       height={275}
                     />
-                  </div>
-                  <div>
-                    <p>Top Locations &amp; Users</p>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <div className="d-flex">
-                        <span className="avatar avatar-lg me-2">
-                          <ImageWithBasePath
-                            src="assets/img/icons/flag-01.svg"
-                            className="rounded-circle "
-                            alt="flag"
-                          />
-                        </span>
-                        <div>
-                          <p className="text-dark fw-medium mb-0">
-                            Saudi Arabia
-                          </p>
-                          <span className="fs-12">California</span>
-                        </div>
-                      </div>
-                      <span className="badge badge-info">
-                        <i className="ti ti-point-filled" />
-                        300 Bookings
-                      </span>
-                    </div>
+
                   </div>
                 </div>
               </div>
@@ -657,64 +679,47 @@ const ProviderDashboard = () => {
               <div className="card flex-fill">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h6>Latest Reviews</h6>
-                    <Link to={routes.providerReview} className="btn border">
-                      View All
-                    </Link>
+                    <h6 className="mb-0">Your Latest Reviews</h6>
                   </div>
-                  <div className=" border-bottom pb-3 mb-3">
-                    <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-2">
-                      <div className="d-flex">
-                        <Link
-                          to="#"
-                          className="avatar avatar-lg flex-shrink-0 me-2"
-                        >
-                          <ImageWithBasePath
-                            src="assets/img/profiles/avatar-01.jpg"
-                            className="rounded-circle"
-                            alt="Img"
-                          />
-                        </Link>
-                        <div>
-                          <Link
-                            to={routes.providerReview}
-                            className="fw-medium"
-                          >
-                            Maude Rossi
-                          </Link>
-                          <div className="d-flex align-items-center">
-                            <p className="fs-12 mb-0 pe-2 border-end">
-                              For{' '}
-                              <span className="text-info">
-                                Plumbing installation
-                              </span>
-                            </p>
-                            <span className="avatar avatar-sm mx-2">
+                  {latestReviews.length === 0 ? (
+                    <p className="text-muted">You havent posted any reviews yet.</p>
+                  ) : (
+                    latestReviews.map((review) => (
+                      <div key={review._id} className="border-bottom pb-3 mb-3">
+                        <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-2">
+                          <div className="d-flex">
+                            <Link to="#" className="avatar avatar-lg flex-shrink-0 me-2">
                               <ImageWithBasePath
-                                src="assets/img/user/user-03.jpg"
-                                className="img-fluid rounded-circle"
-                                alt="user"
+                                src="assets/img/parking.jpg"
+                                className="rounded-circle"
+                                alt="Parking"
                               />
+                            </Link>
+                            <div>
+                              <h6 className="fw-medium mb-0">{review.parkingId.nom}</h6>
+                              <p className="mb-1 text-muted">{review.comment}</p>
+                              <small className="text-muted">{new Date(review.createdAt).toLocaleDateString()}</small>
+                            </div>
+                          </div>
+                          <div className="d-flex align-items-center">
+                            <span className="text-warning fs-6 me-2">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <i
+                                  key={star}
+                                  className={`ti ti-star${review.rating >= star ? '-filled filled' : ''}`}
+                                />
+                              ))}
                             </span>
-                            <span className="fs-12">rebecca</span>
+                            <span className="fs-12">{review.rating.toFixed(1)}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="d-flex">
-                        <span className="text-warning fs-10 me-1">
-                          <i className="ti ti-star-filled filled" />
-                          <i className="ti ti-star-filled filled" />
-                          <i className="ti ti-star-filled filled" />
-                          <i className="ti ti-star-filled filled" />
-                          <i className="ti ti-star-filled filled" />
-                        </span>
-                        <span className="fs-12">4.9</span>
-                      </div>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
+
             <div className="col-md-6 d-flex">
               <div className="card flex-fill">
                 <div className="card-body">
@@ -724,38 +729,42 @@ const ProviderDashboard = () => {
                       View All
                     </Link>
                   </div>
-                  <div className="d-flex justify-content-between align-items-center border-bottom flex-wrap row-gap-2 pb-3 mb-3">
-                    <div className="d-flex">
-                      <Link
-                        to={routes.map}
-                        className="avatar avatar-lg me-2"
-                      >
-                        <ImageWithBasePath
-                          src="assets/img/profiles/avatar-20.jpg"
-                          className="rounded-circle"
-                          alt="Img"
-                        />
-                      </Link>
-                      <div>
-                        <Link to={routes.staffDetails} className="fw-medium">
-                          Maude Rossi
+
+                  {Topparkings.map((parking, index) => (
+                    <div
+                      key={parking._id}
+                      className="d-flex justify-content-between align-items-center border-bottom flex-wrap row-gap-2 pb-3 mb-3"
+                    >
+                      <div className="d-flex">
+                        <Link to={routes.map} className="avatar avatar-lg me-2">
+                          <ImageWithBasePath
+                            src="assets/img/parking.jpg"
+                            className="rounded-circle"
+                            alt="Parking"
+                          />
                         </Link>
-                        <div className="fs-12 d-flex align-items-center gap-2">
-                          <span className="pe-2 border-end">Plumber</span>
-                          <span>
-                            <i className="ti ti-star-filled text-warning me-1" />
-                            4.9
-                          </span>
+                        <div>
+                          <Link to={routes.map} className="fw-medium">
+                            {parking.nom}
+                          </Link>
+                          <div className="fs-12 d-flex align-items-center gap-2">
+                            <span className="pe-2 border-end">{parking.adresse}</span>
+                            <span>
+                              <i className="ti ti-star-filled text-warning me-1" />
+                              {parking.nbr_place} Spots
+                            </span>
+                          </div>
                         </div>
                       </div>
+                      <span className="badge badge-info d-flex align-items-center gap-1">
+                        <i className="ti ti-star-filled text-warning" />
+                        {parking.averageRating.toFixed(1)}
+                      </span>
                     </div>
-                    <span className="badge badge-info">
-                      <i className="ti ti-point-filled" />
-                      300 Bookings
-                    </span>
-                  </div>
+                  ))}
                 </div>
               </div>
+
             </div>
           </div>
         </div>

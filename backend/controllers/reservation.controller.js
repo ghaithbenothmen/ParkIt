@@ -2,6 +2,7 @@ const Reservation = require('../models/reservation.model.js');
 const ParkingSpot = require('../models/parkingSpot.model');
 const cron = require('node-cron');
 const NotificationController = require('./notification.controller.js');
+const mongoose = require('mongoose');
 
 cron.schedule('0 0 * * *', async () => {
     console.log('Checking for expired reservations...');
@@ -577,6 +578,55 @@ exports.getWeeklyReservationCountsByUser = async (req, res) => {
         return res.status(500).json({ message: 'Erreur lors de la récupération des réservations de la semaine', error: error.message });
     }
 };
+exports.getReservationCountByUserForEachParking = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+
+        // Aggregate reservations by parkingId and count the number of reservations
+        const reservationCounts = await Reservation.aggregate([
+            { 
+                $match: { userId: userObjectId }  // Filter reservations by userId
+            },
+            {
+                $group: {
+                    _id: "$parkingId", // Group by parkingId
+                    count: { $sum: 1 } // Count the number of reservations for each parkingId
+                }
+            },
+            {
+                $lookup: {
+                    from: "parkings", // Look up the parking details from the "Parking" collection
+                    localField: "_id", // Matching parkingId
+                    foreignField: "_id", // Foreign field to match
+                    as: "parkingDetails"
+                }
+            },
+            {
+                $unwind: "$parkingDetails" // Unwind the parkingDetails array
+            },
+            {
+                $project: {
+                    parkingName: "$parkingDetails.nom", // Assuming "name" is the field for the parking name
+                    count: 1
+                }
+            }
+        ]);
+
+        // Format the response
+        const result = reservationCounts.reduce((acc, curr) => {
+            acc[curr.parkingName] = curr.count;
+            return acc;
+        }, {});
+
+        res.status(200).json({ data: result });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error retrieving reservation counts",
+            error: error.message
+        });
+    }
+};
 
 
 
@@ -605,4 +655,5 @@ module.exports = {
     getWeekendReservationStats: exports.getWeekendReservationStats,
     getReservationsByUserAndStartDate: exports.getReservationsByUserAndStartDate,
     getWeeklyReservationCountsByUser: exports.getWeeklyReservationCountsByUser,
+    getReservationCountByUserForEachParking: exports.getReservationCountByUserForEachParking,
 }

@@ -5,6 +5,7 @@ const reservationController = require('../controllers/reservation.controller');
 // Routes pour les opérations CRUD
 router.get('/reservation-summary', reservationController.getReservationSummary);
 router.get('/reservation-statistics', reservationController.getReservationStatistics);
+router.get('/reservation/parkuser/:userId',reservationController.getReservationCountByUserForEachParking);
 router.get('/top-users', reservationController.getTopUsers);
 router.get('/top-parkings', reservationController.getTopParkings);
 router.get('/weekend', reservationController.getWeekendReservationStats);

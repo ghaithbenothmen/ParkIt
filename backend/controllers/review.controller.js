@@ -123,3 +123,24 @@ const updateParkingRating = async (parkingId) => {
     throw error;
   }
 };
+// Get the latest 3 reviews by user ID
+exports.getReviewsByUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    console.log('Récupération des 3 derniers avis pour userId:', userId);
+
+    const reviews = await Review.find({ userId })
+      .populate('parkingId', 'nom adresse')
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    console.log('Avis récupérés:', reviews.length);
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error('Erreur dans getReviewsByUser:', error.stack);
+    res.status(500).json({
+      message: 'Erreur lors de la récupération des avis de l\'utilisateur',
+      error: error.message,
+    });
+  }
+};
