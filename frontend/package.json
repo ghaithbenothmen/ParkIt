@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "jwt-decode": "^4.0.0",
     "@ant-design/icons": "^5.2.6",
     "@fortawesome/fontawesome-free": "^6.6.0",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
@@ -37,6 +36,7 @@
     "ityped": "^1.0.3",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12",
     "lucide-react": "^0.476.0",
     "npm": "^10.2.1",
     "otp-input-react": "^0.3.0",
@@ -75,6 +75,7 @@
     "redux": "^4.2.1",
     "sass": "^1.78.0",
     "slick-carousel": "^1.8.1",
+    "socket.io-client": "^4.8.1",
     "web-vitals": "^2.1.4",
     "yet-another-react-lightbox": "^3.21.5"
   },
@@ -111,6 +112,7 @@
     "@types/ityped": "^1.0.3",
     "@types/jwt-decode": "^2.2.1",
     "@types/leaflet": "^1.9.16",
+    "@types/leaflet-routing-machine": "^3.2.8",
     "@types/node": "^20.8.8",
     "@types/react": "^18.3.18",
     "@types/react-datepicker": "^4.19.1",

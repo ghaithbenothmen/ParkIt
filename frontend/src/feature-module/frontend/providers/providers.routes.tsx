@@ -9,7 +9,7 @@ import ProviderAvailability from './provider-availability/provider-availability'
 import ProviderBookDetails from './provider-book-details/provider-book-details';
 import ProviderBooking from './provider-booking/provider-booking';
 import ProviderSecuritySettings from './settings/provider-security-settings';
-import ProviderServices from './provider-service/provider-service';
+import ProviderCars from './cars/provider-cars';
 import ProviderServiceList from './provider-service-list/provider-service-list';
 import ProviderSignup from './authentication/provider-signup';
 import ProviderPlan from './settings/provider-plan';
@@ -21,9 +21,14 @@ import ProviderSignupSubscription from './authentication/provider-signup-subscri
 import CustomerDetails from './customer/customerDetails';
 import CustomerList from './customer/customerList';
 import CustomerGrid from './customer/customerGrid';
-import CreateVehicule from '../services/create-service/createServices'; // Import the new page
+import CreateCar from '../services/car/create-car'; // Import the new page
+import CreateClaim from '../services/claim/create-claim'; // Import the new page
 import ParkingVisualization from './pickParkingSpot';
 import ProtectedRoute from '../../router/ProtectedRoute';
+import ProviderClaims from './claims/provider-claims';
+import ClaimDetails from './claims/provider-claim-details';
+import BookingDetails from './provider-booking/booking-details';
+
 
 const ProvidersRoutes = () => {
   const all_providers_routes = [
@@ -32,6 +37,18 @@ const ProvidersRoutes = () => {
       name: 'providerAddon',
       element: <ProviderAddon />,
     },
+    {
+      path: '/claims',
+      name: 'provider-claims',
+      element: <ProviderClaims />,
+      route: Route,
+    },
+      {
+        path: '/claims/:id',
+        name: 'provider-claim-details',
+        element: <ClaimDetails />,
+        route: Route,
+      },
     {
       path: '/providers/provider-edit-service',
       name: 'provider-edit-service',
@@ -73,19 +90,25 @@ const ProvidersRoutes = () => {
       element: <ProviderBookDetails />,
     },
     {
-      path: '/provider-booking',
+      path: '/booking',
       name: 'provider-booking',
       element: <ProviderBooking />,
     },
+    {
+      path: '/booking/:id',
+      name: 'provider-booking-details',
+      element: <BookingDetails />,
+    },
+    
     {
       path: '/dashboard',
       name: 'provider-dashboard',
       element: <ProviderDashboard />,
     },
     {
-      path: '/provider-service',
-      name: 'provider-service',
-      element: <ProviderServices />,
+      path: '/cars',
+      name: 'provider-cars',
+      element: <ProviderCars/>,
     },
     {
       path: '/authentication/provider-signup',
@@ -137,15 +160,11 @@ const ProvidersRoutes = () => {
       name: 'provider-service-list',
       element: <ProviderServiceList />,
     },
-    {
-      path: '/provider-service/create-vehicule',
-      name: 'create-vehicule',
-      element: <CreateVehicule />, // New route for creating vehicles
-    },
+
     {
       path: '/provider-service/edit-vehicule/:id',
       name: 'edit-vehicule',
-      element: <CreateVehicule />, // Même composant pour l'édition
+      element: <CreateCar />, // Même composant pour l'édition
       route: Route,
     },
     {

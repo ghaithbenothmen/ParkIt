@@ -5,6 +5,8 @@ import PhoneInput from 'react-phone-input-2';
 import axios from 'axios';
 import SuccessModal from '../../../../modals/SuccessModal';
 import { Modal } from 'bootstrap';
+import { jwtDecode } from 'jwt-decode';
+import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 
 const ProviderSecuritySettings = () => {
   const routes = all_routes;
@@ -37,6 +39,7 @@ const ProviderSecuritySettings = () => {
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(storedUser) : null; // Get user data from local storage
   const email = user?.email; // Extract the user's email
+  const id = user?._id;
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -82,6 +85,31 @@ const ProviderSecuritySettings = () => {
 
     fetch2FAStatus();
   }, []);
+  const handleFaceRegistration = async () => {
+    try {
+      const userId = id;
+  
+      const response = await axios.post('http://localhost:4000/api/auth/register_face', 
+        { userId }, // <- send as JSON, not FormData
+        {
+          headers: {
+            'Content-Type': 'application/json', // <- tell server it's JSON
+            Authorization: `Bearer ${localStorage.getItem('token')}`, // if your endpoint needs auth
+          },
+        }
+      );
+  
+      if (response.data.message) {
+        alert('Face registration successful!');
+      } else {
+        alert('Face registration failed!');
+      }
+    } catch (error) {
+      console.error('Error registering face data:', error);
+      alert('An error occurred during face registration.');
+    }
+  };
+  
 
   // Handle 2FA toggle
   const handle2FAToggle = async () => {
@@ -229,6 +257,29 @@ const ProviderSecuritySettings = () => {
                 </div>
               </div>
             </div>
+            <div className="col-xxl-4 col-md-6">
+                    <div className="card dash-widget-2">
+                      <div className="card-body">
+                        <div className="d-flex align-items-center mb-3">
+                          <span className="set-icon bg-light d-flex justify-content-center align-items-center rounded-circle p-1 me-2">
+                            <i className="ti ti-camera text-dark fs-20" /> {/* Camera icon */}
+                          </span>
+                          <div>
+                            <p className="mb-0 text-gray-9 fw-medium">Face Registration</p>
+                            <span className="fs-12 text-truncate">
+                              Register your face for future logins.
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          className="btn btn-dark"
+                          onClick={handleFaceRegistration} // Trigger face registration
+                        >
+                          Register Face
+                        </button>
+                      </div>
+                    </div>
+                  </div>
             {/* 2FA Section */}
             {/* 2FA Section */}
             <div className="col-xl-4 col-md-4 d-flex mb-3">

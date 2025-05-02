@@ -30,45 +30,11 @@ export const adminSidebar = [
     menu: [
       {
         menuValue: 'Users',
-        hasSubRoute: true,
+        hasSubRoute: false,
         showSubRoute: false,
+        route: routes.users,
         icon: <Icon.User className="react-feather-icon" />,
-        subMenus: [
-          {
-            menuValue: 'Users',
-            route: routes.users,
-          },
-          /* {
-            menuValue: 'Customers',
-            route: routes.userCustomer,
-          },
-          {
-            menuValue: 'Providers',
-            route: routes.userProviders,
-          }, */
-        ],
       },
-      /* {
-        menuValue: 'Roles & Permissions',
-        hasSubRoute: false,
-        showSubRoute: false,
-        route: routes.roles,
-        icon: <Icon.File className="react-feather-icon" />,
-      }, */
-      /* {
-        menuValue: 'Delete Account Requests',
-        hasSubRoute: false,
-        showSubRoute: false,
-        route: routes.deleteaccountrequests,
-        icon: <Icon.Trash2 className="react-feather-icon" />,
-      }, */
-      /* {
-        menuValue: 'Verification Requests',
-        hasSubRoute: false,
-        showSubRoute: false,
-        route: routes.verificationRequest,
-        icon: <Icon.DollarSign className="react-feather-icon" />,
-      }, */
     ],
   },
 
@@ -79,56 +45,32 @@ export const adminSidebar = [
     menu: [
       {
         menuValue: 'Parkings',
-        hasSubRoute: true,
+        hasSubRoute: false,
         showSubRoute: false,
-        route: routes.services,
+        route: routes.allServices,
         icon: <Icon.MapPin className="react-feather-icon" />,
-        subMenus: [
-          //{
-            //menuValue: 'Add Parking',
-            //route: routes.addServices,
-          //},
-          {
-            menuValue: 'Parkings',
-            route: routes.allServices,
-          },
-          //{
-            //menuValue: 'Parking Settings',
-            //route: routes.serviceSettings,
-          //},
-        ],
       },
-      /* {
-        menuValue: 'Categories',
-        hasSubRoute: false,
-        showSubRoute: false,
-        route: routes.categoriesList,
-        icon: <Icon.FileText className="react-feather-icon" />,
-      }, */
-      /* {
-        menuValue: 'Sub Categories',
-        hasSubRoute: false,
-        showSubRoute: false,
-        route: routes.subCategories,
-        icon: <Icon.Clipboard className="react-feather-icon" />,
-      }, */
       {
         menuValue: 'Claims',
-        hasSubRoute: true,
+        hasSubRoute: false,
         showSubRoute: false,
-        icon: <Icon.AlertCircle className="react-feather-icon" />, // Icône mise à jour
-        subMenus: [
-          {
-            menuValue: 'Claim Type',
-            route: routes.reviewType,
-          },
-          {
-            menuValue: 'Claims',
-            route: routes.review,
-          },
-        ],
+        route: routes.claims,
+        icon: <Icon.AlertCircle className="react-feather-icon" />,
       },
-      
+    ],
+  },
+  {
+    tittle: 'Reviews',
+    showAsTab: false,
+    separateRoute: false,
+    menu: [
+      {
+        menuValue: 'Reviews',
+        hasSubRoute: false,
+        showSubRoute: false,
+        route: routes.reviews,
+        icon: <Icon.Calendar className="react-feather-icon" />, // Icône mise à jour
+      },
     ],
   },
   

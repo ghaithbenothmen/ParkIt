@@ -90,10 +90,10 @@ const BookingDetails = () => {
         try {
           const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
           const data = res.data.data;
-  
+
           // Fetch parking details for each reservation
           const enrichedReservations = await Promise.all(
-            data.slice(0, 3).map(async (reservation:any) => {
+            data.slice(0, 3).map(async (reservation: any) => {
               try {
                 const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
                 return {
@@ -109,17 +109,17 @@ const BookingDetails = () => {
               }
             })
           );
-  
+
           setReservations(enrichedReservations);
         } catch (error) {
           console.error('Failed to fetch reservations:', error);
         }
       }
     };
-  
+
     fetchReservations();
   }, [userInfo._id]);
-  
+
 
 
 
@@ -154,7 +154,9 @@ const BookingDetails = () => {
                     <div>
                       <h4 className="mb-2">Reservation: {reservation?.parking?.nom}</h4>
                       <p className="fs-12">
-                        <i className="feather icon-calendar me-1" /> {reservation?.startDate}
+                        <i className="feather icon-calendar me-1" />
+                        {new Date(reservation?.startDate ?? '').toLocaleDateString()}{" "}
+                        {new Date(reservation?.startDate ?? '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
@@ -185,7 +187,9 @@ const BookingDetails = () => {
                         <h6>Reservation Spot</h6>
                         <ul>
                           <li className="fs-12 d-flex align-items-center mb-2">
-                            <i className="feather icon-calendar me-1" /> {reservation?.startDate}
+                            <i className="feather icon-calendar me-1" />
+                            {new Date(reservation?.startDate ?? '').toLocaleDateString()}{" "}
+                            {new Date(reservation?.startDate ?? '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </li>
                           <li className="fs-12 d-flex align-items-center">
                             <i className="feather icon-clock  me-1" /> {reservation?.parkingS?.numero}
@@ -210,7 +214,7 @@ const BookingDetails = () => {
                                 className="btn btn-sm btn-dark d-flex align-items-center"
                               >
                                 {" "}
-                                <i className="ti ti-message me-1" /> Chat
+                                <i className="ti ti-message me-1" /> Add review
                               </Link>
                             </div>
                           </div>
@@ -247,11 +251,15 @@ const BookingDetails = () => {
 
                             </div>
                           </div>
-                          
+
                         </div>
                         <ul>
                           <li>
-                            Reservation start date <span className="ord-amt">{reservation?.startDate}</span>
+                            Reservation start date
+                            <span className="ord-amt">
+                              {new Date(reservation?.startDate ?? '').toLocaleDateString()}{" "}
+                              {new Date(reservation?.startDate ?? '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                           </li>
                           <li>
                             <p className="ord-code mb-0">
@@ -261,10 +269,20 @@ const BookingDetails = () => {
                                 per hour
                               </span>
                             </p>{" "}
-                            <span className="ord-amt">{reservation?.endDate}</span>
+                            <span className="ord-amt">
+                              {reservation?.startDate && reservation?.endDate
+                                ? `${Math.round(
+                                  (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) / (1000 * 60 * 60)
+                                )} hour(s)`
+                                : 'N/A'}
+                            </span>
                           </li>
                           <li>
-                            Reservation end date <span className="ord-amt">{reservation?.endDate}</span>
+                            Reservation end date
+                            <span className="ord-amt">
+                              {new Date(reservation?.endDate ?? '').toLocaleDateString()}{" "}
+                              {new Date(reservation?.endDate ?? '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                           </li>
                           <li className="ord-total mb-0">
                             Total price to paid <span className="ord-amt">{reservation?.totalPrice}</span>
@@ -329,7 +347,9 @@ const BookingDetails = () => {
                               <li key={reservation._id}>
                                 <h6>{reservation.parking?.nom}</h6>
                                 <p>
-                                  <i className="ti ti-calendar me-1" /> {reservation.startDate}
+                                  <i className="ti ti-calendar me-1" />
+                                  {new Date(reservation?.startDate ?? '').toLocaleDateString()}{" "}
+                                  {new Date(reservation?.startDate ?? '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                                 <p>
                                   <i className="ti ti-check-circle me-1" /> Status: {reservation.status}

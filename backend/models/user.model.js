@@ -43,9 +43,10 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "admin"], 
       default: "user" 
     },
-    authUser: { type: String, enum: ["local", "google"], default: "local" }, // Track authentication provider
+    authUser: { type: String, enum: ["local", "google","face_recognition"], default: "local" }, // Track authentication provider
     
     image: { type: String, default: "" }, 
+    faceData: { type: String }, // Or use Array, depending on the structure of the encoding (vector)
     isActive: { type: Boolean},
 
     vehicules: [{

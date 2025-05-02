@@ -1,8 +1,8 @@
 const Reservation = require('../models/reservation.model.js');
 const ParkingSpot = require('../models/parkingSpot.model');
 const cron = require('node-cron');
-
-
+const NotificationController = require('./notification.controller.js');
+const mongoose = require('mongoose');
 
 cron.schedule('0 0 * * *', async () => {
     console.log('Checking for expired reservations...');
@@ -23,7 +23,7 @@ const User = require('../models/user.model.js');
 
 exports.createReservation = async (req, res) => {
     try {
-        const { userId, parkingId, parkingSpot,vehicule, startDate, endDate, totalPrice } = req.body;
+        const { userId, parkingId, parkingSpot, vehicule, startDate, endDate, totalPrice } = req.body;
 
         // Vérifier si la place de parking est déjà réservée pour cette période
         const existingReservation = await Reservation.findOne({
@@ -50,6 +50,9 @@ exports.createReservation = async (req, res) => {
         });
         await newReservation.save();
 
+        // Créer une notification après la création de la réservation
+        NotificationController.createNotification(newReservation);
+
         res.status(201).json({ message: 'Réservation créée avec succès', data: newReservation });
 
     } catch (error) {
@@ -66,9 +69,9 @@ exports.reservationPayment = async (req, res) => {
             return res.status(404).json({ error: "Reservation not found" });
         }
         const trackingId = `order-${Date.now()}`;  // Generate a tracking ID using the current timestamp
-        
+
         // Ensure `newReservation` is properly created before using `newReservation._id`
-    
+
         const response = await fetch("https://developers.flouci.com/api/generate_payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -83,39 +86,39 @@ exports.reservationPayment = async (req, res) => {
                 developer_tracking_id: trackingId
             }),
         });
-    
+
         if (!response.ok) {
             const errorBody = await response.text();
             console.error("💥 Flouci returned error:", errorBody); // Add this
             throw new Error("Failed to create payment on Flouci");
-          }
-    
+        }
+
         const data = await response.json();
-    
+
         if (data.result && data.result.link) {
             return res.json({ paymentLink: data.result.link });
         }
-    
+
         // If the response does not contain a valid payment link
         return res.status(400).json({ error: "Failed to create payment" });
-    
+
     } catch (error) {
         console.error("💥 Error creating payment:", error);
-      
+
         if (error.response) {
-          const errorText = await error.response.text();
-          console.error("💥 Flouci error response:", errorText);
+            const errorText = await error.response.text();
+            console.error("💥 Flouci error response:", errorText);
         }
-      
+
         return res.status(500).json({
-          error: "Payment creation failed",
-          message: error.message
+            error: "Payment creation failed",
+            message: error.message
         });
-      }
+    }
 }
 exports.paymentSuccess = async (req, res) => {
     const { trackingId, reservationId, payment_id } = req.query;
-    
+
     if (!trackingId || !reservationId) return res.send("Invalid request");
 
     try {
@@ -153,8 +156,8 @@ exports.paymentSuccess = async (req, res) => {
     }
 };
 exports.paymentFail = async (req, res) => {
-        const frontendErrorUrl = `http://localhost:3000/payment-error`;
-        return res.redirect(frontendErrorUrl);
+    const frontendErrorUrl = `http://localhost:3000/payment-error`;
+    return res.redirect(frontendErrorUrl);
 }
 
 exports.getAllReservations = async (req, res) => {
@@ -196,7 +199,7 @@ exports.getReservationById = async (req, res) => {
 exports.updateReservation = async (req, res) => {
     try {
         const { id } = req.params;
-        const { startDate, endDate, status, totalPrice,userId } = req.body;
+        const { startDate, endDate, status, totalPrice, userId } = req.body;
 
         // Vérifier si la réservation existe
         const reservation = await Reservation.findById(id);
@@ -343,161 +346,289 @@ exports.getTotalPriceOfAllReservations = async (req, res) => {
 // Dans votre fichier de contrôleur (reservation.controller.js)
 exports.getReservationCount = async (req, res) => {
     try {
-      const count = await Reservation.countDocuments();
-      res.status(200).json({ count });
+        const count = await Reservation.countDocuments();
+        res.status(200).json({ count });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
-  };
-exports.getReservationSummary = async(req, res)=>{
+};
+exports.getReservationSummary = async (req, res) => {
     const reservations = await Reservation.find({
-        startDate:{
+        startDate: {
             $gte: new Date(new Date().setMonth(-1)),
             $lte: new Date(new Date().setMonth(12))
         },
-    });   
-    const numbers = [0,0,0,0,0,0,0,0,0,0,0,0];
+    });
+    const numbers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     reservations.forEach(myFunction);
-    function myFunction(reservation){
+    function myFunction(reservation) {
         price = reservation.totalPrice;
         index = reservation.startDate.getMonth();
-        numbers[index]+=price;
+        numbers[index] += price;
     }
     return res.status(200).json({ count: numbers });
 
 
 };
-exports.getReservationStatistics = async(req, res)=>{
+exports.getReservationStatistics = async (req, res) => {
     const reservations = await Reservation.find();
-    var confirmed=0;
-    var pending=0;
-    var over=0;
+    var confirmed = 0;
+    var pending = 0;
+    var over = 0;
     const total = reservations.length;
     reservations.forEach(myFunction);
-    function myFunction(reservation){
-        switch(reservation.status){
+    function myFunction(reservation) {
+        switch (reservation.status) {
             case "confirmed":
-                confirmed+=1;
+                confirmed += 1;
                 break;
             case "pending":
-                pending+=1;
+                pending += 1;
                 break;
             case "over":
-                over+=1;
+                over += 1;
                 break;
         }
     }
-    const stat = [Math.floor(confirmed*100/total),Math.floor(over*100/total),Math.floor(pending*100/total)];
-    return res.status(200).json({count:stat});
+    const stat = [Math.floor(confirmed * 100 / total), Math.floor(over * 100 / total), Math.floor(pending * 100 / total)];
+    return res.status(200).json({ count: stat });
 };
 exports.getWeekendReservationStats = async (req, res) => {
     try {
-      const reservations = await Reservation.find();
-  
-      let weekend = 0;
-      let weekday = 0;
-  
-      const total = reservations.length;
-  
-      reservations.forEach((reservation) => {
-        const day = new Date(reservation.startDate).getDay(); // 0 = Sunday, 6 = Saturday
-        if (day === 0 || day === 6) {
-          weekend++;
-        } else {
-          weekday++;
-        }
-      });
-      const stat = [Math.floor(weekend*100/total),Math.floor(weekday*100/total)];
-      return res.status(200).json({count:stat});
+        const reservations = await Reservation.find();
+
+        let weekend = 0;
+        let weekday = 0;
+
+        const total = reservations.length;
+
+        reservations.forEach((reservation) => {
+            const day = new Date(reservation.startDate).getDay(); // 0 = Sunday, 6 = Saturday
+            if (day === 0 || day === 6) {
+                weekend++;
+            } else {
+                weekday++;
+            }
+        });
+        const stat = [Math.floor(weekend * 100 / total), Math.floor(weekday * 100 / total)];
+        return res.status(200).json({ count: stat });
     } catch (error) {
-      console.error("Error in getWeekendReservationStats:", error);
-      return res.status(500).json({ error: "Failed to fetch weekend stats" });
+        console.error("Error in getWeekendReservationStats:", error);
+        return res.status(500).json({ error: "Failed to fetch weekend stats" });
     }
-  };
-  
+};
+
 
 
 exports.getTopUsers = async (req, res) => {
-  try {
-    const topUsers = await Reservation.aggregate([
-      {
-        $group: {
-          _id: '$userId', // group by userId (replace with your user field)
-          totalReservations: { $sum: 1 },
-        },
-      },
-      { $sort: { totalReservations: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: 'users', // this should match your actual collection name
-          localField: '_id',
-          foreignField: '_id',
-          as: 'userInfo',
-        },
-      },
-      {
-        $unwind: '$userInfo',
-      },
-      {
-        $project: {
-          _id: 0,
-          userId: '$_id',
-          totalReservations: 1,
-          name: {
-            $concat: ['$userInfo.firstname', ' ', '$userInfo.lastname'],
-          },
-          email: '$userInfo.email',
-        },
-      },
-    ]);
-    console.log(topUsers);
-    return res.status(200).json({topUsers:topUsers});
-  } catch (error) {
-    console.error('Error fetching top users:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+    try {
+        const topUsers = await Reservation.aggregate([
+            {
+                $group: {
+                    _id: '$userId', // group by userId (replace with your user field)
+                    totalReservations: { $sum: 1 },
+                },
+            },
+            { $sort: { totalReservations: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'users', // this should match your actual collection name
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'userInfo',
+                },
+            },
+            {
+                $unwind: '$userInfo',
+            },
+            {
+                $project: {
+                    _id: 0,
+                    userId: '$_id',
+                    totalReservations: 1,
+                    name: {
+                        $concat: ['$userInfo.firstname', ' ', '$userInfo.lastname'],
+                    },
+                    email: '$userInfo.email',
+                },
+            },
+        ]);
+        console.log(topUsers);
+        return res.status(200).json({ topUsers: topUsers });
+    } catch (error) {
+        console.error('Error fetching top users:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 };
 exports.getTopParkings = async (req, res) => {
     try {
-      const topParkings = await Reservation.aggregate([
-        {
-          $group: {
-            _id: '$parkingId', // group by userId (replace with your user field)
-            totalReservations: { $sum: 1 },
-          },
-        },
-        { $sort: { totalReservations: -1 } },
-        { $limit: 5 },
-        {
-          $lookup: {
-            from: 'parkings', // this should match your actual collection name
-            localField: '_id',
-            foreignField: '_id',
-            as: 'parkingInfo',
-          },
-        },
-        {
-          $unwind: '$parkingInfo',
-        },
-        {
-          $project: {
-            _id: 0,
-            parkingId: '$_id',
-            totalReservations: 1,
-            name:  '$parkingInfo.nom',
-            adresse: '$parkingInfo.adresse',
-          },
-        },
-      ]);
-      console.log(topParkings);
-      return res.status(200).json({topParkings:topParkings});
+        const topParkings = await Reservation.aggregate([
+            {
+                $group: {
+                    _id: '$parkingId', // group by userId (replace with your user field)
+                    totalReservations: { $sum: 1 },
+                },
+            },
+            { $sort: { totalReservations: -1 } },
+            { $limit: 5 },
+            {
+                $lookup: {
+                    from: 'parkings', // this should match your actual collection name
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'parkingInfo',
+                },
+            },
+            {
+                $unwind: '$parkingInfo',
+            },
+            {
+                $project: {
+                    _id: 0,
+                    parkingId: '$_id',
+                    totalReservations: 1,
+                    name: '$parkingInfo.nom',
+                    adresse: '$parkingInfo.adresse',
+                },
+            },
+        ]);
+        console.log(topParkings);
+        return res.status(200).json({ topParkings: topParkings });
     } catch (error) {
-      console.error('Error fetching top users:', error);
-      res.status(500).json({ error: 'Internal server error' })
-    ;}
+        console.error('Error fetching top users:', error);
+        res.status(500).json({ error: 'Internal server error' })
+            ;
+    }
 }
-    
+// Get all reservations by user ID and start date
+exports.getReservationsByUserAndStartDate = async (req, res) => {
+    try {
+        const { userId, startDate } = req.query;
+
+        if (!userId || !startDate) {
+            return res.status(400).json({ message: 'userId and startDate are required.' });
+        }
+
+        const start = new Date(startDate);
+        start.setUTCHours(0, 0, 0, 0); // 00:00 UTC
+        const end = new Date(startDate);
+        end.setUTCHours(23, 59, 59, 999); // 23:59:59 UTC
+
+        const reservations = await Reservation.find({
+            userId,
+            startDate: { $gte: start, $lte: end }
+        });
+
+        if (reservations.length === 0) {
+            return res.status(404).json({ message: 'Aucune réservation trouvée pour cet utilisateur à cette date.' });
+        }
+
+        res.status(200).json({ data: reservations });
+    } catch (error) {
+        res.status(500).json({ message: 'Erreur lors de la récupération des réservations', error: error.message });
+    }
+};
+exports.getWeeklyReservationCountsByUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        const today = new Date();
+
+        // Get start (Monday) and end (Sunday) of the current week
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + (7 - today.getDay())); // Sunday
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        // Fetch reservations for the user in this week
+        const reservations = await Reservation.find({
+            userId,
+            startDate: { $gte: startOfWeek, $lte: endOfWeek }
+        });
+
+        const dayCounts = {
+            Monday: 0,
+            Tuesday: 0,
+            Wednesday: 0,
+            Thursday: 0,
+            Friday: 0,
+            Saturday: 0,
+            Sunday: 0
+        };
+
+        reservations.forEach(reservation => {
+            const day = reservation.startDate.toLocaleDateString('en-US', { weekday: 'long' });
+            if (dayCounts.hasOwnProperty(day)) {
+                dayCounts[day]++;
+            }
+        });
+
+        return res.status(200).json({ data: dayCounts });
+
+    } catch (error) {
+        console.error('Error fetching weekly reservations:', error);
+        return res.status(500).json({ message: 'Erreur lors de la récupération des réservations de la semaine', error: error.message });
+    }
+};
+exports.getReservationCountByUserForEachParking = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+
+        // Aggregate reservations by parkingId and count the number of reservations
+        const reservationCounts = await Reservation.aggregate([
+            { 
+                $match: { userId: userObjectId }  // Filter reservations by userId
+            },
+            {
+                $group: {
+                    _id: "$parkingId", // Group by parkingId
+                    count: { $sum: 1 } // Count the number of reservations for each parkingId
+                }
+            },
+            {
+                $lookup: {
+                    from: "parkings", // Look up the parking details from the "Parking" collection
+                    localField: "_id", // Matching parkingId
+                    foreignField: "_id", // Foreign field to match
+                    as: "parkingDetails"
+                }
+            },
+            {
+                $unwind: "$parkingDetails" // Unwind the parkingDetails array
+            },
+            {
+                $project: {
+                    parkingName: "$parkingDetails.nom", // Assuming "name" is the field for the parking name
+                    count: 1
+                }
+            }
+        ]);
+
+        // Format the response
+        const result = reservationCounts.reduce((acc, curr) => {
+            acc[curr.parkingName] = curr.count;
+            return acc;
+        }, {});
+
+        res.status(200).json({ data: result });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error retrieving reservation counts",
+            error: error.message
+        });
+    }
+};
+
+
 
 
 module.exports = {
@@ -514,7 +645,7 @@ module.exports = {
     paymentFail: exports.paymentFail,
     getReservationCount: exports.getReservationCount,
     getConfirmedReservations: exports.getConfirmedReservations,
-    getPendingReservations:  exports.getPendingReservations,
+    getPendingReservations: exports.getPendingReservations,
     getOverReservations: exports.getOverReservations,
     getTotalPriceOfAllReservations: exports.getTotalPriceOfAllReservations,
     getReservationSummary: exports.getReservationSummary,
@@ -522,4 +653,7 @@ module.exports = {
     getTopUsers: exports.getTopUsers,
     getTopParkings: exports.getTopParkings,
     getWeekendReservationStats: exports.getWeekendReservationStats,
+    getReservationsByUserAndStartDate: exports.getReservationsByUserAndStartDate,
+    getWeeklyReservationCountsByUser: exports.getWeeklyReservationCountsByUser,
+    getReservationCountByUserForEachParking: exports.getReservationCountByUserForEachParking,
 }

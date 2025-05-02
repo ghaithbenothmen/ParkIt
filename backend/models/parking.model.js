@@ -30,7 +30,15 @@ const ParkingSchema = new mongoose.Schema({
     longitude: {
         type: Number,
         required: true
-    }
+    },
+    averageRating: { 
+        type: Number,
+        default: 0 
+    },
+    reviewCount: {
+         type: Number, 
+         default: 0 
+    },
 }, { timestamps: true });
 
 // Convertir tarif_horaire, latitude et longitude en float avant d'enregistrer

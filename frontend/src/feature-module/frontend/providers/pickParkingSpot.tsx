@@ -64,7 +64,14 @@ const ParkingVisualization = ({
 
 
 
-        const reservationsResponse = await axios.get(`http://localhost:4000/api/reservations/by-parking/${parkingId}`);
+        const reservationsResponse = await axios.get(`http://localhost:4000/api/reservations/by-parking/${parkingId}`)
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          console.warn("No reservations found for this parking.");
+          return { data: { data: [] } }; // simulate empty reservation list
+        }
+        throw err; // rethrow for other types of errors
+      });
         const allReservations = reservationsResponse.data?.data || [];
         setReservations(allReservations);
         console.log("allReservations",allReservations)
