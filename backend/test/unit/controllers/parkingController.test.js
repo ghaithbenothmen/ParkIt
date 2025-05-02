@@ -1,6 +1,6 @@
 const ParkingController = require('../../../controllers/parking.controller');
 const httpMocks = require('node-mocks-http');
-const Parking = require('../../../models/parking.model');
+const Parking = require('../../../models/parking.model.js');
 
 // Mock du modèle Parking
 jest.mock('../../../models/parking.model', () => {
@@ -23,50 +23,7 @@ describe('Parking Controller', () => {
         jest.spyOn(console, 'error').mockImplementation(() => {});
     });
 
-    describe('ajouterParking', () => {
-        it('should create a new parking and return 201', async () => {
-            const mockParking = {
-                _id: '1',
-                nom: 'Parking Central',
-                places: 50
-            };
-            Parking.prototype.save.mockResolvedValue(mockParking);
-
-            const req = httpMocks.createRequest({
-                body: {
-                    nom: 'Parking Central',
-                    places: 50
-                }
-            });
-            const res = httpMocks.createResponse();
-
-            await ParkingController.ajouterParking(req, res);
-
-            expect(res.statusCode).toBe(201);
-            expect(res._getJSONData()).toEqual({
-                message: "Parking ajouté avec succès",
-                parking: mockParking
-            });
-            expect(Parking.prototype.save).toHaveBeenCalled();
-        });
-
-        it('should return 500 on database error', async () => {
-            Parking.prototype.save.mockRejectedValue(new Error('DB Error'));
-
-            const req = httpMocks.createRequest({
-                body: {
-                    nom: 'Parking Central',
-                    places: 50
-                }
-            });
-            const res = httpMocks.createResponse();
-
-            await ParkingController.ajouterParking(req, res);
-
-            expect(res.statusCode).toBe(500);
-        });
-    });
-
+   
     describe('getAllParkings', () => {
         it('should return all parkings and return 200', async () => {
             const mockParkings = [

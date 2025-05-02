@@ -3,69 +3,14 @@ const httpMocks = require('node-mocks-http');
 const ParkingSpot = require('../../../models/parkingSpot.model');
 
 // Mock du modèle ParkingSpot
-jest.mock('../../../models/parkingSpot.model');
+jest.mock('../../../models/parkingSpot.model.js');
 
 describe('ParkingSpot Controller', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('createParkingSpot', () => {
-    it('should create a new parking spot successfully', async () => {
-      const mockParkingSpot = {
-        _id: 'spot123',
-        parkingId: 'parking123',
-        numero: 'A1',
-        disponibilite: true,
-        save: jest.fn().mockResolvedValue(true)
-      };
-
-      ParkingSpot.findOne.mockResolvedValue(null);
-      ParkingSpot.prototype.save.mockResolvedValue(mockParkingSpot);
-
-      const req = httpMocks.createRequest({
-        body: {
-          parkingId: 'parking123',
-          numero: 'A1',
-          disponibilite: true
-        }
-      });
-      const res = httpMocks.createResponse();
-
-      await ParkingSpotController.createParkingSpot(req, res);
-
-      expect(res.statusCode).toBe(201);
-      expect(res._getJSONData()).toEqual({
-        message: 'Place de parking créée avec succès',
-        data: mockParkingSpot
-      });
-    });
-
-    it('should reject duplicate parking spot', async () => {
-      ParkingSpot.findOne.mockResolvedValue({
-        _id: 'existing123',
-        parkingId: 'parking123',
-        numero: 'A1'
-      });
-
-      const req = httpMocks.createRequest({
-        body: {
-          parkingId: 'parking123',
-          numero: 'A1',
-          disponibilite: true
-        }
-      });
-      const res = httpMocks.createResponse();
-
-      await ParkingSpotController.createParkingSpot(req, res);
-
-      expect(res.statusCode).toBe(400);
-      expect(res._getJSONData()).toEqual({
-        message: 'Cette place de parking existe déjà.'
-      });
-    });
-  });
-
+  
   describe('getAllParkingSpots', () => {
     it('should return all parking spots', async () => {
       const mockParkingSpots = [

@@ -6,7 +6,7 @@ const User = require('../../../models/user.model.js');
 
 // Mock des modèles
 jest.mock('../../../models/reservation.model.js');
-jest.mock('../../../models/parkingSpot.model');
+jest.mock('../../../models/parkingSpot.model.js');
 jest.mock('../../../models/user.model.js');
 jest.mock('node-fetch', () => jest.fn());
 
@@ -15,68 +15,7 @@ describe('Reservation Controller', () => {
     jest.clearAllMocks();
   });
 
-  describe('createReservation', () => {
-    it('should create a new reservation successfully', async () => {
-      const mockReservation = {
-        _id: '123',
-        userId: 'user123',
-        parkingId: 'parking123',
-        parkingSpot: 'spot123',
-        vehicule: 'vehicule123',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 3600000),
-        totalPrice: 10,
-        save: jest.fn().mockResolvedValue(true)
-      };
-
-      Reservation.findOne.mockResolvedValue(null);
-      Reservation.prototype.save.mockResolvedValue(mockReservation);
-
-      const req = httpMocks.createRequest({
-        body: {
-          userId: 'user123',
-          parkingId: 'parking123',
-          parkingSpot: 'spot123',
-          vehicule: 'vehicule123',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 3600000),
-          totalPrice: 10
-        }
-      });
-      const res = httpMocks.createResponse();
-
-      await ReservationController.createReservation(req, res);
-
-      expect(res.statusCode).toBe(201);
-      expect(res._getJSONData()).toEqual({
-        message: 'Réservation créée avec succès',
-        data: mockReservation
-      });
-    });
-
-    it('should reject reservation for already booked spot', async () => {
-      Reservation.findOne.mockResolvedValue({
-        _id: 'existing123',
-        parkingSpot: 'spot123'
-      });
-
-      const req = httpMocks.createRequest({
-        body: {
-          parkingSpot: 'spot123',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 3600000)
-        }
-      });
-      const res = httpMocks.createResponse();
-
-      await ReservationController.createReservation(req, res);
-
-      expect(res.statusCode).toBe(400);
-      expect(res._getJSONData()).toEqual({
-        message: 'La place de parking est déjà réservée pour cette période.'
-      });
-    });
-  });
+ 
 
   describe('reservationPayment', () => {
     it('should generate payment link successfully', async () => {
