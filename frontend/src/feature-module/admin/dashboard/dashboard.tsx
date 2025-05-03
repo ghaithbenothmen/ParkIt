@@ -52,8 +52,8 @@ const Dashboard = () => {
   const [topParkings, setTopParkings] = useState(null);
   const [reservationWeekendStat, setReservationWeekendStat] = useState<number | null>(null);
   const reservationTypeLegend = [
-    { color: '#4B49AC', label: 'Weekday' },
-    { color: '#FFC107', label: 'Weekend' },
+    { color: '#4169E1', label: 'Weekday' },
+    { color: '#87CEEB', label: 'Weekend' },
   ];
   const [weekChartData,setWeekChartData] = useState({
     series:[],
@@ -66,7 +66,7 @@ const Dashboard = () => {
       legend: {
         position: 'bottom',
       },
-      colors: ['#4B49AC', '#FFC107'],
+      colors: ['#4169E1', '#87CEEB'], // Changed to match Income chart colors
     },
   });
   const [bookChartData, setBookChartData] = useState({
@@ -77,7 +77,7 @@ const Dashboard = () => {
         type: 'pie',
       },
       labels: ['Confirmed', 'Canceled', 'Pending'], // Match your legend
-      colors: ['#1BA345', '#FF0000', '#FEC001'],
+      colors: ['#1e4fdd', '#87CEEB', '#0a2b7b'], // Bleu plus foncé pour Confirmed et Pending
       responsive: [
         {
           breakpoint: 480,
@@ -910,16 +910,16 @@ const Dashboard = () => {
                             <div className="bookingstatus">
                               <ul>
                                 <li>
-                                  <span style={{ backgroundColor: '#1BA345' }} />
+                                  <span style={{ backgroundColor: '#1e4fdd' }} /> {/* Bleu plus foncé pour Confirmed */}
                                   <h6>Confirmed</h6>
                                 </li>
                                 <li>
-                                  <span style={{ backgroundColor: '#FEC001' }} />
-                                  <h6>Pending</h6>
+                                  <span style={{ backgroundColor: '#87CEEB' }} />
+                                  <h6>Canceled</h6>
                                 </li>
                                 <li>
-                                  <span style={{ backgroundColor: '#FF4C4C' }} />
-                                  <h6>Canceled</h6>
+                                  <span style={{ backgroundColor: '#0a2b7b' }} /> {/* Bleu plus foncé pour Pending */}
+                                  <h6>Pending</h6>
                                 </li>
                               </ul>
 
@@ -961,16 +961,16 @@ const Dashboard = () => {
                             <div className="bookingstatus">
                               <ul>
                                 <li>
-                                  <span style={{ backgroundColor: '#1BA345' }} />
+                                  <span style={{ backgroundColor: '#1e4fdd' }} /> {/* Bleu plus foncé pour Confirmed */}
                                   <h6>Confirmed</h6>
                                 </li>
                                 <li>
-                                  <span style={{ backgroundColor: '#FEC001' }} />
-                                  <h6>Pending</h6>
+                                  <span style={{ backgroundColor: '#87CEEB' }} />
+                                  <h6>Canceled</h6>
                                 </li>
                                 <li>
-                                  <span style={{ backgroundColor: '#FF4C4C' }} />
-                                  <h6>Canceled</h6>
+                                  <span style={{ backgroundColor: '#0a2b7b' }} /> {/* Bleu plus foncé pour Pending */}
+                                  <h6>Pending</h6>
                                 </li>
                               </ul>
 

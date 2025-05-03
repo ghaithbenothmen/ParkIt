@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import * as Icon from 'react-feather';
 import { set_is_mobile_sidebar } from '../../../core/data/redux/action';
@@ -10,6 +10,17 @@ import 'bootstrap/dist/js/bootstrap.bundle.min';
 
 const AdminHeader = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get user data from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
   const toggleFullscreen = () => {
     if (!isFullscreen) {
       // Request fullscreen
@@ -26,7 +37,23 @@ const AdminHeader = () => {
     // Toggle the state
     setIsFullscreen(!isFullscreen);
   };
-  // const mobileSidebar = useSelector((state : any) => state.mobileSidebar)
+
+  const handleLogout = async () => {
+    try {
+      // Clear localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      
+      // Redirect to home page instead of login
+      navigate('/');
+      
+      // Optional: reload the page to ensure all states are reset
+      window.location.reload();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   const dispatch = useDispatch();
   const routes = all_routes
   return (
@@ -339,47 +366,55 @@ const AdminHeader = () => {
           </li>
           {/* User Menu */}
           <li className="nav-item dropdown">
-  <Link
-    to="#"
-    className="user-link nav-link dropdown-toggle"
-    id="userDropdown"
-    role="button"
-    data-bs-toggle="dropdown"
-    aria-expanded="false"
-  >
-    <span className="user-img">
-      <ImageWithBasePath
-        className="rounded-circle"
-        src="assets/admin/img/user.jpg"
-        width={40}
-        alt="Admin"
-      />
-      <span className="animate-circle" />
-    </span>
-    <span className="user-content">
-      <span className="user-name">John Smith</span>
-      <span className="user-details">Demo User</span>
-    </span>
-  </Link>
-  <ul className="dropdown-menu menu-drop-user" aria-labelledby="userDropdown">
-    <li className="user-details">
-      <Link to="account" className="dropdown-item">
-        <ImageWithBasePath
-          src="assets/admin/img/user.jpg"
-          alt="img"
-          className="profilesidebar"
-        />
-        <div className="profile-content">
-          <span>John Smith</span>
-          <span>John@example.com</span>
-        </div>
-      </Link>
-    </li>
-    <li><Link to="account-settings" className="dropdown-item">Profile</Link></li>
-    <li><Link to="localization" className="dropdown-item">Settings</Link></li>
-    <li><Link to="signin" className="dropdown-item text-danger">Log Out</Link></li>
-  </ul>
-</li>
+            <Link
+              to="#"
+              className="user-link nav-link dropdown-toggle" 
+              id="userDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <span className="user-img">
+                <ImageWithBasePath
+                  className="rounded-circle"
+                  src={user?.image || "assets/admin/img/user.jpg"}
+                  width={40}
+                  alt="Admin"
+                />
+                <span className="animate-circle" />
+              </span>
+              <span className="user-content">
+                <span className="user-name">{user ? `${user.firstname} ${user.lastname}` : 'Guest'}</span>
+                <span className="user-details">{user?.role || 'User'}</span>
+              </span>
+            </Link>
+            <ul className="dropdown-menu menu-drop-user" aria-labelledby="userDropdown">
+              <li className="user-details">
+                <Link to="account" className="dropdown-item">
+                  <ImageWithBasePath
+                    src={user?.image || "assets/admin/img/user.jpg"}
+                    alt="img"
+                    className="profilesidebar"
+                  />
+                  <div className="profile-content">
+                    <span>{user ? `${user.firstname} ${user.lastname}` : 'Guest'}</span>
+                    <span>{user?.email || 'guest@example.com'}</span>
+                  </div>
+                </Link>
+              </li>
+              <li><Link to="account-settings" className="dropdown-item">Profile</Link></li>
+              <li><Link to="localization" className="dropdown-item">Settings</Link></li>
+              <li>
+                <Link 
+                  to="#" 
+                  className="dropdown-item text-danger"
+                  onClick={handleLogout}
+                >
+                  Log Out
+                </Link>
+              </li>
+            </ul>
+          </li>
           {/* /User Menu */}
         </ul>
       </div>
