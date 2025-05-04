@@ -90,9 +90,9 @@ ClaimSchema.pre('save', async function (next) {
     // Presence of an image
     if (this.image) {
       score += 2;
-      this.status = 'Valid';
+      //this.status = 'Valid';
     } else {
-      this.status = 'Pending';
+      //this.status = 'Pending';
     }
 
     this.priority = score;

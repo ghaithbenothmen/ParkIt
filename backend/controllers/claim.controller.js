@@ -47,11 +47,46 @@ exports.createClaim = async (req, res) => {
         return res.status(404).json({ message: 'Parking not found.' });
       }
 
-      const imageUrl =  req.file.path;
+      const imageUrl = req.file.path;
+
+      // Analyze image by sending it to http://localhost:7000/analyze-image
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('parkingId', parkingId);
+      formData.append('claimType', claimType);
+      formData.append('imageUrl', imageUrl); // Use the Cloudinary URL instead of buffer
+
+      let analysisResult = {};
+      try {
+        const response = await fetch('http://192.168.1.23:7000/analyze-image', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        analysisResult = await response.json();
+      } catch (fetchError) {
+        console.error('Error analyzing image:', fetchError);
+        analysisResult = { error: 'Failed to analyze image' };
+      }
 
       const claim = new Claim({
-        userId, parkingId, claimType, message, image: imageUrl
+        userId, 
+        parkingId, 
+        claimType,
+        message, 
+        image: imageUrl,
+        status:claimType===analysisResult.detectedType?"Valid":"Pending",
       });
+
+      console.log(analysisResult.detectedType)
+
+      console.log(claimType===analysisResult.detectedType)
+
+      console.log(claim)
 
       await claim.save();
 
@@ -61,7 +96,8 @@ exports.createClaim = async (req, res) => {
         notification: 'Your claim has been sent to the administration.'
       });
     } catch (error) {
-      res.status(500).json({ message: 'Error creating the claim.', error });
+      console.error('Error creating claim:', error);
+      res.status(500).json({ message: 'Error creating the claim.', error: error.message });
     }
   });
 };
@@ -74,6 +110,7 @@ exports.getAllClaims = async (req, res) => {
       .populate('userId', 'firstname lastname role')
       .populate('parkingId', 'nom adresse');
     res.status(200).json(claims);
+
   } catch (error) {
     res.status(500).json({ message: 'Error fetching claims.', error });
   }
@@ -91,7 +128,6 @@ exports.getClaimByUser = async (req, res) => {
     if (!claims || claims.length === 0) {
       return res.status(404).json({ message: 'No claims found for this user.' });
     }
-
     res.status(200).json(claims);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching user claims.', error });

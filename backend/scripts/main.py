@@ -1,154 +1,221 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Query
+from pydantic import BaseModel, HttpUrl
 import tensorflow as tf
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
 import numpy as np
 from PIL import Image
-import requests
-from io import BytesIO
 import logging
-from typing import Optional
+from typing import Optional, Union
 from pymongo import MongoClient
 from datetime import datetime
+import pytesseract
+import io
+import requests
 
-# Configurer le logging
+# Configure pytesseract
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialiser FastAPI
-app = FastAPI(title="Reclamation Image Analysis API")
+# Initialize FastAPI
+app = FastAPI(title="Claim Image Analysis API")
 
-# Connexion à MongoDB (optionnel)
+# Connect to MongoDB
 mongo_client = MongoClient("mongodb://localhost:27017")
-db = mongo_client["reclamation_db"]
-reclamations_collection = db["reclamations"]
+db = mongo_client["claim_db"]
+claims_collection = db["claims"]
 
-# Modèle Pydantic pour valider les entrées
+# Pydantic models
 class ImageAnalysisRequest(BaseModel):
-    photoEvidence: str
-    utilisateurId: Optional[str] = None
+    userId: Optional[str] = None
     parkingId: Optional[str] = None
+    claimType: Optional[str] = None
 
-# Modèle Pydantic pour la réponse
 class ImageAnalysisResponse(BaseModel):
     detectedType: str
     confidence: float
-    detectedPriorite: int
+    detectedPriority: int
     analysisFeedback: str
-    reclamationId: Optional[str] = None
+    claimId: Optional[str] = None
 
-# Charger le modèle MobileNetV2
+# Load MobileNetV2 model
 model = MobileNetV2(weights="imagenet")
 
-def analyze_image(photo_url: str) -> dict:
+def analyze_image(image: Image.Image, claim_type: Optional[str]) -> dict:
     try:
-        if not photo_url:
+        # Claim type specified manually
+        if claim_type and claim_type.lower() == "payment issue":
             return {
-                "detectedType": "Autre",
-                "confidence": 0.1,
-                "detectedPriorite": 2,
-                "analysisFeedback": "Aucune image fournie, type par défaut : Autre."
+                "detectedType": "Payment Issue",
+                "confidence": 1.0,
+                "detectedPriority": 10,
+                "analysisFeedback": "Type de claim spécifié : Payment Issue."
             }
 
-        # Télécharger l'image
-        response = requests.get(photo_url)
-        logger.info(f"Statut de la requête : {response.status_code}, Content-Type : {response.headers.get('Content-Type')}")
-        response.raise_for_status()
-        img = Image.open(BytesIO(response.content)).convert("RGB")
-        
-        # Redimensionner l'image à 224x224 (requis par MobileNetV2)
-        img = img.resize((224, 224))
+        # OCR text detection
+        text = pytesseract.image_to_string(image).lower()
+        if "payment failed" in text or "payment issue" in text or "damage" in text:
+            return {
+                "detectedType": "Payment Issue" if "payment" in text else "Security",
+                "confidence": 0.95,
+                "detectedPriority": 10 if "payment" in text else 12,
+                "analysisFeedback": f"Texte détecté : {text[:50]}... ({'Payment Issue' if 'payment' in text else 'Security (Damage)'} identifié)."
+            }
+
+        # Image classification
+        img = image.resize((224, 224))
         img_array = np.array(img)
-        
-        # Prétraiter l'image
         img_array = preprocess_input(img_array)
         img_array = np.expand_dims(img_array, axis=0)
-        
-        # Faire la prédiction
+
         predictions = model.predict(img_array)
         decoded_predictions = decode_predictions(predictions, top=3)[0]
-        
-        # Mapper les prédictions à typeReclamation et priorite
+
         type_mapping = {
-                "car": {"type": "Place Occupée", "priorite": 8},
-                "truck": {"type": "Place Occupée", "priorite": 8},
-                "parking": {"type": "Place Occupée", "priorite": 8},
-                "crowd": {"type": "Sécurité", "priorite": 15},
-                "sign": {"type": "Autre", "priorite": 5},
-                "damage": {"type": "Sécurité", "priorite": 12}
+            "car": {"type": "Spot Occupied", "priority": 8},
+            "truck": {"type": "Spot Occupied", "priority": 8},
+            "parking": {"type": "Spot Occupied", "priority": 8},
+            "crowd": {"type": "Security", "priority": 15},
+            "sign": {"type": "Other", "priority": 2},
+            "damage": {"type": "Security", "priority": 12},
+            "payment issue": {"type": "Payment Issue", "priority": 10}
         }
-        
-        detected_type = "Autre"
-        detected_priorite = 5
+
+        detected_type = "Other"
+        detected_priority = 1
         confidence = 0.1
         analysis_feedback = "Analyse d’image terminée."
-        
+
         for _, label, prob in decoded_predictions:
             label_lower = label.lower()
             for key in type_mapping:
                 if key in label_lower:
                     detected_type = type_mapping[key]["type"]
-                    detected_priorite = type_mapping[key]["priorite"]
+                    detected_priority = type_mapping[key]["priority"]
                     confidence = prob
                     analysis_feedback = f"Objet détecté : {label} (confiance : {confidence:.2f})."
                     break
-            if detected_type != "Autre":
+            if detected_type != "Other":
                 break
-        
+
         return {
             "detectedType": detected_type,
             "confidence": float(confidence),
-            "detectedPriorite": detected_priorite,
+            "detectedPriority": detected_priority,
             "analysisFeedback": analysis_feedback
         }
-    
+
     except Exception as e:
         logger.error(f"Erreur lors de l’analyse de l’image : {str(e)}")
         return {
-            "detectedType": "Autre",
+            "detectedType": "Other",
             "confidence": 0.1,
-            "detectedPriorite": 2,
+            "detectedPriority": 0,
             "analysisFeedback": f"Erreur lors de l’analyse : {str(e)}"
         }
 
 @app.post("/analyze-image", response_model=ImageAnalysisResponse)
-async def analyze_image_endpoint(request: ImageAnalysisRequest):
-    logger.info(f"Requête reçue : {request}")
-    
-    # Analyser l’image
-    analysis_result = analyze_image(request.photoEvidence)
-    
-    # Préparer les données de la réclamation
-    reclamation_data = {
-        "utilisateurId": request.utilisateurId,
-        "parkingId": request.parkingId,
-        "typeReclamation": analysis_result["detectedType"],
-        "photoEvidence": request.photoEvidence,
-        "priorite": analysis_result["detectedPriorite"],
-        "statut": "En Cours",
-        "aiAnalysis": analysis_result,
-        "dateSoumission": datetime.now()
-    }
-    
-    # Stocker dans MongoDB (optionnel)
+async def analyze_image_endpoint(
+    file: Union[UploadFile, None] = File(default=None),
+    imageUrl: Optional[str] = Form(default=None),
+    userId: Optional[str] = Form(default=None),
+    parkingId: Optional[str] = Form(default=None),
+    claimType: Optional[str] = Form(default=None)
+):
+    logger.info(f"Requête reçue : userId={userId}, parkingId={parkingId}, claimType={claimType}")
+
     try:
-        result = reclamations_collection.insert_one(reclamation_data)
-        reclamation_id = str(result.inserted_id)
-        logger.info(f"Réclamation stockée avec ID : {reclamation_id}")
+        if file is not None:
+            contents = await file.read()
+            img = Image.open(io.BytesIO(contents)).convert("RGB")
+            photo_evidence = "Uploaded"
+
+        elif imageUrl is not None:
+            response = requests.get(imageUrl)
+            if response.status_code != 200:
+                raise HTTPException(status_code=400, detail="Image URL not accessible.")
+            img = Image.open(io.BytesIO(response.content)).convert("RGB")
+            photo_evidence = imageUrl
+
+        else:
+            return ImageAnalysisResponse(
+                detectedType="Other",
+                confidence=0.1,
+                detectedPriority=0,
+                analysisFeedback="Aucune image fournie.",
+                claimId=None
+            )
+
+        analysis_result = analyze_image(img, claimType)
+
+        # Save to MongoDB
+        claim_data = {
+            "userId": userId,
+            "parkingId": parkingId,
+            "claimType": analysis_result["detectedType"],
+            "photoEvidence": photo_evidence,
+            "priority": analysis_result["detectedPriority"],
+            "status": "Pending",
+            "aiAnalysis": analysis_result,
+            "submissionDate": datetime.now()
+        }
+        result = claims_collection.insert_one(claim_data)
+        claim_id = str(result.inserted_id)
+
+        return ImageAnalysisResponse(
+            detectedType=analysis_result["detectedType"],
+            confidence=analysis_result["confidence"],
+            detectedPriority=analysis_result["detectedPriority"],
+            analysisFeedback=analysis_result["analysisFeedback"],
+            claimId=claim_id
+        )
+
     except Exception as e:
-        logger.error(f"Erreur lors de l’enregistrement dans MongoDB : {str(e)}")
-        reclamation_id = None
-    
-    # Préparer la réponse
-    response = ImageAnalysisResponse(
-        detectedType=analysis_result["detectedType"],
-        confidence=analysis_result["confidence"],
-        detectedPriorite=analysis_result["detectedPriorite"],
-        analysisFeedback=analysis_result["analysisFeedback"],
-        reclamationId=reclamation_id
-    )
-    
-    return response
+        logger.error(f"Erreur dans le endpoint analyze-image : {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
+
+@app.post("/analyze-image-url", response_model=ImageAnalysisResponse)
+async def analyze_image_from_url(
+    imageUrl: HttpUrl,
+    userId: Optional[str] = Query(None),
+    parkingId: Optional[str] = Query(None),
+    claimType: Optional[str] = Query(None)
+):
+    logger.info(f"Requête reçue pour URL : {imageUrl}")
+    try:
+        response = requests.get(imageUrl)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Image URL not accessible.")
+
+        img = Image.open(io.BytesIO(response.content)).convert("RGB")
+        analysis_result = analyze_image(img, claimType)
+
+        claim_data = {
+            "userId": userId,
+            "parkingId": parkingId,
+            "claimType": analysis_result["detectedType"],
+            "photoEvidence": imageUrl,
+            "priority": analysis_result["detectedPriority"],
+            "status": "Pending",
+            "aiAnalysis": analysis_result,
+            "submissionDate": datetime.now()
+        }
+        result = claims_collection.insert_one(claim_data)
+        claim_id = str(result.inserted_id)
+
+        return ImageAnalysisResponse(
+            detectedType=analysis_result["detectedType"],
+            confidence=analysis_result["confidence"],
+            detectedPriority=analysis_result["detectedPriority"],
+            analysisFeedback=analysis_result["analysisFeedback"],
+            claimId=claim_id
+        )
+
+    except Exception as e:
+        logger.error(f"Erreur lors de l’analyse via URL : {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur : {str(e)}")
 
 @app.get("/health")
 async def health_check():
