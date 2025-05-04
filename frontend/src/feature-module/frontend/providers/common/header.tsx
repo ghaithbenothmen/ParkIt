@@ -11,6 +11,7 @@ import { all_routes } from '../../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { AppState } from '../../../../core/models/interface';
 import io from 'socket.io-client';
+import VoiceAssistant from '../../common/voice-assistant/VoiceAssistant';
 
 interface NotificationType {
   _id: string;
@@ -272,6 +273,7 @@ const ProviderHeader = () => {
                     <span>
                       <i className="feather icon-user" />
                     </span>
+                    <VoiceAssistant/>
                   </div>
                 </div>
               </form>

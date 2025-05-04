@@ -156,9 +156,6 @@ claimData.forEach((value, key) => {
             <div className="contacts-overlay-img d-none d-lg-block">
               <ImageWithBasePath src="assets/img/bg/bg-07.png" alt="img" className="img-fluid" />
             </div>
-            <div className="contacts-overlay-sm d-none d-lg-block">
-              <ImageWithBasePath src="assets/img/bg/bg-08.png" alt="img" className="img-fluid" />
-            </div>
 
             {/* Contact Details */}
             <div className="contact-details">
@@ -167,7 +164,7 @@ claimData.forEach((value, key) => {
                   <div className="card flex-fill">
                     <div className="card-body">
                       <div className="d-flex align-items-center">
-                        <span className="rounded-circle">
+                        <span className="rounded-circle" >
                           <i className="ti ti-phone text-primary" />
                         </span>
                         <div>
@@ -188,8 +185,8 @@ claimData.forEach((value, key) => {
                         </span>
                         <div>
                           <h6 className="fs-18 mb-1">Email Address</h6>
-                          <p className="fs-14">truelysell@example.com</p>
-                          <p className="fs-14">johnsmith@example.com</p>
+                          <p className="fs-14">parkit@gmail.com</p>
+                          <p className="fs-14">youssefbelhadj@gmail.com</p>
                         </div>
                       </div>
                     </div>
@@ -205,8 +202,7 @@ claimData.forEach((value, key) => {
                         <div>
                           <h6 className="fs-18 mb-1">Address</h6>
                           <p className="fs-14">
-                            367 Hillcrest Lane, Irvine, California, United States
-                          </p>
+                          Z.I Charguia II, B.P 160 pôle Technologique El Ghazela 2083 Ariana                          </p>
                         </div>
                       </div>
                     </div>
@@ -219,12 +215,20 @@ claimData.forEach((value, key) => {
             {/* Get In Touch */}
             <div className="row">
               <div className="col-md-6 d-flex align-items-center">
-                <div className="contact-img flex-fill">
-                                <img
+              <div
+      className="d-flex align-items-center justify-content-center upload-field flex-column border rounded"
+      style={{
+        minHeight: "300px",
+        width: "100%",
+        padding: "20px",
+        backgroundColor: "#f8f9fa",
+      }}
+    >   
+    {imagePreview && (                             <img
                   src={imagePreview || ''}
                   alt="Image"
                   style={{ maxHeight: '700px', width: 'auto', objectFit: 'contain' }}
-                />
+                />)}
 
                 </div>
               </div>
@@ -315,10 +319,10 @@ claimData.forEach((value, key) => {
                       </div>
                       <div className="col-md-12 submit-btn">
                         <button
-                          className="btn btn-dark d-flex align-items-center"
+                          className="btn btn-linear-primary next_btn"
                           type="submit"
                         >
-                          Send Message
+                          Send Claim
                           <i className="feather icon-arrow-right-circle ms-2" />
                         </button>
                       </div>
