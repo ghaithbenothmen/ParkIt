@@ -2165,3 +2165,117 @@ margin-right: 20px;
     gap: 8px;
   }
 }
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff0000;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+.header-feather-icons {
+  position: relative;
+  display: inline-block;
+}
+
+/* Styles pour le dropdown des notifications */
+.notification-dropdown {
+  width: 450px !important;
+  max-width: 90vw !important;
+}
+
+.noti-content {
+  max-height: 600px !important; /* Augmentation de la hauteur maximale */
+}
+
+.notification-dropdown .border-bottom {
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.notification-dropdown p.mb-1 {
+  line-height: 1.6;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.notification-dropdown .d-flex {
+  gap: 15px;
+}
+
+.notification-dropdown .avatar {
+  min-width: 50px;
+  width: 50px;
+  height: 50px;
+}
+
+/* Styles pour le header dropdown notifications */
+.dropdown-menu.notifications {
+  width: 450px !important;
+  max-width: 90vw !important;
+  padding: 20px !important;
+  border: 1px solid #eee;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.notification-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.notification-title .text-gray {
+  color: #74788d;
+  font-size: 14px;
+}
+
+.noti-content {
+  max-height: 600px !important;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.noti-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.noti-content::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 10px;
+}
+
+.dropdown-body {
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.dropdown-body p.mb-1 {
+  line-height: 1.6;
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdown-body .avatar {
+  min-width: 50px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.dropdown-body .text-primary {
+  color: #FF008A !important;
+}
+
+.dropdown-body .text-muted {
+  color: #74788d !important;
+}
