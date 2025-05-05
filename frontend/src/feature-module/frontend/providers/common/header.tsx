@@ -262,32 +262,10 @@ const ProviderHeader = () => {
           {/* Search */}
           <div className="nav-item nav-search-inputs">
             <div className="top-nav-search">
-              <Link to="#" className="responsive-search">
-                <i className="fa fa-search" />
-              </Link>
-              <form action="#" className="dropdown">
-                <div className="searchinputs" id="dropdownMenuClickable">
-                  <input type="text" placeholder="Search" />
-                  <div className="search-addon">
-                    <span>
-                      <i className="feather icon-user" />
-                    </span>
-                  </div>
-                </div>
-              </form>
             </div>
           </div>
           {/* /Search */}
           <div className="d-flex align-items-center">
-            <div className="me-2 site-link">
-              <Link
-                to="#"
-                className="d-flex align-items-center justify-content-center me-2"
-              >
-                <i className="feather icon-globe me-1" />
-                Visit Website
-              </Link>
-            </div>
             <div className="provider-head-links">
               <div>
                 
