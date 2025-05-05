@@ -50,7 +50,7 @@ const CustomerHeader = () => {
               </div>
               <ul className="main-nav">
                 <li className="has-submenu megamenu">
-                  <Link to="#">
+                  <Link to="index.html">
                     Home <i className="fas fa-chevron-down" />
                   </Link>
                   

@@ -91,70 +91,6 @@ const AdminHeader = () => {
           
         </div>
         <ul className="nav admin-user-menu">
-          {/* Notifications */}
-          <li className="nav-item">
-            <Link to={routes.index} target='_blank' className="viewsite">
-              <Icon.Globe className="react-feather-custom me-2"></Icon.Globe>
-              View Site
-            </Link>
-          </li>
-          <li className="nav-item dropdown has-arrow dropdown-heads flag-nav">
-            <Link
-              className="nav-link"
-              data-bs-toggle="dropdown"
-              to="#"
-              role="button"
-            >
-              <ImageWithBasePath
-                src="assets/admin/img/flags/us1.png"
-                alt="Flag"
-                height={20}
-              />
-            </Link>
-            <div className="dropdown-menu dropdown-menu-right">
-              <Link to="#" className="dropdown-item">
-                <ImageWithBasePath
-                  src="assets/admin/img/flags/us.png"
-                  className="me-2"
-                  alt="Flag"
-                  height={16}
-                />{' '}
-                English
-              </Link>
-              <Link to="#" className="dropdown-item">
-                <ImageWithBasePath
-                  src="assets/admin/img/flags/fr.png"
-                  className="me-2"
-                  alt="Flag"
-                  height={16}
-                />{' '}
-                French
-              </Link>
-              <Link to="#" className="dropdown-item">
-                <ImageWithBasePath
-                  src="assets/admin/img/flags/es.png"
-                  className="me-2"
-                  alt="Flag"
-                  height={16}
-                />{' '}
-                Spanish
-              </Link>
-              <Link to="#" className="dropdown-item">
-                <ImageWithBasePath
-                  src="assets/admin/img/flags/de.png"
-                  className="me-2"
-                  alt="Flag"
-                  height={16}
-                />{' '}
-                German
-              </Link>
-            </div>
-          </li>
-          <li className="nav-item  has-arrow dropdown-heads ">
-            <Link to="#" className="toggle-switch header-feather-icons">
-              <Icon.Moon className="react-feather-custom"></Icon.Moon>
-            </Link>
-          </li>
           <li className="nav-item dropdown has-arrow dropdown-heads ">
             <Link
               to="#"
@@ -198,156 +134,6 @@ const AdminHeader = () => {
                       </div>
                     </Link>
                   </li>
-                  <li className="notification-message">
-                    <Link to="notifications">
-                      <div className="media d-flex">
-                        <span className="avatar avatar-sm flex-shrink-0">
-                          <ImageWithBasePath
-                            className="avatar-img rounded-circle"
-                            alt="user"
-                            src="assets/admin/img/provider/provider-02.jpg"
-                          />
-                        </span>
-                        <div className="media-body flex-grow-1">
-                          <p className="noti-details">
-                            <span className="noti-title">
-                              Matthew Garcia have been subscribed
-                            </span>
-                          </p>
-                          <p className="noti-time">
-                            <span className="notification-time">
-                              13 Sep 2020 03:56 AM
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="notifications">
-                      <div className="media d-flex">
-                        <span className="avatar avatar-sm flex-shrink-0">
-                          <ImageWithBasePath
-                            className="avatar-img rounded-circle"
-                            alt="user"
-                            src="assets/admin/img/provider/provider-03.jpg"
-                          />
-                        </span>
-                        <div className="media-body flex-grow-1">
-                          <p className="noti-details">
-                            <span className="noti-title">
-                              Yolanda Potter have been subscribed
-                            </span>
-                          </p>
-                          <p className="noti-time">
-                            <span className="notification-time">
-                              12 Sep 2020 09:25 PM
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="notifications">
-                      <div className="media d-flex">
-                        <span className="avatar avatar-sm flex-shrink-0">
-                          <ImageWithBasePath
-                            className="avatar-img rounded-circle"
-                            alt="User Image"
-                            src="assets/admin/img/provider/provider-04.jpg"
-                          />
-                        </span>
-                        <div className="media-body flex-grow-1">
-                          <p className="noti-details">
-                            <span className="noti-title">
-                              Ricardo Flemings have been subscribed
-                            </span>
-                          </p>
-                          <p className="noti-time">
-                            <span className="notification-time">
-                              11 Sep 2020 06:36 PM
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="notifications">
-                      <div className="media d-flex">
-                        <span className="avatar avatar-sm flex-shrink-0">
-                          <ImageWithBasePath
-                            className="avatar-img rounded-circle"
-                            alt="User Image"
-                            src="assets/admin/img/provider/provider-05.jpg"
-                          />
-                        </span>
-                        <div className="media-body flex-grow-1">
-                          <p className="noti-details">
-                            <span className="noti-title">
-                              Maritza Wasson have been subscribed
-                            </span>
-                          </p>
-                          <p className="noti-time">
-                            <span className="notification-time">
-                              10 Sep 2020 08:42 AM
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="notifications">
-                      <div className="media d-flex">
-                        <span className="avatar avatar-sm flex-shrink-0">
-                          <ImageWithBasePath
-                            className="avatar-img rounded-circle"
-                            alt="User Image"
-                            src="assets/admin/img/provider/provider-06.jpg"
-                          />
-                        </span>
-                        <div className="media-body flex-grow-1">
-                          <p className="noti-details">
-                            <span className="noti-title">
-                              Marya Ruiz have been subscribed
-                            </span>
-                          </p>
-                          <p className="noti-time">
-                            <span className="notification-time">
-                              9 Sep 2020 11:01 AM
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
-                  <li className="notification-message">
-                    <Link to="notifications">
-                      <div className="media d-flex">
-                        <span className="avatar avatar-sm flex-shrink-0">
-                          <ImageWithBasePath
-                            className="avatar-img rounded-circle"
-                            alt="User Image"
-                            src="assets/admin/img/provider/provider-07.jpg"
-                          />
-                        </span>
-                        <div className="media-body flex-grow-1">
-                          <p className="noti-details">
-                            <span className="noti-title">
-                              Richard Hughes have been subscribed
-                            </span>
-                          </p>
-                          <p className="noti-time">
-                            <span className="notification-time">
-                              8 Sep 2020 06:23 AM
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </li>
                 </ul>
               </div>
               <div className="topnav-dropdown-footer">
@@ -377,7 +163,7 @@ const AdminHeader = () => {
               <span className="user-img">
                 <ImageWithBasePath
                   className="rounded-circle"
-                  src={user?.image || "assets/admin/img/user.jpg"}
+                  src="assets/img/user.jpg"
                   width={40}
                   alt="Admin"
                 />
@@ -392,13 +178,12 @@ const AdminHeader = () => {
               <li className="user-details">
                 <Link to="account" className="dropdown-item">
                   <ImageWithBasePath
-                    src={user?.image || "assets/admin/img/user.jpg"}
+                    src="assets/img/user.jpg"
                     alt="img"
                     className="profilesidebar"
                   />
                   <div className="profile-content">
                     <span>{user ? `${user.firstname} ${user.lastname}` : 'Guest'}</span>
-                    <span>{user?.email || 'guest@example.com'}</span>
                   </div>
                 </Link>
               </li>
