@@ -1589,10 +1589,10 @@ div.slick-slider button.slick-arrow {
   background: #0D0D0D;
   color: #C5CCDB;
 }
-.dark .react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name {
+.dark .react-datepicker__day-name, .dark .react-datepicker__day, .dark .react-datepicker__time-name {
   color: #C5CCDB;
 }
-.dark .react-datepicker__day:hover, .react-datepicker__month-text:hover, .react-datepicker__quarter-text:hover, .react-datepicker__year-text:hover {
+.dark .react-datepicker__day:hover, .dark .react-datepicker__month-text:hover, .dark .react-datepicker__quarter-text:hover, .dark .react-datepicker__year-text:hover {
   color: #C5CCDB;
   background: #0D0D0D;
 }
@@ -2278,4 +2278,45 @@ margin-right: 20px;
 
 .dropdown-body .text-muted {
   color: #74788d !important;
+}
+
+/* Dark Modal Styles */
+.modal.dark-modal .modal-content {
+  background-color: #1a1a1a;
+  color: #fff;
+  border: 1px solid #333;
+}
+
+.dark-modal .modal-header {
+  border-bottom: 1px solid #333;
+}
+
+.dark-modal .modal-footer {
+  border-top: 1px solid #333;
+}
+
+.dark-modal .form-control {
+  background-color: #333;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.dark-modal .form-control:focus {
+  background-color: #404040;
+  border-color: #666;
+  color: #fff;
+}
+
+.dark-modal .form-label {
+  color: #fff;
+}
+
+.dark-modal .input-group-text {
+  background-color: #333;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.dark-modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }

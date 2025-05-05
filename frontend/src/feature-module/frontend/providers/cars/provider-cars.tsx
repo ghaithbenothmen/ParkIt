@@ -28,6 +28,9 @@ const ProviderCars = () => {
     immatriculation: ''
   });
 
+  const [leftNumbers, setLeftNumbers] = useState('');
+  const [rightNumbers, setRightNumbers] = useState('');
+
   const fetchVehicles = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -173,20 +176,100 @@ const ProviderCars = () => {
     setExpandedImage(null);
   };
 
+  // Ajouter ces fonctions de validation
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      marque: '',
+      modele: '',
+      couleur: '',
+      immatriculation: ''
+    };
+
+    // Validation de la marque
+    if (!newVehicle.marque.trim()) {
+      newErrors.marque = 'Brand is required';
+      isValid = false;
+    } else if (newVehicle.marque.length < 2) {
+      newErrors.marque = 'Brand must be at least 2 characters';
+      isValid = false;
+    }
+
+    // Validation du modèle
+    if (!newVehicle.modele.trim()) {
+      newErrors.modele = 'Model is required';
+      isValid = false;
+    } else if (newVehicle.modele.length < 2) {
+      newErrors.modele = 'Model must be at least 2 characters';
+      isValid = false;
+    }
+
+    // Validation de la couleur
+    if (!newVehicle.couleur.trim()) {
+      newErrors.couleur = 'Color is required';
+      isValid = false;
+    } else if (!/^[a-zA-Z]+$/.test(newVehicle.couleur)) {
+      newErrors.couleur = 'Color must contain only letters';
+      isValid = false;
+    }
+
+    // Validation de l'immatriculation
+    if (!leftNumbers || !rightNumbers) {
+      newErrors.immatriculation = 'Both number fields are required';
+      isValid = false;
+    } else if (!/^\d{1,3}$/.test(leftNumbers)) {
+      newErrors.immatriculation = 'Left side must be 1-3 digits';
+      isValid = false;
+    } else if (!/^\d{1,4}$/.test(rightNumbers)) {
+      newErrors.immatriculation = 'Right side must be 1-4 digits';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleAddVehicle = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    // Créer l'immatriculation complète
+    const fullImmatriculation = `${leftNumbers}Tunisia${rightNumbers}`;
+    
+    // Validation du format
+    const immatriculationRegex = /^\d{1,3}Tunisia\d{1,4}$/;
+    if (!immatriculationRegex.test(fullImmatriculation)) {
+      setErrors({
+        ...errors,
+        immatriculation: 'Invalid format. Left side should be 1-3 digits, right side should be 1-4 digits'
+      });
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
+      const vehicleData = {
+        ...newVehicle,
+        immatriculation: fullImmatriculation
+      };
+
       const response = await fetch('http://localhost:4000/api/vehicules', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(newVehicle)
+        body: JSON.stringify(vehicleData)
       });
 
       if (!response.ok) {
+        const data = await response.json();
+        if (data.errors) {
+          setErrors(data.errors);
+        }
         throw new Error('Error adding vehicle');
       }
 
@@ -200,9 +283,10 @@ const ProviderCars = () => {
         couleur: '',
         immatriculation: ''
       });
+      setLeftNumbers('');
+      setRightNumbers('');
       setShowAddModal(false);
       setShowSuccessModal(true);
-      
       setTimeout(() => {
         setShowSuccessModal(false);
       }, 2000);
@@ -324,7 +408,7 @@ const ProviderCars = () => {
           className="modal fade show" 
           style={{ 
             display: 'block', 
-            backgroundColor: 'rgba(0,0,0,0.8)'
+            backgroundColor: 'rgba(0,0,0,0.8)' 
           }}
           onClick={handleCloseImage}
         >
@@ -347,7 +431,7 @@ const ProviderCars = () => {
 
       {/* Add Vehicle Modal */}
       {showAddModal && (
-        <div className="modal fade show" style={{ display: 'block' }}>
+        <div className="modal fade show dark-modal" style={{ display: 'block' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
@@ -364,45 +448,88 @@ const ProviderCars = () => {
                     <label htmlFor="marque" className="form-label">Brand</label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${errors.marque ? 'is-invalid' : ''}`}
                       id="marque"
                       value={newVehicle.marque}
                       onChange={(e) => setNewVehicle({...newVehicle, marque: e.target.value})}
                       required
                     />
+                    {errors.marque && (
+                      <div className="invalid-feedback d-block">
+                        {errors.marque}
+                      </div>
+                    )}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="modele" className="form-label">Model</label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${errors.modele ? 'is-invalid' : ''}`}
                       id="modele"
                       value={newVehicle.modele}
                       onChange={(e) => setNewVehicle({...newVehicle, modele: e.target.value})}
                       required
                     />
+                    {errors.modele && (
+                      <div className="invalid-feedback d-block">
+                        {errors.modele}
+                      </div>
+                    )}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="couleur" className="form-label">Color</label>
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${errors.couleur ? 'is-invalid' : ''}`}
                       id="couleur"
                       value={newVehicle.couleur}
                       onChange={(e) => setNewVehicle({...newVehicle, couleur: e.target.value})}
                       required
                     />
+                    {errors.couleur && (
+                      <div className="invalid-feedback d-block">
+                        {errors.couleur}
+                      </div>
+                    )}
                   </div>
                   <div className="mb-3">
                     <label htmlFor="immatriculation" className="form-label">Registration</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="immatriculation"
-                      value={newVehicle.immatriculation}
-                      onChange={(e) => setNewVehicle({...newVehicle, immatriculation: e.target.value})}
-                      required
-                    />
+                    <div className="input-group">
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="123"
+                        value={leftNumbers}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.length <= 3 && /^\d*$/.test(value)) {
+                            setLeftNumbers(value);
+                          }
+                        }}
+                        min="1"
+                        max="999"
+                      />
+                      <span className="input-group-text"> Tunisia </span>
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="1234"
+                        value={rightNumbers}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.length <= 4 && /^\d*$/.test(value)) {
+                            setRightNumbers(value);
+                          }
+                        }}
+                        min="1"
+                        max="9999"
+                      />
+                    </div>
+                    {errors.immatriculation && (
+                      <div className="invalid-feedback d-block">
+                        {errors.immatriculation}
+                      </div>
+                    )}
                   </div>
                   <div className="modal-footer">
                     <button
