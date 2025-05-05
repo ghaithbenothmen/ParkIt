@@ -273,6 +273,7 @@ const ProviderHeader = () => {
                     <span>
                       <i className="feather icon-user" />
                     </span>
+                    <VoiceAssistant/>
                   </div>
                 </div>
               </form>

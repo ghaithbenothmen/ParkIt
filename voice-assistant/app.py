@@ -4,16 +4,19 @@ import numpy as np
 import whisper
 import sounddevice as sd
 from queue import Queue
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from rich.console import Console
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationChain
 from langchain.prompts import PromptTemplate
 from langchain_community.llms import Ollama
-from tts import TextToSpeechService
+import io
+import soundfile as sf
 
 console = Console()
 stt = whisper.load_model("base.en")
-tts = TextToSpeechService()
 
 template = """
 You are a helpful and friendly AI assistant. You are polite, respectful, and aim to provide concise responses of less 
@@ -34,119 +37,47 @@ chain = ConversationChain(
     llm=Ollama(),
 )
 
+app = FastAPI()
 
-def record_audio(stop_event, data_queue):
-    """
-    Captures audio data from the user's microphone and adds it to a queue for further processing.
-
-    Args:
-        stop_event (threading.Event): An event that, when set, signals the function to stop recording.
-        data_queue (queue.Queue): A queue to which the recorded audio data will be added.
-
-    Returns:
-        None
-    """
-    def callback(indata, frames, time, status):
-        if status:
-            console.print(status)
-        data_queue.put(bytes(indata))
-
-    with sd.RawInputStream(
-        samplerate=16000, dtype="int16", channels=1, callback=callback
-    ):
-        while not stop_event.is_set():
-            time.sleep(0.1)
-
+# Allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace with your frontend domain in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def transcribe(audio_np: np.ndarray) -> str:
-    """
-    Transcribes the given audio data using the Whisper speech recognition model.
-
-    Args:
-        audio_np (numpy.ndarray): The audio data to be transcribed.
-
-    Returns:
-        str: The transcribed text.
-    """
-    result = stt.transcribe(audio_np, fp16=False)  # Set fp16=True if using a GPU
-    text = result["text"].strip()
-    return text
-
+    result = stt.transcribe(audio_np, fp16=False)
+    return result["text"].strip()
 
 def get_llm_response(text: str) -> str:
-    """
-    Generates a response to the given text using the Llama-2 language model.
-
-    Args:
-        text (str): The input text to be processed.
-
-    Returns:
-        str: The generated response.
-    """
     response = chain.predict(input=text)
     if response.startswith("Assistant:"):
-        response = response[len("Assistant:") :].strip()
+        response = response[len("Assistant:"):].strip()
     return response
 
+class TextResponse(BaseModel):
+    response: str
 
-def play_audio(sample_rate, audio_array):
-    """
-    Plays the given audio data using the sounddevice library.
+@app.post("/voice", response_model=TextResponse)
+async def handle_voice(file: UploadFile = File(...)):
+    audio_bytes = await file.read()
 
-    Args:
-        sample_rate (int): The sample rate of the audio data.
-        audio_array (numpy.ndarray): The audio data to be played.
+    # Decode WAV to numpy
+    with io.BytesIO(audio_bytes) as audio_buffer:
+        audio_np, _ = sf.read(audio_buffer)
+        if audio_np.dtype != np.float32:
+            audio_np = audio_np.astype(np.float32)
 
-    Returns:
-        None
-    """
-    sd.play(audio_array, sample_rate)
-    sd.wait()
+    if audio_np.size == 0:
+        return {"response": "No audio received."}
 
+    text = transcribe(audio_np)
+    print(f"Transcribed text: {text}")
 
-if __name__ == "__main__":
-    console.print("[cyan]Assistant started! Press Ctrl+C to exit.")
+    response = get_llm_response(text)
+    print(f"Assistant response: {response}")  # ← Added this line
 
-    try:
-        while True:
-            console.input(
-                "Press Enter to start recording, then press Enter again to stop."
-            )
-
-            data_queue = Queue()  # type: ignore[var-annotated]
-            stop_event = threading.Event()
-            recording_thread = threading.Thread(
-                target=record_audio,
-                args=(stop_event, data_queue),
-            )
-            recording_thread.start()
-
-            input()
-            stop_event.set()
-            recording_thread.join()
-
-            audio_data = b"".join(list(data_queue.queue))
-            audio_np = (
-                np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
-            )
-
-            if audio_np.size > 0:
-                with console.status("Transcribing...", spinner="earth"):
-                    text = transcribe(audio_np)
-                console.print(f"[yellow]You: {text}")
-
-                with console.status("Generating response...", spinner="earth"):
-                    response = get_llm_response(text)
-                    sample_rate, audio_array = tts.long_form_synthesize(response)
-
-                console.print(f"[cyan]Assistant: {response}")
-                play_audio(sample_rate, audio_array)
-            else:
-                console.print(
-                    "[red]No audio recorded. Please ensure your microphone is working."
-                )
-
-    except KeyboardInterrupt:
-        console.print("\n[red]Exiting...")
-
-    console.print("[blue]Session ended.")
+    return {"response": response}
