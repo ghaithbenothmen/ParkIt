@@ -20,8 +20,7 @@ type props = {
 const HomeHeader: React.FC<props> = ({ type }) => {
   const routes = all_routes;
   const location = useLocation();
-  // const header_data = useSelector((state: Header) => state.header_data);
-  const header_data = header;
+  const header_data = header || []; // Ensure header_data is never undefined
   const toggle_data = useSelector((state: AppState) => state.toggleSidebar);
   const [scrollYPosition, setScrollYPosition] = useState<number>(0);
   const [close, setClose] = useState<boolean>(true);
@@ -35,27 +34,13 @@ const HomeHeader: React.FC<props> = ({ type }) => {
     dispatch(set_toggleSidebar_data(toggle_data ? false : true));
   };
 
-  const activeRouterPath = (routesArray: Header[] | undefined) => {
-    if (!routesArray) return false;
+  const activeRouterPath = (routesArray: any[] | undefined) => {
+    if (!Array.isArray(routesArray)) return false;
     
-    let checkActive = false;
-    header_data.forEach((mainMenus: { menu?: any[] }) => {
-      if (mainMenus.menu) {
-        mainMenus.menu.forEach((menus: Header) => {
-          if (location.pathname === menus.routes) {
-            checkActive = true;
-          }
-        });
-      }
-    });
-  
-    const all_routes: string[] = [];
-    routesArray.forEach((item: Header) => {
-      if (item.routes) {
-        all_routes.push(item.routes);
-      }
-    });
-  
+    const all_routes: string[] = routesArray
+      .filter(item => item && item.routes)
+      .map(item => item.routes);
+    
     return all_routes.includes(location.pathname);
   };
 
@@ -224,7 +209,10 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                   <span />
                 </span>
               </Link>
-              <Link to={routes.index} className="navbar-brand logo">
+              <Link to={routes.index} className="navbar-brand logo" onClick={(e) => {
+                e.preventDefault();
+                window.location.href = routes.index;
+              }}>
                 <ImageWithBasePath
                   src="assets/img/full-parkit.png"
                   className="img-fluid"
@@ -262,140 +250,145 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                 </Link>
               </div>
               <ul className="main-nav align-items-lg-center">
-                {header_data.map((item: any, index: number) => {
-                  if (item.tittle === 'Home') {
+                {Array.isArray(header_data) && header_data.map((item: any, index: number) => {
+                  if (!item) return null;
+
+                  // Handle both direct route items and items with menus
+                  if (item.routes || item.tittle === 'Home') {
                     return (
-                      <li key={index + 1}>
+                      <li key={`route-${index}`}>
                         <Link to={item.routes || '/'}>
                           {item.tittle}
                         </Link>
                       </li>
                     );
                   }
-                  return item.separateRoute === false ? (
-                    <li
-                      key={index + 1}
-                      className={`has-submenu ${item.menu && activeRouterPath(item.menu) ? 'active' : ''}`}
-                    >
-                      <Link
-                        to="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const newHeaderData = [...header_data];
-                          newHeaderData[index] = {
-                            ...newHeaderData[index],
-                            showAsTab: !item.showAsTab
-                          };
-                          dispatch(set_header_data(newHeaderData));
-                        }}
+
+                  if (!item.separateRoute && item.menu) {
+                    return (
+                      <li
+                        key={`menu-${index}`}
+                        className={`has-submenu ${activeRouterPath(item.menu) ? 'active' : ''}`}
                       >
-                        {item.tittle}
-                        <i className="fas fa-chevron-down" />
-                      </Link>
-                      <ul
-                        className={`submenu ${item.tittle == 'Home' ? 'mega-submenu' : ''
-                          } ${item.showAsTab == true ? 'show-sub-menu' : ''}`}
-                      >
-                        {item.menu.map(
-                          (menu: any, menuIndex: number) => {
-                            return (
-                              <>
-                                {menu.hasSubRoute == false &&
-                                  item.tittle != 'Home' && (
-                                    <li className={menu.routes == location.pathname ? 'active' : ''} key={menuIndex + 1}>
-                                      <Link to={menu.routes}>
+                        <Link
+                          to="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const newHeaderData = [...header_data];
+                            newHeaderData[index] = {
+                              ...newHeaderData[index],
+                              showAsTab: !item.showAsTab
+                            };
+                            dispatch(set_header_data(newHeaderData));
+                          }}
+                        >
+                          {item.tittle}
+                          <i className="fas fa-chevron-down" />
+                        </Link>
+                        {item.menu && Array.isArray(item.menu) && (
+                          <ul className={`submenu ${item.showAsTab ? 'show-sub-menu' : ''}`}>
+                            {item.menu.map((menu: any, menuIndex: number) => {
+                              if (!menu) return null;
+                              return (
+                                <React.Fragment key={`submenu-${menuIndex}`}>
+                                  {menu.hasSubRoute == false &&
+                                    item.tittle != 'Home' && (
+                                      <li className={menu.routes == location.pathname ? 'active' : ''} key={menuIndex + 1}>
+                                        <Link to={menu.routes}>
+                                          {menu.menuValue}
+                                        </Link>
+                                      </li>
+                                    )}
+                                  {menu.hasSubRoute == true && (
+                                    <li
+                                      key={menuIndex + 1}
+                                      className="has-submenu"
+                                    >
+                                      <Link
+                                        onClick={() =>
+                                        (menu.showSubRoute =
+                                          !menu.showSubRoute)
+                                        }
+                                        to={menu.routes}
+                                      >
                                         {menu.menuValue}
                                       </Link>
-                                    </li>
-                                  )}
-                                {menu.hasSubRoute == true && (
-                                  <li
-                                    key={menuIndex + 1}
-                                    className="has-submenu"
-                                  >
-                                    <Link
-                                      onClick={() =>
-                                      (menu.showSubRoute =
-                                        !menu.showSubRoute)
-                                      }
-                                      to={menu.routes}
-                                    >
-                                      {menu.menuValue}
-                                    </Link>
-                                    <ul
-                                      className={`submenu ${menu.showSubRoute === true &&
-                                        'show-sub-menu'
-                                        }`}
-                                    >
-                                      {menu.subMenus.map(
-                                        (
-                                          subMenu: Header,
-                                          subMenuIndex: number,
-                                        ) => {
-                                          return (
-                                            <li className={subMenu.routes == location.pathname ? 'active' : ''} key={subMenuIndex + 1}>
-                                              <Link to={subMenu.routes}>
-                                                {subMenu.menuValue}
-                                              </Link>
-                                            </li>
-                                          );
-                                        },
-                                      )}
-                                    </ul>
-                                  </li>
-                                )}
-                                {menu.menuValue == 'Electrical Home' && (
-                                  <li>
-                                    <div className="megamenu-wrapper">
-                                      <div className="row">
-                                        {item.menu.map(
+                                      <ul
+                                        className={`submenu ${menu.showSubRoute === true &&
+                                          'show-sub-menu'
+                                          }`}
+                                      >
+                                        {menu.subMenus.map(
                                           (
-                                            menu: Header,
-                                            megaIndex: number,
+                                            subMenu: Header,
+                                            subMenuIndex: number,
                                           ) => {
                                             return (
-                                              <div
-                                                className="col-lg-2"
-                                                key={megaIndex + 1}
-                                              >
-                                                <div
-                                                  className={`single-demo ${menu.routes ==
-                                                      location.pathname
-                                                      ? 'active'
-                                                      : ''
-                                                    }`}
-                                                >
-                                                  <div className="demo-img">
-                                                    <Link to={menu.routes}>
-                                                      <ImageWithBasePath
-                                                        src={menu.img}
-                                                        className="img-fluid"
-                                                        alt="img"
-                                                      />
-                                                    </Link>
-                                                  </div>
-                                                  <div className="demo-info">
-                                                    <Link to={menu.routes}>
-                                                      {menu.menuValue}
-                                                    </Link>
-                                                  </div>
-                                                </div>
-                                              </div>
+                                              <li className={subMenu.routes == location.pathname ? 'active' : ''} key={subMenuIndex + 1}>
+                                                <Link to={subMenu.routes}>
+                                                  {subMenu.menuValue}
+                                                </Link>
+                                              </li>
                                             );
                                           },
                                         )}
+                                      </ul>
+                                    </li>
+                                  )}
+                                  {menu.menuValue == 'Electrical Home' && (
+                                    <li>
+                                      <div className="megamenu-wrapper">
+                                        <div className="row">
+                                          {item.menu.map(
+                                            (
+                                              menu: Header,
+                                              megaIndex: number,
+                                            ) => {
+                                              return (
+                                                <div
+                                                  className="col-lg-2"
+                                                  key={megaIndex + 1}
+                                                >
+                                                  <div
+                                                    className={`single-demo ${menu.routes ==
+                                                        location.pathname
+                                                        ? 'active'
+                                                        : ''
+                                                      }`}
+                                                  >
+                                                    <div className="demo-img">
+                                                      <Link to={menu.routes}>
+                                                        <ImageWithBasePath
+                                                          src={menu.img}
+                                                          className="img-fluid"
+                                                          alt="img"
+                                                        />
+                                                      </Link>
+                                                    </div>
+                                                    <div className="demo-info">
+                                                      <Link to={menu.routes}>
+                                                        {menu.menuValue}
+                                                      </Link>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              );
+                                            },
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  </li>
+                                    </li>
 
-                                )}
-                              </>
-                            );
-                          },
+                                  )}
+                                </React.Fragment>
+                              );
+                            })}
+                          </ul>
                         )}
-                      </ul>
-                    </li>
-                  ) : null;
+                      </li>
+                    );
+                  }
+                  return null;
                 })}
 
               </ul>
