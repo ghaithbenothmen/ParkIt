@@ -433,11 +433,23 @@ const ProviderBooking = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <Link to={routes.booking} className="btn btn-light" data-bs-toggle="modal" data-bs-target="#reschedule">
-                        Reschedule
-                      </Link>
-                    </div>
+                    {(() => {
+                      const startDate = new Date(reservation.startDate);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0); // remove time part for comparison
+
+                      if (startDate >= today) {
+                        return (
+                          <div>
+                            <Link to={routes.booking} className="btn btn-light" data-bs-toggle="modal" data-bs-target="#reschedule">
+                              Reschedule
+                            </Link>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })()}
                   </div>
                 </div>
               ))

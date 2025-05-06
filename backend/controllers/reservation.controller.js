@@ -162,7 +162,7 @@ exports.paymentFail = async (req, res) => {
 
 exports.getAllReservations = async (req, res) => {
     try {
-        const reservations = await Reservation.find();
+        const reservations = await Reservation.find().sort({ createdAt: -1 });
 
         // Check for expired reservations and update their status to 'over'
         const now = new Date();
@@ -243,7 +243,7 @@ exports.getAllReservationsByUser = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        const reservations = await Reservation.find({ userId });
+        const reservations = await Reservation.find({ userId }).sort({ createdAt: -1 });
 
         if (reservations.length === 0) {
             return res.status(404).json({ message: 'Aucune réservation trouvée pour cet utilisateur.' });
