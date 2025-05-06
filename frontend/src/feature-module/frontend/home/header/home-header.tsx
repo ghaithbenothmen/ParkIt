@@ -114,11 +114,26 @@ const HomeHeader: React.FC<props> = ({ type }) => {
   // Determine which header data to use based on user role
   const header_data = user?.role === 'admin' ? adminHeader : header;
 
-  const handleLogout = () => {
-    // Remove user data from localStorage
-    localStorage.removeItem('user');
-    setUser(null); // Clear the user state
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+  
+      if (response.ok) {
+        // Supprimer toutes les données liées à l'utilisateur du localStorage
+        localStorage.clear(); // Cela supprimera tout le localStorage, y compris le rôle
+        setUser(null);
+        window.location.href = '/';
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
+  
   const renderButtons = (pathType: number) => {
     if (user && user.email) {
       // User is logged in
