@@ -104,7 +104,7 @@ const CustomerSection = () => {
   };
 
   return (
-    <section className="section service-section white-section testimonial-section">
+    <section className="section service-section white-section testimonial-section" id="reviews">
       <div className="container">
         <div className="row justify-content-center">
           <div className="col-lg-6 text-center wow fadeInUp" data-wow-delay="0.2s">
