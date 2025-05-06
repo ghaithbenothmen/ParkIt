@@ -6,7 +6,7 @@ const BussinessWithUs = () => {
   return (
     <>
   {/* Business Section */}
-  <section className="section business-section bg-black">
+  <section className="section business-section bg-black" id="about">
     <div className="container">
       <div className="row align-items-center bg-01">
         <div className="col-md-6 wow fadeInUp" data-wow-delay="0.2s">

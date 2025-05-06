@@ -112,7 +112,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
   }, []);
 
   // Determine which header data to use based on user role
-  const header_data = user?.role === 'admin' ? adminHeader : header;
+  const header_data = header;
 
   const handleLogout = async () => {
     try {
@@ -204,6 +204,16 @@ const HomeHeader: React.FC<props> = ({ type }) => {
 
   const isPublicPage = (menuTitle: string) => {
     return menuTitle === 'Home' || menuTitle === 'Pages';
+  };
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    } else if (window.location.pathname !== '/') {
+      window.location.href = '/#' + sectionId;
+    }
   };
 
   useEffect(() => {
@@ -316,7 +326,19 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                       <li key={`route-${index}`}>
                         <Link 
                           to={item.routes || '/'} 
-                          onClick={(e) => !isPublicPage(item.tittle) ? handleUnauthorizedClick(e) : undefined}
+                          onClick={(e) => {
+                            if (item.routes === '/#parkings') {
+                              scrollToSection(e, 'parkings');
+                            } else if (item.routes === '/#reviews') {
+                              scrollToSection(e, 'reviews');
+                            } else if (item.routes === '/#about') {
+                              scrollToSection(e, 'about');
+                            } else if (item.routes === '/#works') {
+                              scrollToSection(e, 'works');
+                            } else if (!isPublicPage(item.tittle)) {
+                              handleUnauthorizedClick(e);
+                            }
+                          }}
                         >
                           {item.tittle}
                         </Link>

@@ -53,7 +53,7 @@ const FeatureSection = () => {
   if (parkings.length === 0) return <div className="text-center py-5">No parkings available</div>;
 
   return (
-    <section className="section service-section">
+    <section className="section service-section" id="parkings">
       <div className="container">
         {/* Nouvelle section d'en-tête intégrée */}
         <div className="row justify-content-center">

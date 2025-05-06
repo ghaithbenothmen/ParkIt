@@ -2,102 +2,6 @@ import { all_routes } from '../routes/all_routes';
 
 const routes = all_routes;
 
-export const adminHeader = [
-  {
-    id: 1,
-    tittle: 'Home',
-    showAsTab: false,
-    routes: routes.index,
-    separateRoute: false,
-  },
-  {
-    id: 2,
-    tittle: 'Dashboard',
-    showAsTab: false,
-    routes: routes.dashboard,
-    separateRoute: false,
-  },
-  {
-    id: 3,
-    tittle: 'Users',
-    showAsTab: false,
-    routes: routes.users,
-    separateRoute: false,
-  },
-  {
-    id: 4,
-    tittle: 'Parkings',
-    showAsTab: false,
-    routes: routes.allServices,
-    separateRoute: false,
-  },
-  {
-    id: 5,
-    tittle: 'Claims',
-    showAsTab: false,
-    routes: routes.claims,
-    separateRoute: false,
-  },
-  {
-    id: 6,
-    tittle: 'Reviews',
-    showAsTab: false,
-    routes: routes.reviews,
-    separateRoute: false,
-  },
-  {
-    id: 7,
-    tittle: 'Bookings',
-    showAsTab: false,
-    routes: routes.booking,
-    separateRoute: false,
-  },
-  {
-    id: 8,
-    tittle: 'Pages',
-    showAsTab: false,
-    separateRoute: false,
-    menu: [
-      {
-        id: 1,
-        menuValue: 'About',
-        routes: routes.aboutUs,
-        hasSubRoute: false,
-        showSubRoute: false,
-      },
-      {
-        id: 2,
-        menuValue: 'Contact Us',
-        routes: routes.contactUs,
-        hasSubRoute: false,
-        showSubRoute: false,
-      },
-      {
-        id: 3,
-        menuValue: 'How It Works',
-        routes: routes.howItWorks,
-        hasSubRoute: false,
-        showSubRoute: false,
-      },
-      {
-        id: 4,
-        menuValue: 'Privacy Policy',
-        routes: routes.privacyPolicy,
-        hasSubRoute: false,
-        showSubRoute: false,
-      },
-      {
-        id: 5,
-        menuValue: 'Terms & Conditions',
-        routes: routes.termsCondition,
-        hasSubRoute: false,
-        showSubRoute: false,
-      },
-      
-    ],
-  },
-];
-
 export const header = [
   {
     id:1,
@@ -108,56 +12,34 @@ export const header = [
   },
   {
     id:2,
-    tittle: 'Dashboard',
+    tittle: 'Parkings',
     showAsTab: false,
-    routes: routes.providerDashboard,
+    routes: '/#parkings',
     separateRoute: false,
   },
   {
     id:3,
-    tittle: 'Bookings',
+    tittle: 'Reviews',
     showAsTab: false,
-    routes: routes.providerBooking,
+    routes: '/#reviews',
     separateRoute: false,
   },
   {
     id:4,
-    tittle: 'Cars',
+    tittle: 'How It Works',
     showAsTab: false,
-    routes: routes.providerCars,
+    routes: '/#works',
     separateRoute: false,
   },
   {
     id:5,
-    tittle: 'Claims',
+    tittle: 'About Us',
     showAsTab: false,
-    routes: routes.providerClaims,
+    routes: '/#about',
     separateRoute: false,
   },
   {
-    id:6,
-    tittle: 'Settings',
-    showAsTab: false,
-    separateRoute: false,
-    menu: [
-      {
-        id:1,
-        menuValue: 'Account',
-        routes: routes.providerProfileSettings,
-        hasSubRoute: false,
-        showSubRoute: false,
-      },
-      {
-        id:2,
-        menuValue: 'Security',
-        routes: routes.ProviderSecuritySettings,
-        hasSubRoute: false,
-        showSubRoute: false,
-      },
-    ],
-  },
-  {
-    id:7,
+    id:5,
     tittle: 'Pages',
     showAsTab: false,
     separateRoute: false,
