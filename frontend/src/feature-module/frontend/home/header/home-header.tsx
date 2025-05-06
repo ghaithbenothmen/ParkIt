@@ -11,7 +11,7 @@ import {
 } from '../../../../core/data/redux/action';
 import * as Icon from 'react-feather';
 import { AppState, Header } from '../../../../core/models/interface';
-import { header } from '../../../../core/data/json/header';
+import { header, adminHeader } from '../../../../core/data/json/header';
 
 type props = {
   type: number;
@@ -20,7 +20,6 @@ type props = {
 const HomeHeader: React.FC<props> = ({ type }) => {
   const routes = all_routes;
   const location = useLocation();
-  const header_data = header || []; // Ensure header_data is never undefined
   const toggle_data = useSelector((state: AppState) => state.toggleSidebar);
   const [scrollYPosition, setScrollYPosition] = useState<number>(0);
   const [close, setClose] = useState<boolean>(true);
@@ -102,7 +101,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
     }
   };
 
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; role?: string } | null>(null);
 
   useEffect(() => {
     // Retrieve user data from localStorage
@@ -111,6 +110,9 @@ const HomeHeader: React.FC<props> = ({ type }) => {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  // Determine which header data to use based on user role
+  const header_data = user?.role === 'admin' ? adminHeader : header;
 
   const handleLogout = () => {
     // Remove user data from localStorage
