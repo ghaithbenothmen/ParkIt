@@ -167,6 +167,28 @@ const HomeHeader: React.FC<props> = ({ type }) => {
     }
   };
 
+  const [showAuthAlert, setShowAuthAlert] = useState(false);
+
+  const handleUnauthorizedClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      setShowAuthAlert(true);
+      setTimeout(() => setShowAuthAlert(false), 3000); // Hide after 3 seconds
+    }
+  };
+
+  const handleSubMenuClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      setShowAuthAlert(true);
+      setTimeout(() => setShowAuthAlert(false), 3000);
+    }
+  };
+
+  const isPublicPage = (menuTitle: string) => {
+    return menuTitle === 'Home' || menuTitle === 'Pages';
+  };
+
   useEffect(() => {
     type == 1 || type == 4 || type == 10
       ? setImageUrl({
@@ -183,6 +205,24 @@ const HomeHeader: React.FC<props> = ({ type }) => {
 
   return (
     <>
+      {/* Add alert popup */}
+      {showAuthAlert && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 9999,
+            backgroundColor: '#f8d7da',
+            color: '#721c24',
+            padding: '1rem',
+            borderRadius: '4px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+          }}
+        >
+          Please login to access this feature!
+        </div>
+      )}
       <div className={` top-bar ${type != 3 || !close ? 'd-none' : ''}`}>
         <h6>50% OFF on Christmas</h6>
         <ul>
@@ -257,7 +297,10 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                   if (item.routes || item.tittle === 'Home') {
                     return (
                       <li key={`route-${index}`}>
-                        <Link to={item.routes || '/'}>
+                        <Link 
+                          to={item.routes || '/'} 
+                          onClick={(e) => !isPublicPage(item.tittle) ? handleUnauthorizedClick(e) : undefined}
+                        >
                           {item.tittle}
                         </Link>
                       </li>
@@ -274,6 +317,10 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                           to="#"
                           onClick={(e) => {
                             e.preventDefault();
+                            if (!user && !isPublicPage(item.tittle)) {
+                              handleUnauthorizedClick(e);
+                              return;
+                            }
                             const newHeaderData = [...header_data];
                             newHeaderData[index] = {
                               ...newHeaderData[index],
@@ -294,7 +341,10 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                                   {menu.hasSubRoute == false &&
                                     item.tittle != 'Home' && (
                                       <li className={menu.routes == location.pathname ? 'active' : ''} key={menuIndex + 1}>
-                                        <Link to={menu.routes}>
+                                        <Link 
+                                          to={menu.routes} 
+                                          onClick={(e) => !isPublicPage(item.tittle) ? handleSubMenuClick(e) : undefined}
+                                        >
                                           {menu.menuValue}
                                         </Link>
                                       </li>
@@ -305,10 +355,14 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                                       className="has-submenu"
                                     >
                                       <Link
-                                        onClick={() =>
-                                        (menu.showSubRoute =
-                                          !menu.showSubRoute)
-                                        }
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          if (!user && !isPublicPage(item.tittle)) {
+                                            handleSubMenuClick(e);
+                                            return;
+                                          }
+                                          menu.showSubRoute = !menu.showSubRoute;
+                                        }}
                                         to={menu.routes}
                                       >
                                         {menu.menuValue}
@@ -325,7 +379,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                                           ) => {
                                             return (
                                               <li className={subMenu.routes == location.pathname ? 'active' : ''} key={subMenuIndex + 1}>
-                                                <Link to={subMenu.routes}>
+                                                <Link to={subMenu.routes} onClick={handleSubMenuClick}>
                                                   {subMenu.menuValue}
                                                 </Link>
                                               </li>
