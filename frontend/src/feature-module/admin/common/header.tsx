@@ -112,7 +112,9 @@ const AdminHeader = () => {
     setFilteredNotifications(filterNotificationsByPeriod(notifications, selectedPeriod));
   }, [notifications, selectedPeriod]);
 
-  const handlePeriodChange = (period: string) => {
+  const handlePeriodChange = (e: React.MouseEvent, period: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     setSelectedPeriod(period);
   };
 
@@ -169,7 +171,9 @@ const AdminHeader = () => {
     return `${Math.floor(diffInMinutes / 1440)} days ago`;
   };
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
       const response = await fetch('http://localhost:4000/api/notifications/mark-all-read', {
         method: 'POST',
@@ -243,6 +247,7 @@ const AdminHeader = () => {
             <Link
               to="#"
               data-bs-toggle="dropdown"
+              data-bs-auto-close="false"
               className="header-feather-icons"
             >
               <Icon.Bell className="react-feather-custom" />
@@ -282,7 +287,7 @@ const AdminHeader = () => {
                         <Link
                           to="#"
                           className={`dropdown-item rounded-1 ${selectedPeriod === 'today' ? 'active' : ''}`}
-                          onClick={() => handlePeriodChange('today')}
+                          onClick={(e) => handlePeriodChange(e, 'today')}
                         >
                           Today
                         </Link>
@@ -291,7 +296,7 @@ const AdminHeader = () => {
                         <Link
                           to="#"
                           className={`dropdown-item rounded-1 ${selectedPeriod === 'thisWeek' ? 'active' : ''}`}
-                          onClick={() => handlePeriodChange('thisWeek')}
+                          onClick={(e) => handlePeriodChange(e, 'thisWeek')}
                         >
                           This Week
                         </Link>
@@ -300,7 +305,7 @@ const AdminHeader = () => {
                         <Link
                           to="#"
                           className={`dropdown-item rounded-1 ${selectedPeriod === 'lastWeek' ? 'active' : ''}`}
-                          onClick={() => handlePeriodChange('lastWeek')}
+                          onClick={(e) => handlePeriodChange(e, 'lastWeek')}
                         >
                           Last Week
                         </Link>
