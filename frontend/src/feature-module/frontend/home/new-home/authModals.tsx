@@ -15,6 +15,7 @@ interface User {
   name: string;
   image: string;
   token: string;
+  badge?: string;
 }
 
 const AuthModals = () => {
