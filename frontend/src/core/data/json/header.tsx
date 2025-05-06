@@ -7,11 +7,8 @@ export const header = [
     id:1,
     tittle: 'Home',
     showAsTab: false,
+    routes: routes.index,
     separateRoute: false,
-    menu: [
-     
-      
-    ],
   },
   {
     id:2,
