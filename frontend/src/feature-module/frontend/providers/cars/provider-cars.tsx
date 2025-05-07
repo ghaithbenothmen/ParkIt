@@ -237,10 +237,10 @@ const ProviderCars = () => {
     }
 
     // Créer l'immatriculation complète
-    const fullImmatriculation = `${leftNumbers}Tunisia${rightNumbers}`;
+    const fullImmatriculation = `${leftNumbers} Tunisia ${rightNumbers}`;
     
     // Validation du format
-    const immatriculationRegex = /^\d{1,3}Tunisia\d{1,4}$/;
+    const immatriculationRegex = /^\d{1,3} Tunisia \d{1,4}$/;
     if (!immatriculationRegex.test(fullImmatriculation)) {
       setErrors({
         ...errors,
@@ -431,123 +431,132 @@ const ProviderCars = () => {
 
       {/* Add Vehicle Modal */}
       {showAddModal && (
-        <div className="modal fade show dark-modal" style={{ display: 'block' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Add New Vehicle</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowAddModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <form onSubmit={handleAddVehicle}>
-                  <div className="mb-3">
-                    <label htmlFor="marque" className="form-label">Brand</label>
-                    <input
-                      type="text"
-                      className={`form-control ${errors.marque ? 'is-invalid' : ''}`}
-                      id="marque"
-                      value={newVehicle.marque}
-                      onChange={(e) => setNewVehicle({...newVehicle, marque: e.target.value})}
-                      required
-                    />
-                    {errors.marque && (
-                      <div className="invalid-feedback d-block">
-                        {errors.marque}
-                      </div>
-                    )}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="modele" className="form-label">Model</label>
-                    <input
-                      type="text"
-                      className={`form-control ${errors.modele ? 'is-invalid' : ''}`}
-                      id="modele"
-                      value={newVehicle.modele}
-                      onChange={(e) => setNewVehicle({...newVehicle, modele: e.target.value})}
-                      required
-                    />
-                    {errors.modele && (
-                      <div className="invalid-feedback d-block">
-                        {errors.modele}
-                      </div>
-                    )}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="couleur" className="form-label">Color</label>
-                    <input
-                      type="text"
-                      className={`form-control ${errors.couleur ? 'is-invalid' : ''}`}
-                      id="couleur"
-                      value={newVehicle.couleur}
-                      onChange={(e) => setNewVehicle({...newVehicle, couleur: e.target.value})}
-                      required
-                    />
-                    {errors.couleur && (
-                      <div className="invalid-feedback d-block">
-                        {errors.couleur}
-                      </div>
-                    )}
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="immatriculation" className="form-label">Registration</label>
-                    <div className="input-group">
+        <>
+          {/* Add modal backdrop with blur effect */}
+          <div className="modal-backdrop fade show" style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(5px)',
+            WebkitBackdropFilter: 'blur(5px)'
+          }}></div>
+          
+          <div className="modal fade show" style={{ display: 'block' }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Add New Vehicle</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowAddModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <form onSubmit={handleAddVehicle}>
+                    <div className="mb-3">
+                      <label htmlFor="marque" className="form-label">Brand</label>
                       <input
-                        type="number"
-                        className="form-control"
-                        placeholder="123"
-                        value={leftNumbers}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value.length <= 3 && /^\d*$/.test(value)) {
-                            setLeftNumbers(value);
-                          }
-                        }}
-                        min="1"
-                        max="999"
+                        type="text"
+                        className={`form-control ${errors.marque ? 'is-invalid' : ''}`}
+                        id="marque"
+                        value={newVehicle.marque}
+                        onChange={(e) => setNewVehicle({...newVehicle, marque: e.target.value})}
+                        required
                       />
-                      <span className="input-group-text"> Tunisia </span>
-                      <input
-                        type="number"
-                        className="form-control"
-                        placeholder="1234"
-                        value={rightNumbers}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value.length <= 4 && /^\d*$/.test(value)) {
-                            setRightNumbers(value);
-                          }
-                        }}
-                        min="1"
-                        max="9999"
-                      />
+                      {errors.marque && (
+                        <div className="invalid-feedback d-block">
+                          {errors.marque}
+                        </div>
+                      )}
                     </div>
-                    {errors.immatriculation && (
-                      <div className="invalid-feedback d-block">
-                        {errors.immatriculation}
+                    <div className="mb-3">
+                      <label htmlFor="modele" className="form-label">Model</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.modele ? 'is-invalid' : ''}`}
+                        id="modele"
+                        value={newVehicle.modele}
+                        onChange={(e) => setNewVehicle({...newVehicle, modele: e.target.value})}
+                        required
+                      />
+                      {errors.modele && (
+                        <div className="invalid-feedback d-block">
+                          {errors.modele}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="couleur" className="form-label">Color</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.couleur ? 'is-invalid' : ''}`}
+                        id="couleur"
+                        value={newVehicle.couleur}
+                        onChange={(e) => setNewVehicle({...newVehicle, couleur: e.target.value})}
+                        required
+                      />
+                      {errors.couleur && (
+                        <div className="invalid-feedback d-block">
+                          {errors.couleur}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="immatriculation" className="form-label">Registration</label>
+                      <div className="input-group">
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="123"
+                          value={leftNumbers}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 3 && /^\d*$/.test(value)) {
+                              setLeftNumbers(value);
+                            }
+                          }}
+                          min="1"
+                          max="999"
+                        />
+                        <span className="input-group-text"> Tunisia </span>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="1234"
+                          value={rightNumbers}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value.length <= 4 && /^\d*$/.test(value)) {
+                              setRightNumbers(value);
+                            }
+                          }}
+                          min="1"
+                          max="9999"
+                        />
                       </div>
-                    )}
-                  </div>
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowAddModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-primary">
-                      Add Vehicle
-                    </button>
-                  </div>
-                </form>
+                      {errors.immatriculation && (
+                        <div className="invalid-feedback d-block">
+                          {errors.immatriculation}
+                        </div>
+                      )}
+                    </div>
+                    <div className="modal-footer">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setShowAddModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button type="submit" className="btn btn-primary">
+                        Add Vehicle
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Edit pop-up */}

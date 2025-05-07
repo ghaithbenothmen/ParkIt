@@ -45,6 +45,19 @@ const reservationSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0 // Le prix total ne peut pas être négatif
+    },
+    exitTime: {
+        type: Date
+    },
+    additionalFee: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    additionalPaymentStatus: {
+        type: String,
+        enum: ['pending', 'confirmed', 'failed'],
+        default: 'pending'
     }
 }, { timestamps: true }); // Ajouter les champs createdAt et updatedAt
 

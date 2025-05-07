@@ -64,13 +64,15 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://192.168.34.177'], // Autoriser les requêtes depuis ce domaine
+  origin: ['http://localhost:3000', 'http://192.168.34.177'],
+  allowedHeaders: ['Content-Type'], // Autoriser les requêtes depuis ce domaine
   credentials: true,
 }));
 
 
 
 
+app.listen(4000, '0.0.0.0');
 // Routes
 app.get('/', (req, res) => {
   res.send('Backend is running');
