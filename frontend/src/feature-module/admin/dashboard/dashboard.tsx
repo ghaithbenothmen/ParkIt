@@ -788,21 +788,6 @@ const Dashboard = () => {
                     <h2 className="text-xl font-semibold text-gray-800">Reservations Summary</h2>
                     <div className="home-select">
                       <div className="dropdown">
-                        <button
-                          className="btn btn-action btn-sm dropdown-toggle bg-gray-200 text-gray-800 hover:bg-gray-300"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Monthly
-                        </button>
-                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
-                          <li><Link to="#" className="dropdown-item">Weekly</Link></li>
-                          <li><Link to="#" className="dropdown-item">Monthly</Link></li>
-                          <li><Link to="#" className="dropdown-item">Yearly</Link></li>
-                        </ul>
-                      </div>
-                      <div className="dropdown">
                         <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                           <i className="fa fa-ellipsis-v" aria-hidden="true" />
                         </Link>
