@@ -22,9 +22,9 @@ const VehiculeSchema = new mongoose.Schema({
         unique: true,
         validate: {
             validator: function(v) {
-                return /^\d{1,3}Tunisia\d{1,4}$/.test(v);
+                return /^\d{1,3} Tunisia \d{1,4}$/.test(v);
             },
-            message: props => `${props.value} is not a valid registration number! Format should be: (1-3 digits)Tunisia(1-4 digits)`
+            message: props => `${props.value} is not a valid registration number! Format should be: (1-3 digits) Tunisia (1-4 digits)`
         }
     },
     date_ajout: {

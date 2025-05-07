@@ -2320,3 +2320,15 @@ margin-right: 20px;
 .dark-modal .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
+
+/* Modal backdrop blur effect */
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+@supports (backdrop-filter: blur(5px)) {
+  .modal-backdrop.show {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+}
