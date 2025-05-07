@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import BreadCrumb from '../../../common/breadcrumb/breadCrumb'
 import ImageWithBasePath from '../../../../../core/img/ImageWithBasePath'
 import { Dropdown } from 'primereact/dropdown';
@@ -13,7 +13,11 @@ import 'react-calendar/dist/Calendar.css'; // Styles for the calendar
 import ParkingVisualization from '../../../providers/pickParkingSpot';
 import { Toast } from "primereact/toast";
 
-
+interface Badge {
+  _id: string;
+  name: string;
+  discountPercentage: number;
+}
 const BookingParking = () => {
   const toast = useRef(null);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -30,11 +34,12 @@ const BookingParking = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
   const [reservationId, setReservationId] = useState<string | null>(null);
+  const [badge, setBadge] = useState<Badge | null>(null);
 
   const showToast = (severity: 'success' | 'info' | 'warn' | 'error', summary: string, detail: string) => {
     toast.current?.show({ severity, summary, detail, life: 3000 });
   };
-  
+
 
   useEffect(() => {
     // Replace with your actual API endpoint
@@ -55,7 +60,8 @@ const BookingParking = () => {
     firstname: '',
     lastname: '',
     email: '',
-    phone: ''
+    phone: '',
+    badge: ''
   });
 
   const handlePayment = async () => {
@@ -98,7 +104,8 @@ const BookingParking = () => {
             firstname: user.firstname || '',
             lastname: user.lastname || '',
             email: user.email || '',
-            phone: user.phone || ''
+            phone: user.phone || '',
+            badge: user.badge || ''
           });
         } else {
           // It's probably a JWT token
@@ -109,7 +116,8 @@ const BookingParking = () => {
             firstname: decoded.firstname || '',
             lastname: decoded.lastname || '',
             email: decoded.email || '',
-            phone: decoded.phone || ''
+            phone: decoded.phone || '',
+            badge: decoded.badge || ''
           });
         }
       } catch (err) {
@@ -117,6 +125,31 @@ const BookingParking = () => {
       }
     }
   }, []);
+  useEffect(() => {
+    const fetchBadge = async () => {
+      if (userInfo.badge) {
+        try {
+          const response = await axios.get(`http://localhost:4000/api/badges/${userInfo.badge}`);
+          setBadge(response.data);
+        } catch (error) {
+          console.error('Error fetching badge:', error);
+        }
+      }
+    };
+    fetchBadge();
+  }, [userInfo.badge]);
+  const getBadgeStyle = (badgeName: string) => {
+    switch (badgeName) {
+      case 'Bronze':
+        return { backgroundColor: '#cd7f32', color: 'white' };
+      case 'Silver':
+        return { backgroundColor: '#c0c0c0', color: 'black' };
+      case 'Gold':
+        return { backgroundColor: '#ffd700', color: 'black' };
+      default:
+        return { backgroundColor: '#e0e0e0', color: 'black' };
+    }
+  };
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -227,6 +260,9 @@ const BookingParking = () => {
   };
   const handleCheckout = async () => {
     try {
+      const originalTotal = parking!.tarif_horaire * duration;
+      const discount = badge ? badge.discountPercentage / 100 : 0;
+      const discountedTotal = originalTotal * (1 - discount);
       const reservationData = {
         userId: userInfo._id,
         parkingId: parking?._id,
@@ -234,7 +270,7 @@ const BookingParking = () => {
         vehicule: selectedVehicleId,
         startDate: startDateTime,
         endDate: endDate,
-        totalPrice: (parking!.tarif_horaire) * duration,
+        totalPrice: discountedTotal,
       };
 
       console.log("Reservation Data being sent:", reservationData);
@@ -275,7 +311,7 @@ const BookingParking = () => {
 
   return (
     <>
-    <Toast ref={toast} />
+      <Toast ref={toast} />
       <BreadCrumb title='Book A Reservation' item1='Service' item2='Reservation' />
       <>
         {/* Page Wrapper */}
@@ -461,8 +497,45 @@ const BookingParking = () => {
 
                               {/* Total Display */}
                               <div className="mb-4">
+                                <label className="form-label fw-semibold">Your Badge</label>
+                                {badge ? (
+                                  <span
+                                    className="badge"
+                                    style={{
+                                      ...getBadgeStyle(badge.name),
+                                      padding: '8px 12px',
+                                      fontSize: '14px',
+                                      borderRadius: '12px',
+                                    }}
+                                  >
+                                    {badge.name}
+                                  </span>
+                                ) : (
+                                  <span>No badge assigned</span>
+                                )}
+                              </div>
+                              <div className="mb-4">
                                 <label className="form-label fw-semibold">Total</label>
-                                <div><strong>{(duration * parking!.tarif_horaire).toFixed(2)}DT</strong> / {duration} hours</div>
+                                <div>
+                                  {badge && badge.discountPercentage > 0 ? (
+                                    <>
+                                      <div>
+                                        Original: <strong>{(duration * parking!.tarif_horaire).toFixed(2)} DT</strong>
+                                      </div>
+                                      <div>
+                                        Discount ({badge.discountPercentage}%):{' '}
+                                        <strong>-{((duration * parking!.tarif_horaire * badge.discountPercentage) / 100).toFixed(2)} DT</strong>
+                                      </div>
+                                      <div>
+                                        Final: <strong>{(duration * parking!.tarif_horaire * (1 - badge.discountPercentage / 100)).toFixed(2)} DT</strong> / {duration} hours
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div>
+                                      <strong>{(duration * parking!.tarif_horaire).toFixed(2)} DT</strong> / {duration} hours
+                                    </div>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Navigation Buttons */}
@@ -595,7 +668,12 @@ const BookingParking = () => {
                               </div>
                               <div className="rounded bg-white p-2 text-center review-item">
                                 <h6 className="fw-medium fs-16 mb-1">Total cost</h6>
-                                <span>{parking!.tarif_horaire * duration * 1000} Millimes  </span>
+                                <span>
+                                  {badge && badge.discountPercentage > 0
+                                    ? (parking!.tarif_horaire * duration * (1 - badge.discountPercentage / 100) * 1000).toFixed(0)
+                                    : parking!.tarif_horaire * duration * 1000}{' '}
+                                  Millimes
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -762,7 +840,12 @@ const BookingParking = () => {
                                 </div>
                                 <div className="rounded bg-white p-2 text-center review-item">
                                   <h6 className="fw-medium fs-16 mb-1">Total cost</h6>
-                                  <span>{parking!.tarif_horaire * duration * 1000} Millimes  </span>
+                                  <span>
+                                    {badge && badge.discountPercentage > 0
+                                      ? (parking!.tarif_horaire * duration * (1 - badge.discountPercentage / 100) * 1000).toFixed(0)
+                                      : parking!.tarif_horaire * duration * 1000}{' '}
+                                    Millimes
+                                  </span>
                                 </div>
                               </div>
                             </div>

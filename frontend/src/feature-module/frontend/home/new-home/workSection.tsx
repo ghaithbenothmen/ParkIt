@@ -5,7 +5,7 @@ const WorkSection = () => {
   return (
     <>
   {/* Work Section*/}
-  <section className="section pt-0">
+  <section className="section pt-0" id="works">
     <div className="container">
       <div className="work-section bg-black m-0">
         <div className="row align-items-center bg-01">

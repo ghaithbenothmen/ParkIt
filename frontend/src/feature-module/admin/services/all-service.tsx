@@ -112,7 +112,7 @@ const ViewLocationMap = ({ position }) => {
     <div 
       ref={mapContainerRef}
       style={{ 
-        height: '400px', 
+        height: '500px',  // Augmenté de 400px à 500px
         width: '100%',
         borderRadius: '8px', 
         overflow: 'hidden' 
@@ -122,12 +122,10 @@ const ViewLocationMap = ({ position }) => {
         center={position} 
         zoom={15} 
         style={{ height: '100%', width: '100%' }}
-        whenReady={() => {
-          if (mapRef.current) {
-            mapRef.current.invalidateSize();
-          }
+        whenReady={(map) => {
+          mapRef.current = map.target;
+          map.target.invalidateSize();
         }}
-        ref={mapRef}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -320,10 +318,13 @@ const AllService = () => {
 
   const handleUpdateChange = (e) => {
     const { name, value } = e.target;
-    setParkingToUpdate({
-      ...parkingToUpdate,
-      [name]: name === 'disponibilite' ? value === 'true' : value,
-    });
+    // Ne pas permettre la modification des champs de localisation via l'input
+    if (name !== 'latitude' && name !== 'longitude' && name !== 'adresse') {
+      setParkingToUpdate({
+        ...parkingToUpdate,
+        [name]: name === 'disponibilite' ? value === 'true' : value,
+      });
+    }
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
@@ -331,10 +332,13 @@ const AllService = () => {
 
   const handleCreateChange = (e) => {
     const { name, value } = e.target;
-    setNewParking({
-      ...newParking,
-      [name]: name === 'disponibilite' ? value === 'true' : value,
-    });
+    // Ne pas permettre la modification des champs de localisation via l'input
+    if (name !== 'latitude' && name !== 'longitude' && name !== 'adresse') {
+      setNewParking({
+        ...newParking,
+        [name]: name === 'disponibilite' ? value === 'true' : value,
+      });
+    }
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
@@ -349,11 +353,12 @@ const AllService = () => {
     setErrors({});
     updateModalRef.current?.show();
     
+    // Force map resize after modal is shown
     setTimeout(() => {
       if (updateMapRef.current) {
         updateMapRef.current.invalidateSize();
       }
-    }, 100);
+    }, 300);
   };
 
   const openDeleteModal = (parking) => {
@@ -364,6 +369,14 @@ const AllService = () => {
   const openViewModal = (parking) => {
     setParkingToView(parking);
     viewModalRef.current?.show();
+    
+    // Force map resize after modal is shown
+    setTimeout(() => {
+      const mapContainer = document.querySelector('#view-location .leaflet-container');
+      if (mapContainer && mapContainer._leaflet_map) {
+        mapContainer._leaflet_map.invalidateSize();
+      }
+    }, 300);
   };
 
   const filteredServices = services.filter(service => {
@@ -555,11 +568,12 @@ const AllService = () => {
                       setErrors({});
                       createModalRef.current?.show();
                       
+                      // Force map resize after modal is shown
                       setTimeout(() => {
                         if (createMapRef.current) {
                           createMapRef.current.invalidateSize();
                         }
-                      }, 100);
+                      }, 300);
                     }}
                   >
                     <i className="fa fa-plus me-2" />
@@ -808,6 +822,7 @@ const AllService = () => {
                           onChange={handleUpdateChange}
                           className={`form-control ${errors.adresse ? "is-invalid" : ""}`}
                           maxLength="300"
+                          readOnly
                         />
                         {errors.adresse && (
                           <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
@@ -881,6 +896,7 @@ const AllService = () => {
                             updateMapRef.current = map.target;
                             map.target.invalidateSize();
                           }}
+                          ref={updateMapRef}
                         >
                           <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -907,6 +923,7 @@ const AllService = () => {
                               step="any"
                               min="-90"
                               max="90"
+                              readOnly
                             />
                             {errors.latitude && (
                               <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
@@ -927,6 +944,7 @@ const AllService = () => {
                               step="any"
                               min="-180"
                               max="180"
+                              readOnly
                             />
                             {errors.longitude && (
                               <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
@@ -1015,6 +1033,7 @@ const AllService = () => {
                         onChange={handleCreateChange}
                         className={`form-control ${errors.adresse ? "is-invalid" : ""}`}
                         maxLength="300"
+                        readOnly
                       />
                       {errors.adresse && (
                         <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
@@ -1088,6 +1107,7 @@ const AllService = () => {
                           createMapRef.current = map.target;
                           map.target.invalidateSize();
                         }}
+                        ref={createMapRef}
                       >
                         <TileLayer
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -1114,6 +1134,7 @@ const AllService = () => {
                             step="any"
                             min="-90"
                             max="90"
+                            readOnly
                           />
                           {errors.latitude && (
                             <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
@@ -1134,6 +1155,7 @@ const AllService = () => {
                             step="any"
                             min="-180"
                             max="180"
+                            readOnly
                           />
                           {errors.longitude && (
                             <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>

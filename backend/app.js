@@ -19,6 +19,7 @@ const reservationRoutes = require('./routes/reservation.route');
 const reviewRoutes = require('./routes/review.route');
 const lprRoutes = require('./routes/lpr.route'); // Importer la route LPR
 const notificationRoutes = require('./routes/notification.route'); // Importer la route Notification
+const badgeRoutes = require('./routes/badge.route');
 
 
 
@@ -63,13 +64,15 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('Connected to MongoDB'))
 .catch((err) => console.error('MongoDB connection error:', err));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://192.168.34.177'], // Autoriser les requêtes depuis ce domaine
+  origin: ['http://localhost:3000', 'http://192.168.34.177'],
+  allowedHeaders: ['Content-Type','Authorization'], // Autoriser les requêtes depuis ce domaine
   credentials: true,
 }));
 
 
 
 
+app.listen(4000, '0.0.0.0');
 // Routes
 app.get('/', (req, res) => {
   res.send('Backend is running');
@@ -85,6 +88,7 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
 app.use('/api/notifications', notificationRoutes); // Utiliser la route Notification ici
+app.use('/api/badges', badgeRoutes);
 
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000

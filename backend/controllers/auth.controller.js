@@ -329,12 +329,23 @@ exports.updateProfile = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
-    res.clearCookie("token");
-    res.status(200).json({ message: "Logout successful" });
+    // Clear any server-side session data if needed
+    res.clearCookie('token');
+    
+    // Send a success response
+    res.status(200).json({ 
+      success: true,
+      message: "Logout successful" 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Logout error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error during logout" 
+    });
   }
 };
+
 exports.register_face_data = async (req, res) => {
   const { userId } = req.body;
 

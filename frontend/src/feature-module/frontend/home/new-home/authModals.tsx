@@ -15,6 +15,7 @@ interface User {
   name: string;
   image: string;
   token: string;
+  badge?: string;
 }
 
 const AuthModals = () => {
@@ -305,53 +306,74 @@ const AuthModals = () => {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     validateEmail(email);
-
+  
     if (error || password.length < 8) {
       return;
     }
-
+  
     try {
       const data = await login(email, password);
       console.log('Login response:', data);
-
+  
       // Check if the account is activated
       if (!data.user.isActive) {
-        setError("Account is not activated. Please check your email.");
+        setError('Account is not activated. Please check your email.');
         return;
       }
-
+  
       // Check if 2FA is enabled for the user
       if (data.user.twoFactorEnabled) {
         console.log('2FA is enabled for this user.');
-        console.log("Setting show2FAPopup to:", show2FAModal);
-
         setShow2FAModal(true);
-        console.log("Setting show2FAPopup to:", show2FAModal);
-
         setEmail(data.user.email); // Save the email for 2FA verification
         return; // Stop here and wait for the 2FA code
       }
-
+  
       // If 2FA is not enabled, proceed to login
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-
-      const modal = document.getElementById('login-modal');
-      if (modal) {
-        const bsModal = Modal.getInstance(modal);
-        bsModal?.hide();
-      }
-
-      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-      document.body.classList.remove('modal-open');
-
-      const role = data.user?.role || 'user';
-      localStorage.setItem('role', role);
-
-      console.log('Login successful. Role:', role);
-      setTimeout(() => {
+  
+      const modalElement = document.getElementById('login-modal');
+      if (modalElement) {
+        const bsModal = Modal.getInstance(modalElement);
+        if (bsModal) {
+          // Wait for the modal to be fully hidden before navigating
+          modalElement.addEventListener(
+            'hidden.bs.modal',
+            () => {
+              // Clean up modal-related classes and backdrops
+              document.body.classList.remove('modal-open');
+              document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+              document.body.style.overflow = ''; // Ensure scrolling is enabled
+  
+              const role = data.user?.role || 'user';
+              localStorage.setItem('role', role);
+              console.log('Login successful. Role:', role);
+  
+              // Navigate to the appropriate dashboard
+              navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+            },
+            { once: true } // Ensure the event listener is removed after firing
+          );
+          bsModal.hide(); // Trigger modal hide
+        } else {
+          // Fallback if bsModal is not initialized
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+          document.body.style.overflow = '';
+  
+          const role = data.user?.role || 'user';
+          localStorage.setItem('role', role);
+          console.log('Login successful. Role:', role);
+          navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+        }
+      } else {
+        // Fallback if modal element is not found
+        const role = data.user?.role || 'user';
+        localStorage.setItem('role', role);
+        console.log('Login successful. Role:', role);
         navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
-      }, 100);
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       if (error.response) {
@@ -360,12 +382,12 @@ const AuthModals = () => {
         } else if (error.response.statusText) {
           setError(error.response.statusText);
         } else {
-          setError("An unexpected error occurred. Please try again.");
+          setError('An unexpected error occurred. Please try again.');
         }
       } else if (error.message) {
         setError(error.message);
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setError('An unexpected error occurred. Please try again.');
       }
     }
   };
