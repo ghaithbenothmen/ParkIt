@@ -103,7 +103,12 @@ const AuthModals = () => {
         const token = result.data.token;
 
         // Save user info in localStorage
-        localStorage.setItem('user', JSON.stringify({ email, name, image, token }));
+        localStorage.setItem('token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
+  
+        // Extract and store role
+        const role = result.data.user?.role || 'user';
+        localStorage.setItem('role', role);
         setEmail(email);
         // Call the backend to check if the user has a phone number
         const response = await axios.post('http://localhost:4000/api/users/check', {
