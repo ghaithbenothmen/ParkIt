@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
 import { useSelector } from 'react-redux';
@@ -9,7 +9,30 @@ import { Dropdown } from 'primereact/dropdown';
 import { all_routes } from '../../../core/data/routes/all_routes';
 import * as Icon from 'react-feather';
 import { BookingInterface } from '../../../core/models/interface';
+import axios from "axios";
 
+interface Reservation {
+  _id: string;
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  parkingId: string;  // Parking ID
+  status: string;
+  parkingSpot: string;
+  parking: {
+    nom: string;
+    image: string;
+    adresse: string;
+  } | null; // parking details will be populated later
+  parkingS: {
+    numero: string;
+  } | null;
+  userId: string;  // User ID field added
+  user?: {
+    firstname: string;
+    email: string;
+  }; // User details will be added here // parking details will be populated later
+}
 const Booking = () => {
   const routes = all_routes;
   const data = useSelector((state: any) => state.all_booking);
@@ -18,65 +41,153 @@ const Booking = () => {
   const value2 = [
     { name: 'Select Status' },
     { name: 'Pending' },
-    { name: 'Inprogress' },
     { name: 'Completed' },
     { name: 'Cancelled' },
   ];
-  
 
-  const providerImage = (rowData: BookingInterface) => {
-    const [provider] = rowData.provider.split('\n');
-    return (
-      <Link to="#" className="table-profileimage">
-        <ImageWithBasePath src={rowData.img1} className="me-2" alt="img" />
-        <span>{provider}</span>
-      </Link>
-    );
-  };
-  const userImage = (rowData: BookingInterface) => {
-    const [user] = rowData.user.split('\n');
-    return (
-      <Link to="#" className="table-profileimage">
-        <ImageWithBasePath src={rowData.img2} className="me-2" alt="img" />
-        <span>{user}</span>
-      </Link>
-    );
-  };
-  const serviceImage = (rowData: BookingInterface) => {
-    const [service] = rowData.service.split('\n');
-    return (
-      <Link to="#" className="table-imgname">
-        <ImageWithBasePath src={rowData.img3} className="me-2" alt="img" />
-        <span>{service}</span>
-      </Link>
-    );
-  };
+
+  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const filteredReservations = reservations.filter(reservation => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'confirmed' && reservation.status === 'confirmed') return true;
+    if (filterStatus === 'pending' && reservation.status === 'pending') return true;
+    if (filterStatus === 'over' && reservation.status === 'over') return true;
+    return false;
+  });
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const res = await axios.get(`http://localhost:4000/api/reservations`);
+        console.log("Fetched reservations:", res.data);
+
+        setReservations(res.data.data);  // Access the array inside 'data'
+      } catch (error) {
+        console.error("Failed to fetch reservations:", error);
+      }
+    };
+
+    fetchReservations();
+  }, []);
+  useEffect(() => {
+    const fetchParkings = async () => {
+      const updatedReservations = [...reservations]; // Copy of reservations state
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingId && !reservation.parking) {
+          try {
+            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+            updatedReservations[i].parking = parkingRes.data;  // Assuming parking details come with nom, image, adresse
+          } catch (error) {
+            console.error('Error fetching parking details for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      setReservations(updatedReservations); // Update the state with parking details
+    };
+
+    if (reservations.length > 0) {
+      fetchParkings();
+    }
+  }, [reservations]);
+  useEffect(() => {
+    const fetchParkingSpots = async () => {
+      const updatedReservations = [...reservations];
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+
+        if (reservation.parkingSpot && !reservation.parkingS) {
+          try {
+            console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
+            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+            console.log("Parking spot fetched:", spotRes.data);
+            updatedReservations[i].parkingS = spotRes.data.data;
+          } catch (error) {
+            console.error('Error fetching parking spot for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      setReservations(updatedReservations);
+    };
+
+    if (reservations.length > 0) {
+      fetchParkingSpots();
+    }
+  }, [reservations]);
   const statusButton = (rowData: BookingInterface) => {
     if (rowData.status === 'Completed') {
       return <span className="badge-delete">{rowData.status}</span>;
     } else if (rowData.status === 'Canceleld') {
       return <span className="badge-inactive">{rowData.status}</span>;
-    } else if (rowData.status === 'Inprogress') {
-      return <span className="badge-inactive">{rowData.status}</span>;
-    } else if (rowData.status === 'Pending') {
+    }
+    else if (rowData.status === 'Pending') {
       return <span className="badge-pending">{rowData.status}</span>;
     } else {
       return rowData.status;
     }
   };
-  const actionButton = () => {
-    return (
-      <div className="table-select">
-      <div className="form-group mb-0">
-        <select className="form-select">
-          <option>Select Status</option>
-          <option> Pending</option>
-          <option> Inprogress</option>
-          <option>Completed</option>
-          <option>cancelled</option>
-        </select>
+  const renderStatusBadge = (rowData: Reservation) => {
+    let badgeClass = '';
+    const label = rowData.status;
+  
+    switch (rowData.status.toLowerCase()) {
+      case 'confirmed':
+        badgeClass = 'badge bg-success'; // Green
+        break;
+      case 'pending':
+        badgeClass = 'badge bg-primary'; // Blue
+        break;
+      case 'over':
+        badgeClass = 'badge bg-danger'; // Red
+        break;
+      default:
+        badgeClass = 'badge bg-secondary'; // Gray fallback
+    }
+  
+    return <span className={badgeClass}>{label}</span>;
+  };
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const updatedReservations = [...reservations]; // Copy of reservations state
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.userId && !reservation.user) {
+          try {
+            const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+            updatedReservations[i].user = {
+              firstname: userRes.data.firstname,
+              email: userRes.data.email,
+            };
+          } catch (error) {
+            console.error('Error fetching user details for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      setReservations(updatedReservations); // Update the state with user details
+    };
+
+    if (reservations.length > 0) {
+      fetchUserDetails();
+    }
+  }, [reservations]);
+
+  const renderUserDetails = (rowData: Reservation) => {
+    return rowData.user ? (
+      <div>
+        <div>{rowData.user.firstname}</div>
+        <div>{rowData.user.email}</div>
       </div>
-    </div>
+    ) : (
+      '—' // Fallback if user details are not available yet
     );
   };
 
@@ -106,14 +217,14 @@ const Booking = () => {
                           />
                         </span>
                         <div className="review-sort">
-                        <Dropdown
-                          value={selectedValue}
-                          onChange={(e) => setSelectedValue(e.value)}
-                          options={value}
-                          optionLabel="name"
-                          placeholder="A - Z"
-                          className="select admin-select-breadcrumb"
-                        />
+                          <Dropdown
+                            value={selectedValue}
+                            onChange={(e) => setSelectedValue(e.value)}
+                            options={value}
+                            optionLabel="name"
+                            placeholder="A - Z"
+                            className="select admin-select-breadcrumb"
+                          />
                         </div>
                       </li>
                     </ul>
@@ -136,9 +247,6 @@ const Booking = () => {
                       <Link to={routes.pendingBooking}>Pending </Link>
                     </li>
                     <li>
-                      <Link to={routes.inProgressBooking}>Inprogress </Link>
-                    </li>
-                    <li>
                       <Link to={routes.completedBooking}>Completed</Link>
                     </li>
                     <li>
@@ -159,50 +267,21 @@ const Booking = () => {
                   <DataTable
                     paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
                     currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                    value={data}
+                    value={filteredReservations}
                     paginator
                     rows={10}
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     tableStyle={{ minWidth: '50rem' }}
                   >
-                    <Column sortable field="#" header="#"></Column>
-                    <Column sortable field="date" header="Date"></Column>
-                    <Column
-                      sortable
-                      field="bookingTime"
-                      header="Booking Time"
-                    ></Column>
-                    <Column
-                      sortable
-                      field="provider"
-                      header="Provider"
-                      body={providerImage}
-                    ></Column>
-                    <Column
-                      sortable
-                      field="user"
-                      header="User"
-                      body={userImage}
-                    ></Column>
-                    <Column
-                      sortable
-                      field="service"
-                      header="Service"
-                      body={serviceImage}
-                    ></Column>
-                    <Column sortable field="amount" header="Amount"></Column>
-                    <Column
-                      sortable
-                      field="status"
-                      header="Status"
-                      body={statusButton}
-                    ></Column>
-                    <Column
-                      sortable
-                      field="action"
-                      header="Action"
-                      body={actionButton}
-                    ></Column>
+                    <Column header="User" body={renderUserDetails} />
+                    <Column field="startDate" header="Start Date" sortable />
+                    <Column field="endDate" header="End Date" sortable />
+                    <Column field="totalPrice" header="Total Price" sortable />
+                    <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
+                    <Column header="Address" body={(rowData) => rowData.parking?.adresse || '—'} />
+                    <Column header="Spot" body={(rowData) => rowData.parkingS?.numero || '—'} />
+                    <Column field="status" header="Status" body={renderStatusBadge} sortable />
+
                   </DataTable>
                 </table>
               </div>

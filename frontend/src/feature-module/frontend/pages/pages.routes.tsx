@@ -11,7 +11,7 @@ import SessionExpired from './session-expired/session-expired';
 import Error404 from './Error page/error404';
 import Error500 from './Error page/error500';
 
-import BookingDetails from './booking/booking-details';
+import BookingDetails from '../providers/provider-booking/booking-details';
 import PaymentSetting from '../providers/settings/payment-setting';
 
 import BookingWizard from './booking/booking-wizard';
@@ -68,12 +68,6 @@ const PagesRoutes = () => {
       path: '/booking/booking-1',
       name: 'booking-1 ',
       element: <Booking1 />,
-      route: Route,
-    },
-    {
-      path: '/booking/booking-details',
-      name: 'booking-details',
-      element: <BookingDetails />,
       route: Route,
     },
     {

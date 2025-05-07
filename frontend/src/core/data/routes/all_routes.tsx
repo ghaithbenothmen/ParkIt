@@ -1,4 +1,3 @@
-import PaymentSuccess from "../../../feature-module/router/return.paypage";
 
 export const all_routes = {
   // home module path
@@ -30,14 +29,18 @@ export const all_routes = {
   services: '/services/*',
   serviceGrid: '/services/service-grid',
   serviceList: '/services/service-list',
-  createService: '/services/create-service',
+  createCar: '/services/create-car',
+  createClaim: '/services/create-claim',
   providerDetails: '/services/providers/provider-details',
   map: '/map',
+  map2: '/map2',
   serviceRequest: '/services/service-request',
   searchList: '/services/search-list',
   provider: '/services/providers/provider-list',
   serviceDetails1: '/services/service-details/service-details1',
   serviceDetails2: '/services/service-details/service-details2',
+  providerCars: '/providers/cars',
+  providerClaims:'/providers/claims',
 
   // customers module path
   customers: '/customers/*',
@@ -77,8 +80,7 @@ export const all_routes = {
     '/providers/settings/provider-appointment-settings',
   providerConnectedApps: '/providers/settings/provider-connected-apps',
   providerAvailability: '/providers/provider-availability',
-  providerBookDetails: '/providers/provider-book-details',
-  providerBooking: '/providers/provider-booking',
+  providerBooking: '/providers/booking',
   providerChat: '/providers/provider-chat',
   providerCoupons: '/providers/provider-coupons',
   providerDashboard: '/providers/dashboard',
@@ -116,7 +118,6 @@ export const all_routes = {
   booking1: '/pages/booking/booking-1',
   bookings: '/pages/booking',
   booking2: '/customers/user-bookings',
-  bookingDetails: '/pages/booking/booking-details',
   invoice: '/pages/invoice',
   bookingDone: '/customers/booking-done',
   bookingPayment: '/customers/booking-payment',
@@ -227,8 +228,10 @@ export const all_routes = {
   gdpr: '/admin/setting/gdbr',
   emailTemplates: '/admin/management/email-templates',
   review: '/admin/review',
+  reviews: '/admin/reviews',
   reviewType: '/admin/review-type',
   roles: '/admin/roles',
+  claims: '/admin/claims',
  
   walletHistory: '/admin/wallet-history',
   membershipTransaction: '/admin/reports/membership-transaction',

@@ -44,6 +44,19 @@
   z-index: 1000;
 }
 
+/* CSS pour le conteneur de l'image */
+.image-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden; /* Pour cacher les parties de l'image qui dépassent */
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .spinner-border {
   width: 3rem;
   height: 3rem;
@@ -294,13 +307,11 @@ span.p-calendar.p-component.p-inputwrapper {
 /* .car-blogs-section .car-blog-slider button.slick-prev {
   left: 47%;
   bottom: 0;
-  top: unset;
 }
 
 .car-blogs-section .car-blog-slider button.slick-next {
   right: 45%;
   bottom: 0;
-  top: unset;
 } */
 
 .home-banner-three .search-box-five .select.p-dropdown {
@@ -1979,4 +1990,178 @@ margin-right: 20px;
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 500;
+}
+
+.dropdown-item.active {
+  background-color: #f8f9fa;
+  color: #FF008A;
+}
+
+.notification-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff0000;
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.notify-link {
+  position: relative;
+}
+
+/* Styles pour les boutons d'action */
+.action-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.action-button i {
+  font-size: 14px;
+  min-width: 14px; /* Assure une largeur minimale pour l'icône */
+}
+
+.action-button span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+  display: none; /* Caché par défaut */
+}
+
+.action-button:hover {
+  width: auto;
+  padding: 0 12px;
+}
+
+.action-button:hover span {
+  opacity: 1;
+  display: inline; /* Afficher au survol */
+}
+
+.action-button-edit {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #333;
+}
+
+.action-button-delete {
+  background-color: #dc3545;
+  border: none;
+  color: white;
+}
+
+.action-button i {
+  font-size: 14px;
+}
+
+.action-button span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+}
+
+.action-button:hover {
+  width: auto;
+  padding: 0 12px;
+}
+
+.action-button:hover span {
+  opacity: 1;
+}
+
+.action-button-edit:hover {
+  background-color: #e9ecef;
+}
+
+.action-button-delete:hover {
+  background-color: #c82333;
+}
+
+/* Styles pour les boutons de filtrage */
+.filter-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  background: white;
+  color: #666;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.filter-button:hover {
+  border-color: #FF008A;
+  color: #FF008A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.filter-button.active {
+  background: #FF008A;
+  color: white;
+  border-color: #FF008A;
+}
+
+.filter-button .stars-container {
+  display: flex;
+  gap: 2px;
+}
+
+.filter-button .rating-count {
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+.filter-button.active .fa-star {
+  color: #FFD700 !important;
+}
+
+.filter-button:not(.active) .fa-star.text-warning {
+  color: #FFD700 !important;
+}
+
+.filter-button:not(.active) .fa-star.text-muted {
+  color: #d1d1d1 !important;
+}
+
+@media (max-width: 768px) {
+  .filter-button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .filter-buttons-container {
+    gap: 8px;
+  }
 }

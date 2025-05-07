@@ -6,13 +6,19 @@ const logger = require('morgan');
 const mongoose = require('mongoose');
 require('dotenv').config(); // Load environment variables from .env file
 
+
+const http = require('http');
+const socketIo = require('socket.io');
+
 const authRoutes = require('./routes/auth.route');
 const userRoutes = require('./routes/user.route');
 const vehiculeRoutes = require('./routes/vehicule.routes');
 const parkingRoutes = require('./routes/parking.routes');
 const parkingSpotRoutes = require('./routes/parkingSpot.route');
 const reservationRoutes = require('./routes/reservation.route');
+const reviewRoutes = require('./routes/review.route');
 const lprRoutes = require('./routes/lpr.route'); // Importer la route LPR
+const notificationRoutes = require('./routes/notification.route'); // Importer la route Notification
 
 
 
@@ -24,8 +30,29 @@ const cors = require('cors');
 
 
 const app = express();
+const server = http.createServer(app);
 
+// Socket.IO setup
+const io = socketIo(server, {
+  cors: {
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 
+global.io = io; // Rendre io accessible globalement
+
+// Add Socket.IO connection handler
+io.on('connection', (socket) => {
+  console.log('New client connected');
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+// Make io accessible to other modules
+app.set('io', io);
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -57,7 +84,9 @@ app.use('/api/vehicules', vehiculeRoutes);
 app.use('/api/parking', parkingRoutes);
 app.use('/api/parking-spots', parkingSpotRoutes); 
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
+app.use('/api/notifications', notificationRoutes); // Utiliser la route Notification ici
 
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
@@ -84,10 +113,4 @@ app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
 });
 
-
-
-
-
-
-
-module.exports = app;
+module.exports = app; // Exporter uniquement app

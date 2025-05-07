@@ -87,6 +87,42 @@ exports.checkUser = async (req, res) => {
     }
   };
 
+  exports.login_face_reco = async (req, res) => {
+    const { image } = req.body; // The image is the base64-encoded image
+  
+    try {
+      // Step 1: Send the base64 image to the Python service for face recognition
+      const response = await axios.post(
+        'http://127.0.0.1:8000/verify-face/', 
+        new URLSearchParams({ image: image }), 
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      );
+  
+      const matchedUser = response.data.matched_user; // The matched user returned from Python
+  
+      if (!matchedUser) {
+        return res.status(401).json({ error: "Face recognition failed" });
+      }
+  
+      // Step 2: Find the user by the name or userId of the matched user
+      // Assuming your `faceData` or `userId` is being stored in the database
+      const user = await User.findOne({ userId: matchedUser });
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      // Step 3: Generate token or session for the authenticated user
+      // Assuming you have JWT or session logic in place
+      const token = generateAuthToken(user); // Replace with your token generation logic
+  
+      res.status(200).json({ message: "Login successful", token });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Error processing face recognition" });
+    }
+  };
+  
   exports.updatePhone = async (req, res) => {
     try {
       const { email, phone } = req.body;

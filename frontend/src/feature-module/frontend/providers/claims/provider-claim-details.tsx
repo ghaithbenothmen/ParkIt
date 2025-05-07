@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
@@ -6,19 +6,126 @@ import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import BreadCrumb from '../../common/breadcrumb/breadCrumb';
 import BookingModals from '../../customers/common/bookingModals';
+import { useParams } from 'react-router-dom';
+// adjust as needed
+import axios from "axios";
+interface Claim {
+    _id: string;
+    userId: {
+      _id: string;
+      firstname: string;
+      lastname: string;
+      role: string;
+    };
+    parkingId: {
+      _id: string;
+      nom: string;
+      adresse: string;
+    };
+    claimType: 'Spot Occupied' |'Payment Issue' | 'Security'| 'Other';
+    image?: string;
+    status: 'Valid' | 'Pending' | 'Resolved' | 'Rejected';
+    submissionDate: string;
+    priority: number;
+    message?: string;
+    feedback?: string;
+  }
+  
 
-const BookingDetails = () => {
+const ClaimDetails = () => {
   const routes = all_routes;
+  const [claim, setClaim] = useState<Claim | null>(null);
+//  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [userInfo, setUserInfo] = useState({
+    _id: '',
+    firstname: '',
+    lastname: '',
+    email: '',
+    phone: ''
+  });
 
-  useEffect(() => {
+  /*useEffect(() => {
     AOS.init({
       duration: 2000,
       once: false,
     });
-  }, []);
+  }, []);*/
+  const { id } = useParams(); // id will be your reservation._id
+  useEffect(() => {
+    const fetchAllDetails = async () => {
+      try {
+        // Step 1: Fetch reservation
+        const claimRes = await axios.get(`http://localhost:4000/api/claims/${id}`);
+        const claimData = claimRes.data.data;
+        console.log("hahaahhahahhahahaahha");
+        console.log(claimData);
+
+       /* // Step 2: Fetch parking
+        const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservationData.parkingId}`);
+        const parkingData = parkingRes.data;
+
+        // Step 3: Fetch parking spot
+        const parkingSpotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservationData.parkingSpot}`);
+        const parkingSpotData = parkingSpotRes.data.data;
+*/
+        // Step 4: Fetch user
+        const userRes = await axios.get(`http://localhost:4000/api/users/${claimData.userId._id}`);
+        const userData = userRes.data;
+
+        setClaim(claimData);
+        setUserInfo(userData);
+      } catch (error) {
+        console.error("Failed to fetch reservation or related data:", error);
+      }
+    };
+
+    fetchAllDetails();
+  }, [id]);
+  console.log("bbbbbbbbbbbbbbbbbbbbb");
+  console.log(claim);
+  /*useEffect(() => {
+    const fetchClaims = async () => {
+      if (userInfo._id) {
+        try {
+          const res = await axios.get(`http://localhost:4000/api/claims/${userInfo._id}`);
+          const data = res.data;
+  
+          // Fetch parking details for each reservation
+          const enrichedReservations = await Promise.all(
+            data.slice(0, 3).map(async (reservation:any) => {
+              try {
+                const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+                return {
+                  ...reservation,
+                  parking: parkingRes.data, // assuming parkingRes.data is the full parking object
+                };
+              } catch (parkingErr) {
+                console.error(`Failed to fetch parking for reservation ${reservation._id}:`, parkingErr);
+                return {
+                  ...reservation,
+                  parking: null,
+                };
+              }
+            })
+          );
+  
+          setReservations(enrichedClaim);
+        } catch (error) {
+          console.error('Failed to fetch reservations:', error);
+        }
+      }
+    };
+  
+    fetchReservations();
+  }, [userInfo._id]);*/
+  
+
+
+
+
   return (
     <>
-      <BreadCrumb title='Booking Details' item1='Pages' item2='Booking Details'/>
       {/* /Breadcrumb */}
       {/* Page Wrapper */}
       <div className="page-wrapper">
@@ -33,10 +140,10 @@ const BookingDetails = () => {
                         <Link to={routes.index}>Home</Link>
                       </li>
                       <li className="breadcrumb-item" aria-current="page">
-                        Orders
+                      <Link to={routes.providerClaims}>Claims</Link>
                       </li>
                       <li className="breadcrumb-item" aria-current="page">
-                        ID 2378910
+                        {claim?.claimType}
                       </li>
                     </ol>
                   </nav>
@@ -44,27 +151,20 @@ const BookingDetails = () => {
                 <div className="row booking-details">
                   <div className="col-md-4">
                     <div>
-                      <h4 className="mb-2">Booking ID: 2378910</h4>
+                      <h4 className="mb-2">Claim: {claim?.claimType}</h4>
                       <p className="fs-12">
-                        <i className="feather icon-calendar me-1" /> 22 Sep 2023 10:23 AM
+                        <i className="feather icon-calendar me-1" /> {claim?.submissionDate}
                       </p>
                     </div>
                   </div>
                   <div className="col-md-8">
                     <div className="d-flex gap-3 justify-content-end">
                       <Link
-                        to="#"
+                        to={routes.providerClaims}
                         className="btn btn-light d-flex align-items-center justify-content-center"
                       >
                         <i className="ti ti-current-location me-1" />
                         LiveTrack
-                      </Link>
-                      <Link
-                        to={routes.invoice}
-                        className="btn btn-light d-flex align-items-center justify-content-center"
-                      >
-                        <i className="ti ti-file-text me-1" />
-                        Invoice
                       </Link>
                       <Link
                         to="#"
@@ -80,38 +180,18 @@ const BookingDetails = () => {
                 <div className="slot-box mt-3">
                   <div className="row">
                     <div className="col-md-3">
-                      <div className="slot-booked">
-                        <h6>Booked Slot</h6>
-                        <ul>
-                          <li className="fs-12 d-flex align-items-center mb-2">
-                            <i className="feather icon-calendar me-1" /> 22 Sep 2023
-                          </li>
-                          <li className="fs-12 d-flex align-items-center">
-                            <i className="feather icon-clock  me-1" /> 10:00AM - 11:00AM
-                          </li>
-                        </ul>
-                      </div>
                     </div>
                     <div className="col-md-6">
                       <div className="slot-user">
-                        <h6>Services Provider</h6>
+                        <h6>Parking Details</h6>
                         <div className="slot-chat">
                           <div className="slot-user-img d-flex align-items-center">
-                            <ImageWithBasePath
-                              className="avatar rounded-circle  me-2"
-                              src="assets/img/profiles/avatar-31.jpg"
-                              alt="image"
-                            />
                             <div className="slot-user-info">
-                              <p className="mb-1 fs-12">John Doe</p>
-                              <p className="mb-0 fs-12">john@example.com</p>
+                              <p className="mb-1 fs-12">{claim?.parkingId?.nom}</p>
+                              <p className="mb-0 fs-12">{claim?.parkingId?.adresse}</p>
                             </div>
                           </div>
                           <div className="chat-item d-flex align-items-center">
-                            <div className="slot-user-info">
-                              <p className="mb-0 fs-12">+1 888 888 8888</p>
-                              <p className="mb-0 fs-12">Montana, USA</p>
-                            </div>
                             <div>
                               <Link
                                 to={routes.customerChat}
@@ -127,11 +207,15 @@ const BookingDetails = () => {
                     </div>
                     <div className="col-md-3">
                       <div className="slot-action">
-                        <h6>Booking Status</h6>
-                        <span className="badge badge-success-100 p-2 me-3">
-                          Completed
-                        </span>
-                        <span className="badge badge-skyblue p-2">Pending</span>
+                        <h6>Claim Status</h6>
+                        <span className={`badge ms-2 ${claim?.status === 'Resolved' ? 'badge-soft-success' :
+                            claim?.status === 'Pending' ? 'badge-soft-warning' :
+                            claim?.status === 'Valid' ? 'badge-soft-warning' :
+                              claim?.status === 'Rejected' ? 'badge-soft-danger' :
+                                'badge-soft-secondary'
+                            }`}>
+                            {claim?.status}
+                          </span>
                       </div>
                     </div>
                   </div>
@@ -140,121 +224,75 @@ const BookingDetails = () => {
                 <div className="payment-summary">
                   <div className="row">
                     {/* Service Location */}
-                    <div className="col-md-6 service-location">
-                      <h6 className="order-title">
-                        Service Location &amp; Contact Details
-                      </h6>
-                      <div className="slot-address">
-                        <ul>
-                          <li>
-                            <span>
-                              <i className=" ti ti-map-pin" />
-                            </span>
-                            <div>
-                              <h6>Address</h6>
-                              <p>38 Taylor Street Mount Vernon, NY 10550</p>
-                            </div>
-                          </li>
-                          <li>
-                            <span>
-                              <i className="ti ti-mail" />
-                            </span>
-                            <div>
-                              <h6>Email</h6>
-                              <p>johnsmith@example.com</p>
-                            </div>
-                          </li>
-                          <li>
-                            <span>
-                              <i className="ti ti-phone" />
-                            </span>
-                            <div>
-                              <h6>Phone</h6>
-                              <p>+1 888 888 8888</p>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
-                      <div className="slot-pay">
-                        <p> Payment</p>
-                        <span className="fs-14">
-                          Visa **** **** **** **56{" "}
-                          <ImageWithBasePath src="assets/img/icons/visa.svg" alt="Img" />
-                        </span>
-                      </div>
-                    </div>
-                    {/* /Service Location */}
-                    {/* Order Summary */}
                     <div className="col-md-6 order-summary">
-                      <h6 className="order-title">Order Summary</h6>
+                      <h6 className="order-title">Claim Summary</h6>
                       <div className="ord-summary">
                         <div className="order-amt">
                           <div className="order-info">
                             <div className="order-img">
-                              <ImageWithBasePath
-                                src="assets/img/providers/provider-26.jpg"
-                                alt="img"
-                              />
+                            <img src={claim?.image} alt="Image" />
+
                             </div>
                             <div className="order-profile">
-                              <h6>Computer Services</h6>
-                              <p>Newyork, USA</p>
+
                             </div>
                           </div>
-                          <h5>$599.00</h5>
+                          
                         </div>
-                        <ul>
-                          <li>
-                            Sub Total <span className="ord-amt">$257.00</span>
-                          </li>
-                          <li>
-                            <p className="ord-code mb-0">
-                              {" "}
-                              Discount{" "}
-                              <span className=" ms-2 p-2 badge badge-info-transparent">
-                                NEW 2024
-                              </span>
-                            </p>{" "}
-                            <span className="ord-amt">-$11.00</span>
-                          </li>
-                          <li>
-                            Tax @ 12.5% <span className="ord-amt">$5.36</span>
-                          </li>
-                          <li className="ord-total mb-0">
-                            Total <span className="ord-amt">$251.36</span>
-                          </li>
-                        </ul>
+                       
                       </div>
                     </div>
+                    <div className="col-md-6 service-location">
+                    <br />
+                    <br />
+                    <div className="row ">
+                    {claim?.message && (
+                    <div>
+                      <h6 className="order-title">Complaint Details</h6>
+                      <div className="col-xxl-12 col-lg-12">
+                        <div className="card shadow-none">
+                          <div className="card-body">
+                            <div>
+                              <p className="fs-14">
+                                {claim?.message}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  
+                                  {claim?.feedback && (
+                  <div>
+                    <h6 className="order-title">Admin Feedback</h6>
+                    <div className="col-xxl-12 col-lg-12">
+                      <div className="card shadow-none">
+                        <div className="card-body">
+                          <div>
+                            <p className="fs-14">
+                              {claim?.feedback}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                  </div>
+                  </div>
+                    {/* /Service Location */}
+                    {/* Order Summary */}
+
                     {/* /Order Summary */}
                     <div className="row booking">
                       {/* Booking History */}
                       <div className="col-md-6">
-                        <h6 className="order-title">Booking History</h6>
+                        <h6 className="order-title">Resrvation History</h6>
                         <div className="book-history">
-                          <ul>
-                            <li>
-                              <h6>Booking</h6>
-                              <p>
-                                <i className="ti ti-calendar me-1" /> September 5,
-                                2023
-                              </p>
-                            </li>
-                            <li>
-                              <h6>Provider Accept</h6>
-                              <p>
-                                <i className="ti ti-calendar me-1" /> September 5,
-                                2023
-                              </p>
-                            </li>
-                            <li>
-                              <h6>Completed on</h6>
-                              <p>
-                                <i className="ti ti-calendar me-1" /> September 5,
-                                2023
-                              </p>
-                            </li>
-                          </ul>
+                          
                         </div>
                       </div>
                       {/* /Booking History */}
@@ -307,9 +345,9 @@ const BookingDetails = () => {
         </div>
       </div>
       {/* /Page Wrapper */}
-<BookingModals/>
+      <BookingModals />
     </>
   );
 };
 
-export default BookingDetails;
+export default ClaimDetails;

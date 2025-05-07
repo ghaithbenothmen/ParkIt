@@ -18,7 +18,6 @@ import Booking2 from '../pages/booking/booking-2';
 import Booking1 from '../pages/booking/booking-1';
 import BookingDone from '../pages/booking/booking-done';
 import BookingPayment from '../pages/booking/booking-payment';
-
 const CustomersRoutes = () => {
   const all_customers_routes = [
     {
