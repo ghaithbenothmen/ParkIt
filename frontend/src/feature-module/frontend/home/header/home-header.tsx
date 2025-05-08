@@ -11,7 +11,7 @@ import {
 } from '../../../../core/data/redux/action';
 import * as Icon from 'react-feather';
 import { AppState, Header } from '../../../../core/models/interface';
-import { header, adminHeader } from '../../../../core/data/json/header';
+import { header } from '../../../../core/data/json/header';
 
 type props = {
   type: number;

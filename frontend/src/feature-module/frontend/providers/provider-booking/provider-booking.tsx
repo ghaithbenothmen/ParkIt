@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
-import BookingModals from '../../customers/common/bookingModals';
 import { customerOption, serviceOption, staffOption } from '../../../../core/data/json/dropDownData';
 import CustomDropdown from '../../common/dropdown/commonSelect';
 import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
@@ -493,7 +492,7 @@ const ProviderBooking = () => {
 
       </div>
       {/* /Page Wrapper */}
-      <BookingModals />
+      
     </>
 
   );
