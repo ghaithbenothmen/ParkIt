@@ -2121,16 +2121,16 @@ margin-right: 20px;
 }
 
 .filter-button:hover {
-  border-color: #FF008A;
-  color: #FF008A;
+  border-color: #bd1111;
+  color: #bd1111;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .filter-button.active {
-  background: #FF008A;
+  background: #bd1111;
   color: white;
-  border-color: #FF008A;
+  border-color: #bd1111;
 }
 
 .filter-button .stars-container {
