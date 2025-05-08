@@ -404,8 +404,6 @@ const AdminHeader = () => {
                   </div>
                 </Link>
               </li>
-              <li><Link to="account-settings" className="dropdown-item">Profile</Link></li>
-              <li><Link to="localization" className="dropdown-item">Settings</Link></li>
               <li>
                 <Link 
                   to="#" 

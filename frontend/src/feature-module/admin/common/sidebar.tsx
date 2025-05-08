@@ -76,14 +76,14 @@ const AdminSidebar = () => {
     >
       <div className="admin-sidebar-header">
         <div className="admin-sidebar-logo">
-          <Link to="/admin/dashboard">
+          <Link to={routes.index}>
             <ImageWithBasePath
               src="assets/admin/img/full-parkit-dark.png"
               className="img-fluid logo"
               alt="Logo"
             />
           </Link>
-          <Link to={routes.dashboard}>
+          <Link to={routes.index}>
             <ImageWithBasePath
               src="assets/admin/img/logo-small.svg"
               className="img-fluid logo-small"

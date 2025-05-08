@@ -139,31 +139,34 @@ const HomeHeader: React.FC<props> = ({ type }) => {
       // User is logged in
       return (
         <ul className="nav header-navbar-rht">
-  <li className="nav-item dropdown">
-    <Link
-      className="nav-link dropdown-toggle"
-      to="#"
-      id="userDropdown"
-      role="button"
-      data-bs-toggle="dropdown"
-      aria-expanded="false"
-    >
-      <i className="ti ti-user" /> {user.email}
-    </Link>
-    <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-      <li>
-        <Link className="dropdown-item" to="/providers/dashboard">
-          <i className="ti ti-dashboard me-2"></i>Dashboard
-        </Link>
-      </li>
-      <li>
-        <Link className="dropdown-item" to="/logout" onClick={handleLogout}>
-          <i className="ti ti-logout me-2"></i>Logout
-        </Link>
-      </li>
-    </ul>
-  </li>
-</ul>
+          <li className="nav-item dropdown">
+            <Link
+              className="nav-link dropdown-toggle"
+              to="#"
+              id="userDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i className="ti ti-user" /> {user.email}
+            </Link>
+            <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li>
+                <Link 
+                  className="dropdown-item" 
+                  to={user.role === 'admin' ? routes.dashboard : '/providers/dashboard'}
+                >
+                  <i className="fas fa-tachometer-alt me-2"></i>Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link className="dropdown-item" to="/logout" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt me-2"></i>Logout
+                </Link>
+              </li>
+            </ul>
+          </li>
+        </ul>
       );
     } else {
       // User is not logged in
