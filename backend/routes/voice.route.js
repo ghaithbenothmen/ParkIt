@@ -4,5 +4,7 @@ const voiceController = require('../controllers/voice.controller');
 const authMiddleware = require("../middleware/auth");
 
 
-router.post('/',authMiddleware, voiceController.Parse);
+router.post('/', voiceController.booking);
+router.post('/dialogflow', voiceController.dialogflow);
+
 module.exports = router;

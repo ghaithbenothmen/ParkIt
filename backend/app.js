@@ -88,7 +88,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
 app.use('/api/notifications', notificationRoutes); // Utiliser la route Notification ici
 app.use('/api/claims', claimRoutes);
-app.use('/api/parse', voiceRoutes);
+app.use('/api/voice', voiceRoutes);
 
 
 

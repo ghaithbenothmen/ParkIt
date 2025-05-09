@@ -1,45 +1,13 @@
-import time
-import threading
-import numpy as np
-import whisper
-import sounddevice as sd
-from queue import Queue
-from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request
+from datetime import datetime, timedelta
+import isodate
+import dateutil.parser
+import requests
 from pydantic import BaseModel
-from rich.console import Console
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationChain
-from langchain.prompts import PromptTemplate
-from langchain_community.llms import Ollama
-import io
-import soundfile as sf
-
-console = Console()
-stt = whisper.load_model("base.en")
-
-template = """
-You are a helpful and friendly AI assistant. You are polite, respectful, and aim to provide concise responses of less 
-than 20 words.
-
-The conversation transcript is as follows:
-{history}
-
-And here is the user's follow-up: {input}
-
-Your response:
-"""
-PROMPT = PromptTemplate(input_variables=["history", "input"], template=template)
-chain = ConversationChain(
-    prompt=PROMPT,
-    verbose=False,
-    memory=ConversationBufferMemory(ai_prefix="Assistant:"),
-    llm=Ollama(),
-)
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Allow frontend requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Replace with your frontend domain in production
@@ -48,36 +16,117 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def transcribe(audio_np: np.ndarray) -> str:
-    result = stt.transcribe(audio_np, fp16=False)
-    return result["text"].strip()
+# Base URL for your Node.js backend
+NODE_BACKEND_BASE_URL = "http://localhost:4000/api/voice"
 
-def get_llm_response(text: str) -> str:
-    response = chain.predict(input=text)
-    if response.startswith("Assistant:"):
-        response = response[len("Assistant:"):].strip()
-    return response
+class DialogflowWebhookBody(BaseModel):
+    session: str                # e.g. "projects/…/agent/sessions/<USER_ID>"
+    queryResult: dict
 
-class TextResponse(BaseModel):
-    response: str
+# Map Dialogflow intent names to Node.js route paths
+INTENT_ROUTE_MAP = {
+    "BookParking": "/",
+    "CancelParking": "/cancelParking",
+    "CheckAvailability": "/checkAvailability",
+    # Add more intent-to-route mappings here
+}
 
-@app.post("/voice", response_model=TextResponse)
-async def handle_voice(file: UploadFile = File(...)):
-    audio_bytes = await file.read()
+@app.post("/voice")
+async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
+    # Extract Dialogflow payload
+    query_result = body.queryResult
+    intent = query_result.get("intent", {}).get("displayName")
 
-    # Decode WAV to numpy
-    with io.BytesIO(audio_bytes) as audio_buffer:
-        audio_np, _ = sf.read(audio_buffer)
-        if audio_np.dtype != np.float32:
-            audio_np = audio_np.astype(np.float32)
+    # Default fallback if intent not recognized
+    if intent not in INTENT_ROUTE_MAP:
+        return {"fulfillmentText": f"Sorry, I don't know how to handle intent '{intent}'."}
 
-    if audio_np.size == 0:
-        return {"response": "No audio received."}
+    # Determine which Node.js route to call
+    node_route = INTENT_ROUTE_MAP[intent]
+    endpoint_url = NODE_BACKEND_BASE_URL + node_route
 
-    text = transcribe(audio_np)
-    print(f"Transcribed text: {text}")
+    # Common parameters
+    params = query_result.get("parameters", {})
+    user_id = body.session.rsplit("/", 1)[-1]
 
-    response = get_llm_response(text)
-    print(f"Assistant response: {response}")  # ← Added this line
+    # Build payload and fulfillment
+    payload = {"userId": "681a0cd11734b9c27483ab0c"}
+    fulfillment_text = ""
+    redirect = ""
 
-    return {"response": response}
+    # Handle each intent's parameters
+    if intent == "BookParking":
+        parking_name = params.get("parkingName")
+        start_str = params.get("startDate")
+        end_str = params.get("endDate")
+        duration = params.get("duration")
+
+        # Validate dates
+        if not start_str or 'date_time' not in start_str:
+            return {"fulfillmentText": "When do you want to start parking?"}
+        start_time_str = start_str["date_time"]
+        start = dateutil.parser.isoparse(start_time_str)
+
+        # Compute end
+        if end_str:
+            end = dateutil.parser.isoparse(end_str)
+        elif duration:
+            duration_timedelta = parse_duration(duration)
+            end = start + duration_timedelta
+        else:
+            return {"fulfillmentText": "How long do you want to park?"}
+
+        if end <= start:
+            return {"fulfillmentText": "End time must be after start time."}
+
+        payload.update({
+            "lot": parking_name,
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+        })
+        fulfillment_text = f"Parking at {parking_name} booked successfully."
+
+    elif intent == "CancelParking":
+        booking_id = params.get("bookingId")
+        if not booking_id:
+            return {"fulfillmentText": "Please provide your booking ID to cancel."}
+        payload.update({"bookingId": booking_id})
+        fulfillment_text = f"Your booking {booking_id} has been cancelled."
+
+    elif intent == "CheckAvailability":
+        lot_name = params.get("parkingName")
+        date_str = params.get("date")
+        if not lot_name or not date_str:
+            return {"fulfillmentText": "Which lot and date would you like to check?"}
+        date = dateutil.parser.isoparse(date_str)
+        payload.update({"lot": lot_name, "date": date.date().isoformat()})
+        fulfillment_text = f"Checking availability for {lot_name} on {date.date().isoformat()}."
+        
+
+    # Call the Node.js backend
+    try:
+        resp = requests.post(endpoint_url, json=payload)
+        resp.raise_for_status()
+        data = resp.json()
+        reservation_id = data.get("data", {}).get("_id")
+        if resp.status_code == 201 and reservation_id:
+            return {
+                "fulfillmentText": fulfillment_text,
+                "payload": {
+                    "redirect": f"http://localhost:3000/providers/booking/{reservation_id}"
+                }
+            }
+
+        else:
+            return {"fulfillmentText": data.get("message", "Operation failed. Please try again.")}
+
+    except requests.RequestException as e:
+        # Log error and notify user
+        print(f"Error calling {endpoint_url}: {e}")
+        return {"fulfillmentText": "Sorry, I'm having trouble connecting to the service right now."}
+
+
+def parse_duration(duration_str):
+    if isinstance(duration_str, (int, float)):
+        duration_str = f"PT{int(duration_str)}H"
+    return isodate.parse_duration(duration_str)

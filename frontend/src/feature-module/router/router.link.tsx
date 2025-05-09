@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { all_routes } from '../../core/data/routes/all_routes';
-
 import HomeOne from '../frontend/home/home-one/home-one';
 import Pages from '../frontend/pages/pages';
 import Customers from '../frontend/customers/customers';

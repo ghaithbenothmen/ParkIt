@@ -12,6 +12,8 @@ import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { AppState } from '../../../../core/models/interface';
 import io from 'socket.io-client';
 import VoiceAssistant from '../../common/voice-assistant/VoiceAssistant';
+import { AiAssistantButton } from '../../common/voice-assistant/AiAssistantButton';
+import { AiAssistantProvider } from '../../common/voice-assistant';
 
 interface NotificationType {
   _id: string;
@@ -235,6 +237,7 @@ const ProviderHeader = () => {
   };
 
   return (
+    <AiAssistantProvider>
     <div className="header provider-header">
       {/* Logo */}
       <div className="header-left active" 
@@ -273,8 +276,8 @@ const ProviderHeader = () => {
                     <span>
                       <i className="feather icon-user" />
                     </span>
-                    <VoiceAssistant/>
-                  </div>
+                    <AiAssistantButton currentState="STATE_IDLE" />
+                    </div>
                 </div>
               </form>
             </div>
@@ -488,7 +491,10 @@ const ProviderHeader = () => {
       </div>
       {/* /Mobile Menu */}
     </div>
+    </AiAssistantProvider>
+
   );
+
 };
 
 export default ProviderHeader;

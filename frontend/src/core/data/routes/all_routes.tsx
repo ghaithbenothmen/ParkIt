@@ -41,6 +41,7 @@ export const all_routes = {
   serviceDetails2: '/services/service-details/service-details2',
   providerCars: '/providers/cars',
   providerClaims:'/providers/claims',
+  voice:'/voice',
 
   // customers module path
   customers: '/customers/*',
