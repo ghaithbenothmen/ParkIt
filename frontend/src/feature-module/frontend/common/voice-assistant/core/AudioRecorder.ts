@@ -50,10 +50,11 @@ class AudioRecorder {
                 'audio/mpeg',
             ];
 
-            let options = { mimeType: 'audio/wav' };
-            let supportedType = possibleTypes.find((type) =>
-                MediaRecorder.isTypeSupported(type),
-            );
+            const options = { mimeType: 'audio/wav' };
+const supportedType = possibleTypes.find((type) =>
+    MediaRecorder.isTypeSupported(type),
+);
+
 
             if (!supportedType) {
                 Logger.error('No supported audio type found');
@@ -173,12 +174,13 @@ class AudioRecorder {
 
             let sum = 0;
 
-            for (let i = 0; i < bufferLength; i++) {
-                let x = dataArray[i] - 128;
-                sum += x * x;
-            }
+for (let i = 0; i < bufferLength; i++) {
+    const x = dataArray[i] - 128;
+    sum += x * x;
+}
 
-            let rms = Math.sqrt(sum / bufferLength);
+const rms = Math.sqrt(sum / bufferLength);
+
 
             if (rms < 2) {
                 if (performance.now() - silenceStart > this.silenceThreshold) {

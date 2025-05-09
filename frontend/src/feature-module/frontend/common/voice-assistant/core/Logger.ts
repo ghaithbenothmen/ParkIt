@@ -4,7 +4,7 @@ type LogArgs = [message?: any, ...optionalParams: any[]];
 
 class Logger {
     private static instance: Logger | null = null;
-    private debug: boolean = false;
+private debug = false;
 
     private constructor() {
         if (Logger.instance == null) {

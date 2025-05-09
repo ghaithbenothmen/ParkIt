@@ -5,7 +5,6 @@ import 'aos/dist/aos.css';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import BreadCrumb from '../../common/breadcrumb/breadCrumb';
-import BookingModals from '../../customers/common/bookingModals';
 import { useParams } from 'react-router-dom';
 // adjust as needed
 import axios from "axios";
@@ -290,7 +289,7 @@ const ClaimDetails = () => {
                     <div className="row booking">
                       {/* Booking History */}
                       <div className="col-md-6">
-                        <h6 className="order-title">Resrvation History</h6>
+                        <h6 className="order-title">Claim History</h6>
                         <div className="book-history">
                           
                         </div>
@@ -345,7 +344,7 @@ const ClaimDetails = () => {
         </div>
       </div>
       {/* /Page Wrapper */}
-      <BookingModals />
+      
     </>
   );
 };

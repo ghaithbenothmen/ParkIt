@@ -1,7 +1,6 @@
 import EventEmitter from './EventEmitter';
 import AudioPlayer from './AudioPlayer';
 import AudioRecorder from './AudioRecorder';
-import FunctionExecutor from './FunctionExecutor';
 import Logger from './Logger';
 import ErrorReporter from './ErrorReporter';
 import axios from 'axios';
@@ -19,7 +18,6 @@ interface DialogflowResponse {
 class AiAssistantEngine extends EventEmitter {
   private readonly audioPlayer: AudioPlayer;
   private readonly audioRecorder: AudioRecorder;
-  private readonly functionExecutor: FunctionExecutor;
   private gettingUserInput = false;
   private makingAPIRequest = false;
 
@@ -29,14 +27,11 @@ class AiAssistantEngine extends EventEmitter {
 
     this.audioRecorder = new AudioRecorder();
     this.audioPlayer = new AudioPlayer();
-    this.functionExecutor = new FunctionExecutor();
 
     Logger.log('Initialize Ai Assistant Engine');
   }
 
-  registerFunctions(voiceFunctions: any[]): void {
-    this.functionExecutor.registerFunctions(voiceFunctions);
-  }
+ 
 
   startProcessing = async (): Promise<void> => {
     Logger.log('F: startProcessing');

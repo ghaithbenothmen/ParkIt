@@ -30,7 +30,6 @@ export const AiAssistantProvider: React.FC<AiAssistantProviderProps> = ({
     aiAssistant,
     on: aiAssistant?.on.bind(aiAssistant),
     off: aiAssistant?.off.bind(aiAssistant),
-    registerFunctions: aiAssistant?.registerFunctions.bind(aiAssistant),
   };
 
   return (

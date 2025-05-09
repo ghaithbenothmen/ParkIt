@@ -50,7 +50,7 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
     user_id = body.session.rsplit("/", 1)[-1]
 
     # Build payload and fulfillment
-    payload = {"userId": "681a0cd11734b9c27483ab0c"}
+    payload = {"userId": "681e0311194a61f3427ddec8"}
     fulfillment_text = ""
     redirect = ""
 
@@ -62,8 +62,6 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
         duration = params.get("duration")
 
         # Validate dates
-        if not start_str or 'date_time' not in start_str:
-            return {"fulfillmentText": "When do you want to start parking?"}
         start_time_str = start_str["date_time"]
         start = dateutil.parser.isoparse(start_time_str)
 
