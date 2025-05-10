@@ -81,6 +81,8 @@ export const all_routes = {
   providerConnectedApps: '/providers/settings/provider-connected-apps',
   providerAvailability: '/providers/provider-availability',
   providerBooking: '/providers/booking',
+  overdueDetailsBooking: '/providers/bookingdetails',
+
   providerChat: '/providers/provider-chat',
   providerCoupons: '/providers/provider-coupons',
   providerDashboard: '/providers/dashboard',

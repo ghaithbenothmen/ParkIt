@@ -487,7 +487,7 @@ export const header = [
           {
             id:5,
             menuValue: 'Booking Details',
-            routes: routes.bookingDetails,
+            routes: routes.overdueDetailsBooking,
             hasSubRoute: false,
             showSubRoute: false,
             subMenus: [],
@@ -568,6 +568,7 @@ export const header = [
       },
     ],
   },
+  
   // {
   //   id:6,
   //   tittle: 'Blog',

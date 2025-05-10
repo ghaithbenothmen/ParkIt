@@ -9,7 +9,7 @@ import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
 import PaymentButton from '../../home/new-home/PaymentButton';
 import { jwtDecode } from 'jwt-decode';
 
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/themify-icons/css/themify-icons.css"></link>
 // adjust as needed
 import axios from "axios";
 interface Reservation {
@@ -393,13 +393,28 @@ const ProviderBooking = () => {
                           <Link to={`${routes.providerBooking}/${reservation._id}`}>
                             {reservation.parking?.nom || "Parking Spot"}
                           </Link>
-                          <span className={`badge ms-2 ${reservation.status === 'confirmed' ? 'badge-soft-success' :
-                            reservation.status === 'pending' ? 'badge-soft-warning' :
-                              reservation.status === 'over' ? 'badge-soft-danger' :
-                                'badge-soft-secondary'
-                            }`}>
+                          <span
+                            className={`badge ms-2 ${reservation.status === "confirmed"
+                                ? "badge-soft-success"
+                                : reservation.status === "pending"
+                                  ? "badge-soft-warning"
+                                  : reservation.status === "overdue"
+                                    ? "badge-soft-danger"
+                                    : "badge-soft-secondary"
+                              }`}
+                          >
                             {reservation.status}
                           </span>
+                          {reservation.status === "overdue" && (
+                            <span
+                              className="ms-2 text-danger"
+                              style={{ cursor: "pointer" }}
+                              title="Click to view details and pay additional fees"
+                              onClick={() => window.location.href = `${routes.overdueDetailsBooking}/${reservation._id}`}
+                            >
+                              <i className="fa-solid fa-triangle-exclamation" style={{ color: "red", fontSize: "24px" }}></i>
+                            </span>
+                          )}
                         </h6>
 
                         <ul className="booking-details">
@@ -407,18 +422,28 @@ const ProviderBooking = () => {
                             <span className="book-item">Reservation Date</span>
                             <small className="me-2">: </small>
                             {new Date(reservation.startDate).toLocaleDateString()}{" "}
-                            {new Date(reservation.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{" "}
-                            {new Date(reservation.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(reservation.startDate).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}{" "}
+                            -{" "}
+                            {new Date(reservation.endDate).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </li>
                           <li className="d-flex align-items-center mb-2">
                             <span className="book-item">Amount</span>
                             <small className="me-2">:</small> ${reservation.totalPrice.toFixed(2)}
-                            <span className={`badge ms-2 ${reservation.status === 'confirmed' ? 'badge-soft-success' : 'badge-soft-danger'
-                              }`}>
-                              {reservation.status === 'confirmed' ? 'Paid' : 'Not Paid'}
+                            <span
+                              className={`badge ms-2 ${reservation.status === "confirmed"
+                                  ? "badge-soft-success"
+                                  : "badge-soft-danger"
+                                }`}
+                            >
+                              {reservation.status === "confirmed" ? "Paid" : "Not Paid"}
                             </span>
                           </li>
-
                           <li className="d-flex align-items-center mb-2">
                             <span className="book-item">Location</span>
                             <small className="me-2">: </small>

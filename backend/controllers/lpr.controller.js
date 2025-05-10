@@ -28,23 +28,28 @@ exports.checkPlate = async (req, res) => {
             vehicule: vehicle._id,
             startDate: { $lte: now },
             endDate: { $gte: now },
-            status: { $in: ['pending', 'confirmed'] }
+            status: { $in: ['confirmed'] }
         });
 
         if (activeReservation) {
-            return res.status(200).json({ 
-                authorized: true, 
-                message: "Accès autorisé",
-                vehicle,
-                reservation: activeReservation
-            });
-        } else {
-            return res.status(200).json({ 
-                authorized: false, 
-                message: "Aucune réservation active.",
-                currentTime: now
-            });
-        }
+          // Mark the reservation as checked-in
+          activeReservation.checkedInTime = now;
+          activeReservation.status = 'checked-in';
+          await activeReservation.save();
+
+          return res.status(200).json({ 
+              authorized: true, 
+              message: "Accès autorisé",
+              vehicle,
+              reservation: activeReservation
+          });
+      } else {
+          return res.status(200).json({ 
+              authorized: false, 
+              message: "Aucune réservation active.",
+              currentTime: now
+          });
+      }
     } catch (error) {
         console.error("Error in checkPlate:", error);
         return res.status(500).json({ 
@@ -54,112 +59,133 @@ exports.checkPlate = async (req, res) => {
         });
     }
 };
-
 exports.checkExitVehicle = async (req, res) => {
-    try {
-        const { immatriculation } = req.body;
+  try {
+      const { immatriculation } = req.body;
 
-        // First find the vehicle by plate number
-        const vehicle = await Vehicule.findOne({ immatriculation });
-        if (!vehicle) {
-            return res.status(404).json({
-                authorized: false,
-                message: 'Vehicle not found'
-            });
-        }
+      // Vérifier si la plaque d'immatriculation est fournie
+      if (!immatriculation) {
+          return res.status(400).json({
+              authorized: false,
+              message: 'La plaque d\'immatriculation est requise.'
+          });
+      }
 
-        // Then find active reservation for this vehicle using its ObjectId
-        const reservation = await Reservation.findOne({
-            'vehicule': vehicle._id,
-            'status': 'confirmed',
-            'exitTime': null
-        }).populate('parkingSpot').populate({
-            path: 'parkingId',
-            select: 'tarif_horaire'
-        });
+      // Trouver le véhicule par sa plaque d'immatriculation
+      const vehicle = await Vehicule.findOne({ immatriculation });
+      if (!vehicle) {
+          return res.status(404).json({
+              authorized: false,
+              message: 'Véhicule non trouvé.'
+          });
+      }
 
-        if (!reservation) {
-            return res.status(404).json({
-                authorized: false,
-                message: 'No active reservation found for this vehicle'
-            });
-        }
+      const now = new Date();
 
-        const now = new Date();
-        const endDate = new Date(reservation.endDate);
-        let additionalFee = 0;
-        let needsPayment = false;
-        let overstayHours = 0;
-        let overstayMinutes = 0;
+      // Trouver la réservation active (checked-in) sans exitTime
+      let reservation = await Reservation.findOne({
+          vehicule: vehicle._id,
+          status: { $in: ['checked-in', 'overdue'] },
+          exitTime: null
+      }).populate('parkingSpot').populate({
+          path: 'parkingId',
+          select: 'tarif_horaire'
+      });
 
-        // Calculate additional fees if vehicle stayed longer than reservation
-        if (now > endDate) {
-            overstayMinutes = Math.ceil((now - endDate) / (1000 * 60));
-            overstayHours = Math.ceil(overstayMinutes / 60);
-            
-            // Calculate additional fee based on parking's hourly rate
-            const hourlyRate = reservation.parkingId.tarif_horaire;
-            additionalFee = overstayHours * hourlyRate;
-            
-            // Check if additional fees are already paid
-            if (reservation.additionalPaymentStatus !== 'confirmed') {
-                needsPayment = true;
-            }
-        }
+      // Si aucune réservation active n'est trouvée
+      if (!reservation) {
+          return res.status(404).json({
+              authorized: false,
+              message: 'Aucune réservation active trouvée pour ce véhicule.'
+          });
+      }
 
-        // Format dates for better readability
-        const formatDate = (date) => {
-            return new Date(date).toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-            });
-        };
+      // Initialiser les variables pour les frais supplémentaires
+      let additionalFee = 0;
+      let needsPayment = false;
 
-        // Prepare detailed response
-        const response = {
-            authorized: !needsPayment,
-            message: needsPayment ? 'Additional fees required' : 'Exit authorized',
-            reservationDetails: {
-                startTime: formatDate(reservation.startDate),
-                endTime: formatDate(reservation.endDate),
-                currentTime: formatDate(now),
-                originalPrice: reservation.totalPrice,
-                hourlyRate: reservation.parkingId.tarif_horaire,
-                vehicle: {
-                    plate: immatriculation,
-                    marque: vehicle.marque,
-                    modele: vehicle.modele
-                }
-            },
-            overstayDetails: {
-                minutes: overstayMinutes,
-                hours: overstayHours,
-                additionalFee: additionalFee,
-                needsPayment: needsPayment
-            }
-        };
+      // Vérifier si la réservation est en retard (overdue)
+      if (now > reservation.endDate && (!reservation.extendedEndDate || now > reservation.extendedEndDate)) {
+          const { hours, minutes } = calculateOverstay(reservation.extendedEndDate || reservation.endDate, now);
+          const hourlyRate = reservation.parkingId.tarif_horaire;
 
-        // If no additional fees or fees are paid, allow exit
-        if (!needsPayment) {
-            // Update reservation with exit time
-            reservation.exitTime = now;
-            await reservation.save();
+          if (!hourlyRate) {
+              return res.status(500).json({
+                  authorized: false,
+                  message: 'Impossible de calculer les frais supplémentaires : tarif horaire manquant.'
+              });
+          }
 
-            return res.status(200).json(response);
-        }
+          // Calculer les frais supplémentaires
+          additionalFee = Math.ceil(hours + (minutes > 0 ? 1 : 0)) * hourlyRate;
 
-        // If additional fees are needed but not paid
-        return res.status(200).json({
-            ...response,
-            reservationId: reservation._id
-        });
+          // Mettre à jour la réservation avec les frais supplémentaires et le statut overdue
+          if (additionalFee > 0 && reservation.additionalFee !== additionalFee) {
+              reservation.additionalFee = additionalFee;
+              reservation.status = 'overdue';
+              await reservation.save();
+          }
 
-    } catch (error) {
-        console.error('Error checking exit vehicle:', error);
-        res.status(500).json({
-            authorized: false,
-            message: 'Internal server error'
-        });
-    }
+          // Vérifier si les frais supplémentaires ont été payés
+          needsPayment = reservation.additionalPaymentStatus !== 'confirmed';
+      }
+
+      // Préparer la réponse
+      const formatTime = (date) => date.toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+      });
+
+      const response = {
+          authorized: !needsPayment,
+          message: needsPayment ? 'Des frais supplémentaires sont requis.' : 'Sortie autorisée.',
+          reservationDetails: {
+              startTime: formatTime(reservation.startDate),
+              endTime: formatTime(reservation.endDate),
+              extendedEndTime: reservation.extendedEndDate ? formatTime(reservation.extendedEndDate) : null,
+              currentTime: formatTime(now),
+              originalPrice: reservation.totalPrice,
+              hourlyRate: reservation.parkingId.tarif_horaire,
+              vehicle: {
+                  plate: immatriculation,
+                  marque: vehicle.marque,
+                  modele: vehicle.modele
+              }
+          },
+          overstayDetails: {
+              minutes: additionalFee > 0 ? calculateOverstay(reservation.extendedEndDate || reservation.endDate, now).minutes : 0,
+              hours: additionalFee > 0 ? calculateOverstay(reservation.extendedEndDate || reservation.endDate, now).hours : 0,
+              additionalFee: additionalFee,
+              needsPayment: needsPayment
+          }
+      };
+
+      // Si l'utilisateur est autorisé à sortir, mettre à jour le temps de sortie et le statut
+      if (!needsPayment) {
+          reservation.exitTime = now;
+          reservation.status = 'completed';
+          await reservation.save();
+      }
+
+      return res.status(200).json(response);
+
+  } catch (error) {
+      console.error('Erreur lors de la vérification de la sortie du véhicule :', error);
+      res.status(500).json({
+          authorized: false,
+          message: 'Erreur interne du serveur.'
+      });
+  }
 };
+  
+  function calculateOverstay(endDate, now) {
+    const diffMs = now - endDate;
+    if (diffMs <= 0) return { hours: 0, minutes: 0 };
+    
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMins / 60);
+    const minutes = diffMins % 60;
+    
+    return { hours, minutes };
+  }

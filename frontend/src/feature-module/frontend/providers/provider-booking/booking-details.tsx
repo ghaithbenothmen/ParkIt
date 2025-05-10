@@ -328,7 +328,7 @@ const BookingDetails = () => {
                       <div className="slot-pay">
                         <p> Payment</p>
                         <span className="fs-14">
-                          Flouci **** **** **** **56{" "}
+                          Flouci **** **** **** **42{" "}
                           <ImageWithBasePath src="assets/img/icons/visa.svg" alt="Img" />
                         </span>
                       </div>

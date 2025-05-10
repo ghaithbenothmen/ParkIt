@@ -5,7 +5,6 @@
 #include "esp_camera.h"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
-#include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <ESP32Servo.h>
 #include <NTPClient.h>
@@ -15,7 +14,7 @@
 Servo myservo;
 const int servoPin = 14;
 
-// === Bouton Config ===
+// === Button Config ===
 const int buttonPin = 12;
 bool buttonPressed = false;
 
@@ -24,7 +23,7 @@ const char* ssid = "Galaxy";
 const char* password = "00000000";
 
 // === MQTT Config ===
-const char* mqtt_server = "192.168.134.25";
+const char* mqtt_server = "192.168.155.25";
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
@@ -32,14 +31,11 @@ PubSubClient mqttClient(wifiClient);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
-// === Plate Recognition Config ===
-const char* plateRecognitionServer = "www.circuitdigest.cloud";
-const String plateRecognitionPath = "/readnumberplate";
-const int plateRecognitionPort = 443;
-const String plateRecognitionApiKey = "rI5LddJ5QRpC";
+// === Flask Server Config ===
+const char* flaskServer = "http://192.168.155.25:5000/api/lpr";
 
 // === Backend Config ===
-const char* backendServer = "192.168.134.25";
+const char* backendServer = "192.168.155.25";
 const int backendPort = 4000;
 const String checkExitPlateEndpoint = "/api/lpr/check-exit-vehicle";
 
@@ -65,9 +61,6 @@ const int paymentLedPin = 2;
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-WiFiClientSecure client;
-
-// === MQTT Log Helper ===
 String getTimestamp() {
   timeClient.update();
   return timeClient.getFormattedTime();
@@ -76,7 +69,9 @@ String getTimestamp() {
 void publishLog(String message) {
   String timestamp = getTimestamp();
   String fullMessage = "[" + timestamp + "] " + message;
-  mqttClient.publish("lpr/exit/logs", fullMessage.c_str());
+  if (mqttClient.connected()) {
+    mqttClient.publish("lpr/exit/logs", fullMessage.c_str());
+  }
   Serial.println(fullMessage);
 }
 
@@ -88,8 +83,8 @@ void setupCamera() {
   config.pin_d1 = Y3_GPIO_NUM;
   config.pin_d2 = Y4_GPIO_NUM;
   config.pin_d3 = Y5_GPIO_NUM;
-  config.pin_d4 = Y6_GPIO_NUM;
-  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM; // Corrected
+  config.pin_d5 = Y7_GPIO_NUM; // Corrected
   config.pin_d6 = Y8_GPIO_NUM;
   config.pin_d7 = Y9_GPIO_NUM;
   config.pin_xclk = XCLK_GPIO_NUM;
@@ -102,10 +97,10 @@ void setupCamera() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
-  
+
   if (psramFound()) {
-    config.frame_size = FRAMESIZE_SVGA;
-    config.jpeg_quality = 10;
+    config.frame_size = FRAMESIZE_SVGA; // 800x600
+    config.jpeg_quality = 8; // Less compression
     config.fb_count = 2;
     config.grab_mode = CAMERA_GRAB_LATEST;
   } else {
@@ -113,47 +108,54 @@ void setupCamera() {
     config.jpeg_quality = 12;
     config.fb_count = 1;
   }
-  
+
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    publishLog("Camera init failed.");
+    publishLog("Camera init failed with error 0x" + String(err, HEX));
     ESP.restart();
   }
 
   sensor_t *s = esp_camera_sensor_get();
   s->set_vflip(s, 1);
   s->set_hmirror(s, 1);
-  s->set_framesize(s, FRAMESIZE_QVGA);
-  
+  s->set_framesize(s, FRAMESIZE_SVGA);
+  s->set_brightness(s, 1);
+  s->set_contrast(s, 1);
+  s->set_saturation(s, 0);
+  s->set_sharpness(s, 1);
+  s->set_whitebal(s, 0);
+  s->set_awb_gain(s, 0);
+  s->set_exposure_ctrl(s, 0);
+  s->set_aec_value(s, 300);
+
   publishLog("Camera setup complete.");
 }
 
 void resetCamera() {
   esp_camera_deinit();
-  delay(100);
+  delay(200); // Increased for stability
   setupCamera();
   publishLog("Camera reinitialized");
 }
 
 void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
-  
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
-  
+
   ESP32PWM::allocateTimer(0);
   myservo.setPeriodHertz(50);
   myservo.attach(servoPin, 500, 2400);
-  myservo.write(90);
-  
+  myservo.write(180); // Set initial position to 180 degrees
+
   pinMode(ledPin, OUTPUT);
   pinMode(paymentLedPin, OUTPUT);
   digitalWrite(ledPin, LOW);
   digitalWrite(paymentLedPin, LOW);
-  
+
   pinMode(buttonPin, INPUT_PULLUP);
-  
+
   WiFi.begin(ssid, password);
   WiFi.setSleep(false);
   Serial.print("WiFi connecting");
@@ -162,12 +164,11 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("\nWiFi connected");
-  Serial.println(WiFi.localIP());
-  
-  // Initialize NTP
+  Serial.println("IP Address: " + WiFi.localIP().toString());
+
   timeClient.begin();
   timeClient.setTimeOffset(0);
-  
+
   mqttClient.setServer(mqtt_server, 1883);
   while (!mqttClient.connected()) {
     if (mqttClient.connect("ESP32ExitClient")) {
@@ -177,67 +178,90 @@ void setup() {
       delay(1000);
     }
   }
-  
+
   setupCamera();
   publishLog("Setup complete. Waiting for button press...");
 }
 
-String extractJsonStringValue(const String& jsonString, const String& key) {
-  int keyIndex = jsonString.indexOf(key);
-  if (keyIndex == -1) return "";
-  int startIndex = jsonString.indexOf(':', keyIndex) + 2;
-  int endIndex = jsonString.indexOf('"', startIndex);
-  return jsonString.substring(startIndex, endIndex);
-}
-
 String recognizeLicensePlate(camera_fb_t* fb) {
-  client.setInsecure();
-  if (!client.connect(plateRecognitionServer, plateRecognitionPort)) {
-    publishLog("Plate recognition connection failed.");
+  if (WiFi.status() != WL_CONNECTED) {
+    publishLog("WiFi not connected. Attempting to reconnect...");
+    WiFi.reconnect();
+    delay(2000);
+    if (WiFi.status() != WL_CONNECTED) {
+      publishLog("WiFi reconnection failed.");
+      return "";
+    }
+  }
+
+  HTTPClient http;
+  WiFiClient client;
+
+  if (!http.begin(client, flaskServer)) {
+    publishLog("Failed to connect to Flask server: " + String(flaskServer));
     return "";
   }
 
-  String head = "--CircuitDigest\r\nContent-Disposition: form-data; name=\"imageFile\"; filename=\"" + plateRecognitionApiKey + ".jpeg\"\r\nContent-Type: image/jpeg\r\n\r\n";
-  String tail = "\r\n--CircuitDigest--\r\n";
-  uint32_t totalLen = fb->len + head.length() + tail.length();
+  String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+  String head = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"image\"; filename=\"cam.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
+  String tail = "\r\n--" + boundary + "--\r\n";
 
-  client.println("POST " + plateRecognitionPath + " HTTP/1.1");
-  client.println("Host: " + String(plateRecognitionServer));
-  client.println("Content-Length: " + String(totalLen));
-  client.println("Content-Type: multipart/form-data; boundary=CircuitDigest");
-  client.println("Authorization: " + plateRecognitionApiKey);
-  client.println();
-  client.print(head);
+  http.addHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 
-  for (size_t n = 0; n < fb->len; n += 1024) {
-    client.write(fb->buf + n, std::min((size_t)1024, fb->len - n));
-  }
-  client.print(tail);
+  String body = head;
+  body += String((char*)fb->buf, fb->len);
+  body += tail;
 
-  publishLog("Image sent for recognition.");
-  String response;
-  long startTime = millis();
-  while (client.connected() && millis() - startTime < 10000) {
-    while (client.available()) {
-      response += char(client.read());
+  publishLog("Sending image to Flask server...");
+  int httpCode = http.POST(body);
+
+  String plateNumber = "";
+  if (httpCode > 0) {
+    String response = http.getString();
+    publishLog("HTTP Response Code: " + String(httpCode));
+    publishLog("Full Server Response: " + response);
+
+    int jsonStart = response.indexOf("{");
+    if (jsonStart != -1) {
+      String jsonResponse = response.substring(jsonStart);
+      DynamicJsonDocument doc(512);
+      DeserializationError error = deserializeJson(doc, jsonResponse);
+      if (error) {
+        publishLog("JSON parsing failed: " + String(error.c_str()));
+      } else {
+        if (doc.containsKey("plate_number")) {
+          plateNumber = doc["plate_number"].as<String>();
+          publishLog("Detected License Plate: " + plateNumber);
+        } else if (doc.containsKey("error")) {
+          publishLog("Server Error: " + doc["error"].as<String>());
+        } else {
+          publishLog("Unknown JSON structure received");
+        }
+      }
+    } else {
+      publishLog("No JSON response received");
     }
+  } else {
+    publishLog("HTTP POST failed: " + http.errorToString(httpCode));
   }
-  client.stop();
 
-  String plate = extractJsonStringValue(response, "\"number_plate\"");
-  publishLog("Detected Plate: " + plate);
-  return plate;
+  http.end();
+  client.stop();
+  return plateNumber;
 }
 
 bool checkExitConditions(String plateNumber) {
-  if (plateNumber.isEmpty()) return false;
+  if (plateNumber.isEmpty()) {
+    publishLog("No plate number to check.");
+    return false;
+  }
 
   WiFiClient client;
   HTTPClient http;
   String url = "http://" + String(backendServer) + ":" + backendPort + checkExitPlateEndpoint;
 
   if (!http.begin(client, url)) {
-    publishLog("HTTP begin failed.");
+    publishLog("HTTP begin failed for exit check.");
     return false;
   }
 
@@ -247,12 +271,18 @@ bool checkExitConditions(String plateNumber) {
   String payload;
   serializeJson(doc, payload);
 
+  publishLog("Checking exit conditions for plate: " + plateNumber);
   int httpCode = http.POST(payload);
   if (httpCode > 0) {
     String response = http.getString();
     DynamicJsonDocument resDoc(1024);
-    deserializeJson(resDoc, response);
-    
+    DeserializationError error = deserializeJson(resDoc, response);
+    if (error) {
+      publishLog("Exit response JSON parsing failed: " + String(error.c_str()));
+      http.end();
+      return false;
+    }
+
     bool authorized = resDoc["authorized"];
     bool needsPayment = resDoc["overstayDetails"]["needsPayment"];
     float additionalFee = resDoc["overstayDetails"]["additionalFee"];
@@ -264,24 +294,22 @@ bool checkExitConditions(String plateNumber) {
     String currentTime = resDoc["reservationDetails"]["currentTime"].as<String>();
     String vehicleMake = resDoc["reservationDetails"]["vehicle"]["marque"].as<String>();
     String vehicleModel = resDoc["reservationDetails"]["vehicle"]["modele"].as<String>();
-    
+
     publishLog("=== EXIT CHECK DETAILS ===");
     publishLog("Vehicle: " + vehicleMake + " " + vehicleModel + " (" + plateNumber + ")");
     publishLog("Reservation Period: " + startTime + " - " + endTime);
     publishLog("Current Time: " + currentTime);
     publishLog("Parking Rate: " + String(hourlyRate) + " DT/hour");
-    
+
     if (overstayHours > 0 || overstayMinutes > 0) {
-      publishLog("Overstay: " + String(overstayHours) + "h (" + String(overstayMinutes) + "m)");
+      publishLog("Overstay: " + String(overstayHours) + "h " + String(overstayMinutes) + "m");
       publishLog("Additional Fee: " + String(additionalFee) + " DT");
     }
-    
+
     if (needsPayment) {
       publishLog("=== PAYMENT REQUIRED ===");
       publishLog("Please make payment of " + String(additionalFee) + " DT to exit");
       publishLog("=====================");
-      
-      // Blink payment LED
       for (int i = 0; i < 5; i++) {
         digitalWrite(paymentLedPin, HIGH);
         delay(200);
@@ -301,11 +329,11 @@ bool checkExitConditions(String plateNumber) {
         publishLog("=====================");
       }
     }
-    
+
     http.end();
     return authorized;
   } else {
-    publishLog("HTTP error: " + http.errorToString(httpCode));
+    publishLog("HTTP error for exit check: " + http.errorToString(httpCode));
     http.end();
     return false;
   }
@@ -314,60 +342,84 @@ bool checkExitConditions(String plateNumber) {
 void loop() {
   mqttClient.loop();
   timeClient.update();
-  
+
   if (digitalRead(buttonPin) == LOW) {
     if (!buttonPressed) {
       buttonPressed = true;
       publishLog("=== NEW EXIT REQUEST ===");
       publishLog("Button pressed - Activating camera");
-      digitalWrite(ledPin, HIGH);
       
+      uint32_t freeHeap = ESP.getFreeHeap();
+      publishLog("Free heap before capture: " + String(freeHeap) + " bytes");
+
       camera_fb_t* fb = esp_camera_fb_get();
       if (!fb) {
-        publishLog("Camera capture failed.");
-        publishLog("=====================");
-        buttonPressed = false;
-        digitalWrite(ledPin, LOW);
-        return;
-      }
-
-      String plateNumber = recognizeLicensePlate(fb);
-      
-      if (plateNumber.length() > 0) {
-        bool canExit = checkExitConditions(plateNumber);
-        if (canExit) {
-          publishLog("Opening gate for: " + plateNumber);
-          myservo.write(0);
-          delay(3000);
-          myservo.write(90);
-          publishLog("Gate closed");
-        } else {
-          publishLog("=== EXIT DENIED ===");
-          publishLog("Vehicle: " + plateNumber);
-          publishLog("Please complete payment to exit");
-          publishLog("=====================");
-          for (int i = 0; i < 3; i++) {
-            digitalWrite(ledPin, HIGH);
-            delay(200);
+        publishLog("Camera capture failed. Error: " + String(esp_err_to_name(ESP_FAIL)));
+        publishLog("Retrying with FRAMESIZE_QVGA");
+        sensor_t *s = esp_camera_sensor_get();
+        if (s) {
+          s->set_framesize(s, FRAMESIZE_QVGA);
+          fb = esp_camera_fb_get();
+          if (!fb) {
+            publishLog("Retry failed. Resetting camera...");
+            publishLog("=====================");
+            resetCamera();
+            buttonPressed = false;
             digitalWrite(ledPin, LOW);
-            delay(200);
+            return;
+          } else {
+            publishLog("Retry succeeded. Image captured. Size: " + String(fb->len) + " bytes");
           }
         }
       } else {
-        publishLog("=== ERROR ===");
-        publishLog("No license plate detected");
-        publishLog("Please try again");
-        publishLog("=====================");
+        publishLog("Image captured. Size: " + String(fb->len) + " bytes");
+      }
+
+      if (fb) {
+        String plateNumber = recognizeLicensePlate(fb);
+
+        if (plateNumber.length() > 0) {
+          bool canExit = checkExitConditions(plateNumber);
+          if (canExit) {
+            publishLog("Opening gate for: " + plateNumber);
+            myservo.write(90); // Open gate to 90 degrees
+            delay(3000);
+            myservo.write(180); // Close gate back to 180 degrees
+            delay(500); // Allow servo to settle
+            myservo.detach(); // Detach to prevent jitter
+delay(500); // Allow detachment to stabilize
+            myservo.attach(servoPin, 500, 2400); // Reattach for next use
+            myservo.write(180); // Reinforce initial position
+            publishLog("Gate closed");
+          } else {
+            publishLog("=== EXIT DENIED ===");
+            publishLog("Vehicle: " + plateNumber);
+            publishLog("Please complete payment to exit");
+            publishLog("=====================");
+            for (int i = 0; i < 3; i++) {
+              digitalWrite(ledPin, HIGH);
+              delay(200);
+              digitalWrite(ledPin, LOW);
+              delay(200);
+            }
+          }
+        } else {
+          publishLog("=== ERROR ===");
+          publishLog("No license plate detected");
+          publishLog("Please try again");
+          publishLog("=====================");
+        }
+
+        esp_camera_fb_return(fb);
       }
 
       digitalWrite(ledPin, LOW);
-      esp_camera_fb_return(fb);
       resetCamera();
       buttonPressed = false;
     }
   } else {
     buttonPressed = false;
   }
-  
+
   delay(100);
-} 
+}
