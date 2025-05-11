@@ -3,20 +3,22 @@ const User = require('../models/user.model.js'); // Ajouter cette ligne
 
 exports.createNotification = async (reservation) => {
     try {
-        // Récupérer les informations de l'utilisateur
-        const user = await User.findById(reservation.userId);
+        // Fetch user details, including the image
+        const user = await User.findById(reservation.userId).select('firstname lastname image');
         const userName = user ? `${user.firstname} ${user.lastname}` : 'Unknown user';
+        const userImage = user?.image || 'assets/img/default-user.jpg'; // Fallback to a default image
 
-        // Créer la notification avec le nom de l'utilisateur
+        // Create the notification
         const notification = new Notification({
             userId: reservation.userId,
-            userName: userName, // Ajouter le nom de l'utilisateur
+            userName: userName,
+            userImage: userImage, // Include the user's image
             startDate: reservation.startDate,
             endDate: reservation.endDate,
             reservationId: reservation._id,
             type: 'creation',
             message: `${userName} created a reservation`,
-            createdAt: new Date()
+            createdAt: new Date(),
         });
         await notification.save();
 
