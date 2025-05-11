@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { set_mouseoversidebar_data } from '../../../../core/data/redux/action';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import { AppState } from '../../../../core/models/interface';
-import { LayoutGrid, Car,MessageSquareWarning, Calendar, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { LayoutGrid, Car, MessageSquareWarning, Calendar, Settings, LogOut, ChevronRight } from 'lucide-react';
 
 const ProviderSidebar = () => {
   const routes = all_routes;
@@ -46,8 +46,8 @@ const ProviderSidebar = () => {
   return (
     <div onMouseEnter={toogle} onMouseLeave={toogle2} className="sidebar" id="sidebar">
       <Scrollbars style={{ width: '100%', height: '100%' }}>
-        <div className="sidebar-inner slimscroll">
-          <div id="sidebar-menu" className="sidebar-menu">
+        <div className="sidebar-inner slimscroll" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div id="sidebar-menu" className="sidebar-menu" style={{ flex: '1 1 auto' }}>
             <ul>
               <li className={activeRouterPath('/providers/dashboard') ? 'active' : ''}>
                 <Link to="/providers/dashboard" className="menu-item">
@@ -90,53 +90,16 @@ const ProviderSidebar = () => {
                       <ChevronRight size={16} /> Security
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/providers/settings/provider-plan" className={activeRouterPath('/providers/settings/provider-plan') ? 'active' : ''}>
-                      <ChevronRight size={16} /> Plan & Billings
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/providers/settings/payment-setting" className={activeRouterPath('/providers/settings/payment-setting') ? 'active' : ''}>
-                      <ChevronRight size={16} /> Payment
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/providers/settings/verification" className={activeRouterPath('/providers/settings/verification') ? 'active' : ''}>
-                      <ChevronRight size={16} /> Profile Verification
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="#" data-bs-toggle="modal" data-bs-target="#del-account">
-                      <ChevronRight size={16} /> Delete Account
-                    </Link>
-                  </li>
                 </ul>
               </li>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
-<br/>
               {/* Logout Button */}
-              <div style={{ padding: '10px', borderTop: '1px solid #e0e0e0' }}>
+
+            </ul>
+          </div>
+          <div style={{ padding: '10px', borderTop: '1px solid #e0e0e0' }}>
             <button onClick={logout} className="btn btn-linear-primary menu-item" style={{ width: '100%' }}>
               <LogOut size={18} /> <span>Logout</span>
             </button>
-          </div>
-            </ul>
           </div>
         </div>
       </Scrollbars>

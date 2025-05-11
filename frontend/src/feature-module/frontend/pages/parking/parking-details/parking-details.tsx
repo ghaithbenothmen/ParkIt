@@ -5,13 +5,16 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import ImageWithBasePath from '../../../../../core/img/ImageWithBasePath';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { all_routes } from '../../../../../core/data/routes/all_routes';
 import BreadCrumb from '../../../common/breadcrumb/breadCrumb';
 import StickyBox from 'react-sticky-box';
 import { Parking } from '../parking.model';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
 const ParkingDetails = () => {
   const routes = all_routes;
@@ -31,6 +34,15 @@ const ParkingDetails = () => {
     lastname: '',
     email: '',
     phone: ''
+  });
+  const navigate = useNavigate();
+
+  // Custom icon for the parking marker
+  const parkingIcon = new L.Icon({
+    iconUrl: "/parking.png",
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
   });
 
   // State to track if the user has already reviewed this parking
@@ -265,8 +277,16 @@ const ParkingDetails = () => {
                             <i className="ti ti-map-pin me-2" />
                             {parking?.adresse}{' '}
                             <Link
-                              to="/map"
+                              to="#"
                               className="link-primary text-decoration-underline"
+                              onClick={() =>
+                                navigate(routes.map, {
+                                  state: {
+                                    location: parking.adresse,
+                                    currentPosition: [parking.latitude, parking.longitude],
+                                  },
+                                })
+                              }
                             >
                               View Location
                             </Link>
@@ -437,6 +457,7 @@ const ParkingDetails = () => {
                         </div>
                       </div>
                     </div>
+                   
                   </div>
                 </div>
                 <div className="card border-0 mb-xl-0 mb-4">
@@ -663,17 +684,11 @@ const ParkingDetails = () => {
                   <div className="card border-0">
                     <div className="card-body">
                       <h4 className="mb-3">Business Hours</h4>
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6 className="fs-16 fw-medium mb-0">Monday</h6>
-                        <p>9:30 AM - 7:00 PM</p>
-                      </div>
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6 className="fs-16 fw-medium mb-0">Tuesday</h6>
-                        <p>9:30 AM - 7:00 PM</p>
-                      </div>
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6 className="fs-16 fw-medium mb-0">Wednesday</h6>
-                        <p>9:30 AM - 7:00 PM</p>
+                      <div className="text-center bg-light p-4 rounded">
+                        <h5 className="mb-2 text-primary">Open 24/7</h5>
+                        <p className="mb-0 text-muted">
+                          <i className="ti ti-clock me-2"></i>24 hours a day, 7 days a week
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -681,39 +696,26 @@ const ParkingDetails = () => {
                     <div className="card-body">
                       <h4 className="mb-3">Location</h4>
                       <div className="map-wrap">
-                        <iframe
-                          src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d${parking?.longitude}!3d${parking?.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${encodeURIComponent(
-                            parking?.adresse
-                          )}!5e0!3m2!1sen!2sus!4v1669181581381!5m2!1sen!2sus`}
-                          allowFullScreen
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          className="contact-map"
+                         <MapContainer
+                        center={[parking.latitude, parking.longitude]}
+                        zoom={15}
+                        style={{ height: "300px", width: "100%" }}
+                      >
+                        <TileLayer
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         />
-                        <div className="map-location bg-white d-flex align-items-center">
-                          <div className="d-flex align-items-center me-2">
-                            <span className="avatar avatar-lg flex-shrink-0">
-                              <ImageWithBasePath
-                                src="assets/img/services/service-thumb-01.jpg"
-                                alt="img"
-                                className="br-10"
-                              />
-                            </span>
-                            <div className="ms-2 overflow-hidden">
-                              <p className="two-line-ellipsis">{parking?.adresse}</p>
-                            </div>
-                          </div>
-                          <span>
-                            <i className="feather icon-send fs-16" />
-                          </span>
-                        </div>
+                        <Marker
+                          position={[parking.latitude, parking.longitude]}
+                          icon={parkingIcon}
+                        >
+                          <Popup>{parking.nom}</Popup>
+                        </Marker>
+                      </MapContainer>
                       </div>
                     </div>
                   </div>
-                  <Link to="#" className="text-danger fs-14">
-                    <i className="ti ti-pennant-filled me-2" />
-                    Report Provider
-                  </Link>
+                 
                 </StickyBox>
               </div>
             </div>

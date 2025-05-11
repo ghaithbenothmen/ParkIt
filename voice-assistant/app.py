@@ -17,7 +17,7 @@ app.add_middleware(
 )
 
 # Base URL for your Node.js backend
-NODE_BACKEND_BASE_URL = "http://localhost:4000/api/voice"
+NODE_BACKEND_BASE_URL = "http://api:3000/api/voice"
 
 class DialogflowWebhookBody(BaseModel):
     session: str                # e.g. "projects/…/agent/sessions/<USER_ID>"
@@ -25,7 +25,7 @@ class DialogflowWebhookBody(BaseModel):
 
 # Map Dialogflow intent names to Node.js route paths
 INTENT_ROUTE_MAP = {
-    "BookParking": "/",
+    "BookParking": "",
     "CancelParking": "/cancelParking",
     "CheckAvailability": "/checkAvailability",
     # Add more intent-to-route mappings here

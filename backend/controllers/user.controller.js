@@ -26,10 +26,10 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { firstname, lastname, phone, email,role } = req.body;
+        const { firstname, lastname, phone, email,role,isActive } = req.body;
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
-            { firstname, lastname, phone, email,role },
+            { firstname, lastname, phone, email,role,isActive },
             { new: true, runValidators: true }
         ).select("-password");
 

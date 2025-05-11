@@ -17,7 +17,7 @@ interface Claim {
     userId: string; // Reference to the user ID
     parkingId: {
         _id: string;
-        nom: string; // Name of the parking
+        nom: string; // Name of the parkingA
         adresse: string; // Address of the parking
       };    
     claimType: 'Occupied Space' | 'Payment Issue' | 'Security' | 'Other'; // Enum values for the claim type

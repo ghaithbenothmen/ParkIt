@@ -329,12 +329,23 @@ exports.updateProfile = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
-    res.clearCookie("token");
-    res.status(200).json({ message: "Logout successful" });
+    // Clear any server-side session data if needed
+    res.clearCookie('token');
+    
+    // Send a success response
+    res.status(200).json({ 
+      success: true,
+      message: "Logout successful" 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Logout error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error during logout" 
+    });
   }
 };
+
 exports.register_face_data = async (req, res) => {
   const { userId } = req.body;
 
@@ -394,17 +405,18 @@ exports.googleAuth = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Create a new user
-      user = await User.create({
+      // Create a new user without setting password field at all
+      user = new User({
         firstname: name.split(" ")[0],
         lastname: name.split(" ")[1] || "",
-        phone: null, // Default phone number for Google users
         email,
-        password: null, // No password for Google-authenticated users
         image: picture,
-        isActive: true, // Automatically activate Google-authenticated users
-        authUser: "google", // Set authentication provider to "google"
+        isActive: true,
+        authUser: "google",
+        // Don't include phone or password fields
       });
+      
+      await user.save();
     }
 
     // Generate a JWT token
@@ -412,10 +424,25 @@ exports.googleAuth = async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN || "1h",
     });
 
-    res.status(200).json({ message: "Google authentication successful", token, user });
+    res.status(200).json({ 
+      message: "Google authentication successful", 
+      token, 
+      user: {
+        _id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        image: user.image,
+        role: user.role,
+        authUser: user.authUser
+      }
+    });
   } catch (error) {
     console.error("Google Auth Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ 
+      message: "Internal Server Error",
+      error: error.message 
+    });
   }
 };
 
@@ -596,11 +623,8 @@ exports.updatePassword = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
     }
 
-    // Hash the new password using argon2
-    const hashedPassword = await argon2.hash(newPassword);
-
-    // Update the user's password
-    user.password = hashedPassword;
+    // Assign the new password directly (hashing will be handled by the pre-save middleware)
+    user.password = newPassword;
     await user.save();
 
     // Return success response

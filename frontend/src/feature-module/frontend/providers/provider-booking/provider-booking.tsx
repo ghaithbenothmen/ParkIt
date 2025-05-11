@@ -2,14 +2,13 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
-import BookingModals from '../../customers/common/bookingModals';
 import { customerOption, serviceOption, staffOption } from '../../../../core/data/json/dropDownData';
 import CustomDropdown from '../../common/dropdown/commonSelect';
 import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
 import PaymentButton from '../../home/new-home/PaymentButton';
 import { jwtDecode } from 'jwt-decode';
 
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/themify-icons/css/themify-icons.css"></link>
 // adjust as needed
 import axios from "axios";
 interface Reservation {
@@ -68,9 +67,13 @@ const ProviderBooking = () => {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
 
-    return reservations.filter(reservation => {
+    return reservations.filter((reservation) => {
       const resDate = new Date(reservation.startDate);
-      const matchesStatus = filterStatus === 'all' || reservation.status === filterStatus;
+      const matchesStatus =
+        filterStatus === 'all' ||
+        (filterStatus === 'paid' && ['confirmed', 'checked-in', 'completed'].includes(reservation.status)) ||
+        (filterStatus === 'not-paid' && ['pending', 'overdue', 'no-show'].includes(reservation.status)) ||
+        reservation.status === filterStatus;
       const matchesDate =
         dateFilter === 'all' ||
         (dateFilter === 'today' && resDate.toDateString() === today.toDateString()) ||
@@ -356,14 +359,29 @@ const ProviderBooking = () => {
                     <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('all')}>
                       All
                     </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('paid')}>
+                      Paid
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('not-paid')}>
+                      Not Paid
+                    </Link>
                     <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('confirmed')}>
                       Confirmed
                     </Link>
                     <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('pending')}>
                       Pending
                     </Link>
-                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('over')}>
-                      Over
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('checked-in')}>
+                      Checked-In
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('overdue')}>
+                      Overdue
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('no-show')}>
+                      No-Show
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('completed')}>
+                      Completed
                     </Link>
                   </div>
                 </div>
@@ -376,7 +394,7 @@ const ProviderBooking = () => {
           <div className="col-xxl-12 col-lg-12">
             {paginatedReservations.length > 0 ? (
               paginatedReservations.map((reservation) => (
-                <div key={reservation._id} className="card shadow-none booking-list">
+                <div key={reservation._id} className="card shadow-none booking-list position-relative">
                   <div className="card-body d-md-flex align-items-center">
                     <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
                       <div className="booking-img me-sm-3 mb-3 mb-sm-0">
@@ -393,11 +411,14 @@ const ProviderBooking = () => {
                           <Link to={`${routes.providerBooking}/${reservation._id}`}>
                             {reservation.parking?.nom || "Parking Spot"}
                           </Link>
-                          <span className={`badge ms-2 ${reservation.status === 'confirmed' ? 'badge-soft-success' :
-                            reservation.status === 'pending' ? 'badge-soft-warning' :
-                              reservation.status === 'over' ? 'badge-soft-danger' :
-                                'badge-soft-secondary'
-                            }`}>
+                          <span
+                            className={`badge ms-2 ${reservation.status === "confirmed" || reservation.status === "checked-in" || reservation.status === "completed"
+                                ? "badge-soft-success"
+                                : reservation.status === "pending" || reservation.status === "overdue" || reservation.status === "no-show"
+                                  ? "badge-soft-danger"
+                                  : "badge-soft-secondary"
+                              }`}
+                          >
                             {reservation.status}
                           </span>
                         </h6>
@@ -407,18 +428,30 @@ const ProviderBooking = () => {
                             <span className="book-item">Reservation Date</span>
                             <small className="me-2">: </small>
                             {new Date(reservation.startDate).toLocaleDateString()}{" "}
-                            {new Date(reservation.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -{" "}
-                            {new Date(reservation.endDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(reservation.startDate).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}{" "}
+                            -{" "}
+                            {new Date(reservation.endDate).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </li>
                           <li className="d-flex align-items-center mb-2">
                             <span className="book-item">Amount</span>
                             <small className="me-2">:</small> ${reservation.totalPrice.toFixed(2)}
-                            <span className={`badge ms-2 ${reservation.status === 'confirmed' ? 'badge-soft-success' : 'badge-soft-danger'
-                              }`}>
-                              {reservation.status === 'confirmed' ? 'Paid' : 'Not Paid'}
+                            <span
+                              className={`badge ms-2 ${reservation.status === "pending" || reservation.status === "overdue" || reservation.status === "no-show"
+                                  ? "badge-soft-danger"
+                                  : "badge-soft-success"
+                                }`}
+                            >
+                              {reservation.status === "pending" || reservation.status === "overdue" || reservation.status === "no-show"
+                                ? "Not Paid"
+                                : "Paid"}
                             </span>
                           </li>
-
                           <li className="d-flex align-items-center mb-2">
                             <span className="book-item">Location</span>
                             <small className="me-2">: </small>
@@ -433,11 +466,20 @@ const ProviderBooking = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <Link to={routes.booking} className="btn btn-light" data-bs-toggle="modal" data-bs-target="#reschedule">
-                        Reschedule
-                      </Link>
-                    </div>
+                    {/* Overdue Alert */}
+                    {reservation.status === "overdue" && (
+                      <div
+                        className="position-absolute top-50 end-40 translate-middle-y text-center"
+                        style={{
+                          right: "100px",
+                          cursor: "pointer",
+                        }}
+                        title="Click to view details and pay additional fees"
+                        onClick={() => window.location.href = `${routes.overdueDetailsBooking}/${reservation._id}`}
+                      >
+                        <i className="fa-solid fa-triangle-exclamation text-danger" style={{ fontSize: "24px" }}></i>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -481,7 +523,7 @@ const ProviderBooking = () => {
 
       </div>
       {/* /Page Wrapper */}
-      <BookingModals />
+      
     </>
 
   );

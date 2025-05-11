@@ -11,9 +11,8 @@ import { all_routes } from '../../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { AppState } from '../../../../core/models/interface';
 import io from 'socket.io-client';
-import VoiceAssistant from '../../common/voice-assistant/VoiceAssistant';
+import AiAssistantProvider from '../../common/voice-assistant/AiAssistantProvider';
 import { AiAssistantButton } from '../../common/voice-assistant/AiAssistantButton';
-import { AiAssistantProvider } from '../../common/voice-assistant';
 
 interface NotificationType {
   _id: string;
@@ -236,8 +235,47 @@ const ProviderHeader = () => {
     return notifications.filter(notif => !notif.read).length;
   };
 
+  const [user, setUser] = useState<any>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error("No token found in localStorage");
+          return;
+        }
+
+        const response = await fetch('http://localhost:4000/api/auth/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          console.error("Failed to fetch user data");
+          return;
+        }
+
+        const userData = await response.json();
+        setUser(userData);
+
+        // Ensure the image URL is correctly formatted
+        if (userData.image) {
+          setImagePreview(userData.image.startsWith("//") ? `https:${userData.image}` : userData.image);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   return (
-    <AiAssistantProvider>
+        <AiAssistantProvider>
+
     <div className="header provider-header">
       {/* Logo */}
       <div className="header-left active" 
@@ -266,33 +304,10 @@ const ProviderHeader = () => {
           {/* Search */}
           <div className="nav-item nav-search-inputs">
             <div className="top-nav-search">
-              <Link to="#" className="responsive-search">
-                <i className="fa fa-search" />
-              </Link>
-              <form action="#" className="dropdown">
-                <div className="searchinputs" id="dropdownMenuClickable">
-                  <input type="text" placeholder="Search" />
-                  <div className="search-addon">
-                    <span>
-                      <i className="feather icon-user" />
-                    </span>
-                    <AiAssistantButton currentState="STATE_IDLE" />
-                    </div>
-                </div>
-              </form>
             </div>
           </div>
           {/* /Search */}
           <div className="d-flex align-items-center">
-            <div className="me-2 site-link">
-              <Link
-                to="#"
-                className="d-flex align-items-center justify-content-center me-2"
-              >
-                <i className="feather icon-globe me-1" />
-                Visit Website
-              </Link>
-            </div>
             <div className="provider-head-links">
               <div>
                 
@@ -442,28 +457,53 @@ const ProviderHeader = () => {
             </div>
             <div className="provider-head-links">
               <Link
-                to="#"
-                onClick={toggleFullscreen}
-                className="d-flex align-items-center justify-content-center me-2"
+              to="#"
+              onClick={toggleFullscreen}
+              className="d-flex align-items-center justify-content-center me-2"
               >
-                <i className="feather icon-maximize" />
+            <i className="fa fa-expand" aria-hidden="true"></i>
               </Link>
             </div>
             <div className="dropdown">
               <Link to="#" data-bs-toggle="dropdown">
                 <div className="booking-user d-flex align-items-center">
                   <span className="user-img">
-                    <ImageWithBasePath src="assets/img/user.jpg" alt="user" />
+                    <img
+                      src={imagePreview || "assets/img/user.jpg"}
+                      alt="user"
+                      className="rounded-circle"
+                      onError={(e) => (e.currentTarget.src = "assets/img/user.jpg")} // Fallback to default image if loading fails
+                    />
                   </span>
                 </div>
               </Link>
-              <ul className="dropdown-menu p-2">
+              <ul className="dropdown-menu dropdown-menu-end p-3 shadow" style={{ minWidth: "250px" }}>
+                <li className="text-center mb-3">
+                  <img
+                    src={imagePreview || "assets/img/user.jpg"}
+                    alt="user"
+                    className="rounded-circle mb-2"
+                    style={{ width: "80px", height: "80px", objectFit: "cover" }}
+                    onError={(e) => (e.currentTarget.src = "assets/img/user.jpg")} // Fallback to default image if loading fails
+                  />
+                  <h6 className="mb-0">{user?.firstname} {user?.lastname}</h6>
+                  <small className="text-muted">{user?.role || "User"}</small>
+                </li>
                 <li>
                   <Link
                     className="dropdown-item d-flex align-items-center"
+                    to={routes.providerProfileSettings}
+                  >
+                    <i className="ti ti-user me-2" />
+                    Profile Account
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    className="dropdown-item d-flex align-items-center text-danger"
                     to={routes.login}
                   >
-                    <i className="ti ti-logout me-1" />
+                    <i className="ti ti-logout me-2" />
                     Logout
                   </Link>
                 </li>
@@ -472,6 +512,8 @@ const ProviderHeader = () => {
           </div>
         </div>
       </div>
+                          <AiAssistantButton currentState="STATE_IDLE" />
+
       {/* Mobile Menu */}
       <div className="dropdown mobile-user-menu">
         <Link
@@ -491,10 +533,9 @@ const ProviderHeader = () => {
       </div>
       {/* /Mobile Menu */}
     </div>
-    </AiAssistantProvider>
+        </AiAssistantProvider>
 
   );
-
 };
 
 export default ProviderHeader;

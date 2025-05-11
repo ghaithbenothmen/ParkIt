@@ -43,5 +43,34 @@ sdkconfig.old
 .vscode/
 .idea/
 
+#python lpr
+# Environnement virtuel
+lpr-tn-venv/
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Images générées
+*.jpg
+*.png
+*.jpeg
+
+# Fichiers de détection ou résultats
+output.jpg
+Licence_Plate_extracted.jpg
+
+# Fichiers de modèles volumineux (optionnel selon ton cas)
+*.weights
+*.h5
+
+# Dossiers d'upload
+uploads/
+
+# VSCode
+.vscode/
+
+
 
 

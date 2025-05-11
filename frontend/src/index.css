@@ -3,8 +3,20 @@
 @import 'react-clock/dist/Clock.css';
 @import 'react-phone-input-2/lib/style.css';
 @import 'primereact/resources/themes/lara-light-indigo/theme.css';
+
 .search-section {
   position: relative;  /* Ensure that the suggestions are positioned relative to this container */
+}
+
+.ti-alert-circle {
+  color: #dc3545; /* Rouge pour indiquer un problème */
+  font-size: 1.5rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.ti-alert-circle:hover {
+  transform: scale(1.2); /* Agrandir légèrement au survol */
+  cursor: pointer;
 }
 
 .suggestions-list {
@@ -1589,10 +1601,10 @@ div.slick-slider button.slick-arrow {
   background: #0D0D0D;
   color: #C5CCDB;
 }
-.dark .react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name {
+.dark .react-datepicker__day-name, .dark .react-datepicker__day, .dark .react-datepicker__time-name {
   color: #C5CCDB;
 }
-.dark .react-datepicker__day:hover, .react-datepicker__month-text:hover, .react-datepicker__quarter-text:hover, .react-datepicker__year-text:hover {
+.dark .react-datepicker__day:hover, .dark .react-datepicker__month-text:hover, .dark .react-datepicker__quarter-text:hover, .dark .react-datepicker__year-text:hover {
   color: #C5CCDB;
   background: #0D0D0D;
 }
@@ -2121,16 +2133,16 @@ margin-right: 20px;
 }
 
 .filter-button:hover {
-  border-color: #FF008A;
-  color: #FF008A;
+  border-color: #bd1111;
+  color: #bd1111;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .filter-button.active {
-  background: #FF008A;
+  background: #bd1111;
   color: white;
-  border-color: #FF008A;
+  border-color: #bd1111;
 }
 
 .filter-button .stars-container {
@@ -2163,5 +2175,172 @@ margin-right: 20px;
   
   .filter-buttons-container {
     gap: 8px;
+  }
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff0000;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+.header-feather-icons {
+  position: relative;
+  display: inline-block;
+}
+
+/* Styles pour le dropdown des notifications */
+.notification-dropdown {
+  width: 450px !important;
+  max-width: 90vw !important;
+}
+
+.noti-content {
+  max-height: 600px !important; /* Augmentation de la hauteur maximale */
+}
+
+.notification-dropdown .border-bottom {
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.notification-dropdown p.mb-1 {
+  line-height: 1.6;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.notification-dropdown .d-flex {
+  gap: 15px;
+}
+
+.notification-dropdown .avatar {
+  min-width: 50px;
+  width: 50px;
+  height: 50px;
+}
+
+/* Styles pour le header dropdown notifications */
+.dropdown-menu.notifications {
+  width: 450px !important;
+  max-width: 90vw !important;
+  padding: 20px !important;
+  border: 1px solid #eee;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.notification-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.notification-title .text-gray {
+  color: #74788d;
+  font-size: 14px;
+}
+
+.noti-content {
+  max-height: 600px !important;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.noti-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.noti-content::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 10px;
+}
+
+.dropdown-body {
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.dropdown-body p.mb-1 {
+  line-height: 1.6;
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdown-body .avatar {
+  min-width: 50px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.dropdown-body .text-primary {
+  color: #FF008A !important;
+}
+
+.dropdown-body .text-muted {
+  color: #74788d !important;
+}
+
+/* Dark Modal Styles */
+.modal.dark-modal .modal-content {
+  background-color: #1a1a1a;
+  color: #fff;
+  border: 1px solid #333;
+}
+
+.dark-modal .modal-header {
+  border-bottom: 1px solid #333;
+}
+
+.dark-modal .modal-footer {
+  border-top: 1px solid #333;
+}
+
+.dark-modal .form-control {
+  background-color: #333;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.dark-modal .form-control:focus {
+  background-color: #404040;
+  border-color: #666;
+  color: #fff;
+}
+
+.dark-modal .form-label {
+  color: #fff;
+}
+
+.dark-modal .input-group-text {
+  background-color: #333;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.dark-modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Modal backdrop blur effect */
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+@supports (backdrop-filter: blur(5px)) {
+  .modal-backdrop.show {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
   }
 }

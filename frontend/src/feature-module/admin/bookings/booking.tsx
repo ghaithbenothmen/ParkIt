@@ -202,31 +202,6 @@ const Booking = () => {
                 <li>
                   <div className="filter-sorting">
                     <ul>
-                      <li>
-                        <Link to="#" className="filter-sets">
-                          <Icon.Filter className="react-feather-custom me-2" />
-                          Filter
-                        </Link>
-                      </li>
-                      <li>
-                        <span>
-                          <ImageWithBasePath
-                            src="assets/img/icons/sort.svg"
-                            className="me-2"
-                            alt="img"
-                          />
-                        </span>
-                        <div className="review-sort">
-                          <Dropdown
-                            value={selectedValue}
-                            onChange={(e) => setSelectedValue(e.value)}
-                            options={value}
-                            optionLabel="name"
-                            placeholder="A - Z"
-                            className="select admin-select-breadcrumb"
-                          />
-                        </div>
-                      </li>
                     </ul>
                   </div>
                 </li>
@@ -253,9 +228,6 @@ const Booking = () => {
                       <Link to={routes.cancelledBooking}>Cancelled</Link>
                     </li>
                   </ul>
-                </div>
-                <div className="tab-contents-count">
-                  <h6>Showing 8-10 of 84 results</h6>
                 </div>
               </div>
             </div>

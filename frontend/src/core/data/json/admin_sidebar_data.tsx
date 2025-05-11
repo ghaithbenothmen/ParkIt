@@ -90,7 +90,7 @@ export const adminSidebar = [
     },
   // Bouton Logout
   {
-    tittle: '',
+    tittle: 'Account',
     showAsTab: false,
     separateRoute: true,
     menu: [

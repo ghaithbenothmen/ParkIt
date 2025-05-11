@@ -1,0 +1,9 @@
+lpr-tn-venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.jpg
+*.jpeg
+*.png
+*.h5
