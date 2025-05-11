@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import * as bootstrap from 'bootstrap';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import {
   set_header_data,
@@ -12,6 +13,7 @@ import {
 import * as Icon from 'react-feather';
 import { AppState, Header } from '../../../../core/models/interface';
 import { header } from '../../../../core/data/json/header';
+import AuthModals from '../new-home/authModals';
 
 type props = {
   type: number;
@@ -169,16 +171,38 @@ const HomeHeader: React.FC<props> = ({ type }) => {
         </ul>
       );
     } else {
-      // User is not logged in
+      // User is not logged in - modified version
       return (
         <ul className="nav header-navbar-rht">
           <li className="nav-item pe-1">
-            <Link className="nav-link btn btn-light" to="#" data-bs-toggle="modal" data-bs-target="#login-modal">
+            <Link 
+              className="nav-link btn btn-light" 
+              to="#"
+              onClick={(e) => {
+                e.preventDefault();
+                const loginModal = document.getElementById('login-modal');
+                if (loginModal) {
+                  const bsModal = new bootstrap.Modal(loginModal);
+                  bsModal.show();
+                }
+              }}
+            >
               <i className="ti ti-lock me-2" />Sign In
             </Link>
           </li>
           <li className="nav-item">
-            <Link className="nav-link btn btn-linear-primary" to="#" data-bs-toggle="modal" data-bs-target="#register-modal">
+            <Link 
+              className="nav-link btn btn-linear-primary"
+              to="#"
+              onClick={(e) => {
+                e.preventDefault();
+                const registerModal = document.getElementById('register-modal');
+                if (registerModal) {
+                  const bsModal = new bootstrap.Modal(registerModal);
+                  bsModal.show();
+                }
+              }}
+            >
               <i className="ti ti-user-filled me-2" />Join Us
             </Link>
           </li>
@@ -222,15 +246,15 @@ const HomeHeader: React.FC<props> = ({ type }) => {
   useEffect(() => {
     type == 1 || type == 4 || type == 10
       ? setImageUrl({
-        logo: 'assets/img/full-parkit.png',
-        logoSmall: 'assets/img/full-parkit.png',
-        logoSvg: 'assets/img/full-parkit.png',
-      })
+          logo: 'assets/img/full-parkit.png',
+          logoSmall: 'assets/img/full-parkit.png',
+          logoSvg: 'assets/img/full-parkit.png',
+        })
       : setImageUrl({
-        logo: 'assets/img/full-parkit.png',
-        logoSmall: 'assets/img/full-parkit.png',
-        logoSvg: 'assets/img/full-parkit.png',
-      });
+          logo: 'assets/img/full-parkit.png',
+          logoSmall: 'assets/img/full-parkit.png',
+          logoSvg: 'assets/img/full-parkit.png',
+        });
   }, [type]);
 
   return (
@@ -266,8 +290,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
         </Link>
       </div>
       <header
-        className={`header ${routerPath(type).className} ${scrollYPosition > 200 ? 'fixed' : ''
-          }`}
+        className={`header ${routerPath(type).className} ${scrollYPosition > 200 ? 'fixed' : ''}`}
       >
         <div className={` ${type == 4 || type == 1 ? 'container-fluid' : 'container'}`}>
           <nav className="navbar navbar-expand-lg header-nav">
@@ -355,8 +378,8 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                         key={`menu-${index}`}
                         className={`has-submenu ${activeRouterPath(item.menu) ? 'active' : ''}`}
                       >
-                        <Link
-                          to="#"
+                        <Link 
+                          to="#" 
                           onClick={(e) => {
                             e.preventDefault();
                             if (!user && !isPublicPage(item.tittle)) {
@@ -410,9 +433,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                                         {menu.menuValue}
                                       </Link>
                                       <ul
-                                        className={`submenu ${menu.showSubRoute === true &&
-                                          'show-sub-menu'
-                                          }`}
+                                        className={`submenu ${menu.showSubRoute === true ? 'show-sub-menu' : ''}`}
                                       >
                                         {menu.subMenus.map(
                                           (
@@ -447,7 +468,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                                                 >
                                                   <div
                                                     className={`single-demo ${menu.routes ==
-                                                        location.pathname
+                                                      location.pathname
                                                         ? 'active'
                                                         : ''
                                                       }`}
@@ -474,7 +495,6 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                                         </div>
                                       </div>
                                     </li>
-
                                   )}
                                 </React.Fragment>
                               );
@@ -493,6 +513,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
           </nav>
         </div>
       </header>
+      <AuthModals />
     </>
   );
 };
