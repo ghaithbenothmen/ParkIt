@@ -45,6 +45,7 @@ lpr-python/Licence_plate_detection/
    cd parkit
 2. Download the LPR weight file and darknet directory:
 See section above and ensure weight file and darknet directory is placed in the correct path.
+
 3.Start the system using Docker Compose:
   docker-compose up --build
 
