@@ -26,6 +26,12 @@ router.get('/by-parking-spot/:parkingSpotId', reservationController.getAllReserv
 router.get('/', reservationController.getAllReservations);
 
 
+router.post('/pay-additional-fee', reservationController.payAdditionalFee);
+router.get('/overdue-reservations/:userId', reservationController.getOverdueReservationsByUser);
+router.get('/additional-fee-success/:reservationId', reservationController.additionalFeeSuccess);
+router.get('/additional-fee-fail/:reservationId', reservationController.additionalFeeFail);
+
+
 // 👇 MUST BE LAST
 router.get('/:id', reservationController.getReservationById);
 router.put('/:id', reservationController.updateReservation);

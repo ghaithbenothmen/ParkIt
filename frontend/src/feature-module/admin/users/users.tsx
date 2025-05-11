@@ -181,7 +181,7 @@ const Users = () => {
       <Toast ref={toast} />
       <div className="page-wrapper page-settings" style={{ height: '100vh', overflow: 'hidden' }}>
         <div className="content" style={{ height: 'calc(100% - 60px)', overflowY: 'auto' }}>
-          <div className="content-page-header content-page-headersplit">
+          <div className="content-page-header">
             <h5>Users</h5>
             <div className="list-btn">
               <ul className="d-flex flex-wrap gap-2">

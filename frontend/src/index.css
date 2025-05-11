@@ -3,8 +3,20 @@
 @import 'react-clock/dist/Clock.css';
 @import 'react-phone-input-2/lib/style.css';
 @import 'primereact/resources/themes/lara-light-indigo/theme.css';
+
 .search-section {
   position: relative;  /* Ensure that the suggestions are positioned relative to this container */
+}
+
+.ti-alert-circle {
+  color: #dc3545; /* Rouge pour indiquer un problème */
+  font-size: 1.5rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.ti-alert-circle:hover {
+  transform: scale(1.2); /* Agrandir légèrement au survol */
+  cursor: pointer;
 }
 
 .suggestions-list {

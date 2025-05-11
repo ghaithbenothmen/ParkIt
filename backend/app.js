@@ -61,7 +61,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('Connected to MongoDB'))
+.then(() => {
+  console.log('Connected to MongoDB');
+  require('./controllers/cron'); // Charger les tâches cron après la connexion à MongoDB
+})
 .catch((err) => console.error('MongoDB connection error:', err));
 app.use(cors({
   origin: ['http://localhost:3000', 'http://192.168.34.177'],

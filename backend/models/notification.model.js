@@ -9,8 +9,9 @@ const notificationSchema = new mongoose.Schema({
     message: { type: String },
     read: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
-    userName: { type: String } // Ajouter ce champ
-  });
+    userName: { type: String },
+    userImage: { type: String }, // Add this field for the user's profile picture
+});
 
 // Exporter le modèle
 module.exports = mongoose.model('Notification', notificationSchema);

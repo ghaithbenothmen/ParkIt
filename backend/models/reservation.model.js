@@ -38,8 +38,12 @@ const reservationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['confirmed', 'pending', 'over'], // Valeurs autorisées
-        default: 'pending' // Valeur par défaut
+        enum: ['confirmed', 'pending', 'checked-in', 'overdue', 'no-show', 'completed'], // Add 'no-show' and 'checked-in'
+        default: 'pending'
+    },
+    checkedInTime: {
+        type: Date, // Tracks when the user checked in
+        default: null
     },
     totalPrice: {
         type: Number,
@@ -58,6 +62,10 @@ const reservationSchema = new mongoose.Schema({
         type: String,
         enum: ['pending', 'confirmed', 'failed'],
         default: 'pending'
+    },
+    extendedEndDate: {
+        type: Date, // Nouvelle date de fin après paiement des frais supplémentaires
+        default: null
     }
 }, { timestamps: true }); // Ajouter les champs createdAt et updatedAt
 

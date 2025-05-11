@@ -89,13 +89,18 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
- UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+UserSchema.pre('save', async function (next) {
+  // Only hash the password if it's modified and not empty/null
+  if (!this.isModified('password') || !this.password) return next();
 
-  
-  this.password = await argon2.hash(this.password);
-  next();
-}); 
+  try {
+    this.password = await argon2.hash(this.password);
+    next();
+  } catch (err) {
+    console.error('Error hashing password:', err); // Log the error
+    next(err);
+  }
+});
 
 
 

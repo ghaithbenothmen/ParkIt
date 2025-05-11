@@ -68,10 +68,7 @@ const Feature = () => {
       ${current_route_array.includes('authentication') ? 'authentication-page ' : ''}
       ${current_route.base == 'admin' ? 'admin' : ''} ${toggle_data_2 ? 'mini-sidebar' : ''} 
       ${mobileSidebar ? 'menu-opened slide-nav' : ''} 
-      ${ mouse_data ? 'expand-menu' : ''} ${current_route.base == 'home-two' ? 'body-two' : ''} 
-      ${current_route.base == 'home-three' ? 'body-one' : ''} ${current_route.base == 'home-four' ? 'home-four' : ''} 
-      ${current_route.base == 'home-seven' ? 'seven-home' : ''}${current_route.base == 'home-eight' ? 'home-eight' : ''} 
-      ${current_route.base == 'home-nine' ? 'home-page-five' : ''} ${current_route.base == 'home-ten' ? 'home-ten' : ''}`}
+      ${ mouse_data ? 'expand-menu' : ''} ${current_route.base == 'home-two' ? 'body-two' : ''} `}
     >
       <div className={`main-wrapper ${mobileMenu ? 'menu-opened' : ''}`}>
         <Outlet />

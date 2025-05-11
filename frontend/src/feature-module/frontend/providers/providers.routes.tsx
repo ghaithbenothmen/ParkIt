@@ -12,6 +12,7 @@ import ProtectedRoute from '../../router/ProtectedRoute';
 import ProviderClaims from './claims/provider-claims';
 import ClaimDetails from './claims/provider-claim-details';
 import BookingDetails from './provider-booking/booking-details';
+import OverdueDetails from './provider-booking/OverdueDetails';
 
 
 
@@ -39,7 +40,11 @@ const ProvidersRoutes = () => {
       name: 'provider-booking-details',
       element: <BookingDetails />,
     },
-    
+    {
+      path: '/bookingdetails/:id',
+      name: 'overdue-details',
+      element: <OverdueDetails />,
+    },
     {
       path: '/dashboard',
       name: 'provider-dashboard',

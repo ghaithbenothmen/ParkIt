@@ -129,18 +129,25 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchParkings = async () => {
       const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
         if (reservation.parkingId && !reservation.parking) {
           try {
             const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
             updatedReservations[i].parking = parkingRes.data;
+            hasChanges = true; // Mark that changes were made
           } catch (error) {
             console.error('Error fetching parking details for reservation:', reservation._id, error);
           }
         }
       }
-      setReservations(updatedReservations);
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
     };
     if (reservations.length > 0) {
       fetchParkings();
@@ -165,6 +172,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchParkingSpots = async () => {
       const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
         if (reservation.parkingSpot && !reservation.parkingS) {
@@ -173,12 +182,17 @@ const Dashboard = () => {
             const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
             console.log("Parking spot fetched:", spotRes.data);
             updatedReservations[i].parkingS = spotRes.data.data;
+            hasChanges = true; // Mark that changes were made
           } catch (error) {
             console.error('Error fetching parking spot for reservation:', reservation._id, error);
           }
         }
       }
-      setReservations(updatedReservations);
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
     };
     if (reservations.length > 0) {
       fetchParkingSpots();
@@ -219,26 +233,96 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserDetails = async () => {
       const updatedReservations = [...reservations];
+      const fetchedUserIds = new Set(); // Track already fetched user IDs
+      let hasChanges = false; // Track if any changes are made
+
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
-        if (reservation.userId && !reservation.user) {
+
+        // Only fetch user details if not already fetched
+        if (reservation.userId && !reservation.user && !fetchedUserIds.has(reservation.userId)) {
           try {
             const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
             updatedReservations[i].user = {
               firstname: userRes.data.firstname,
               email: userRes.data.email,
             };
+            fetchedUserIds.add(reservation.userId); // Mark user as fetched
+            hasChanges = true; // Mark that changes were made
           } catch (error) {
             console.error('Error fetching user details for reservation:', reservation._id, error);
           }
         }
       }
-      setReservations(updatedReservations);
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
     };
+
     if (reservations.length > 0) {
       fetchUserDetails();
     }
-  }, [reservations]);
+  }, [reservations]); // Only run when reservations change
+
+  useEffect(() => {
+    const fetchParkings = async () => {
+      const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingId && !reservation.parking) {
+          try {
+            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+            updatedReservations[i].parking = parkingRes.data;
+            hasChanges = true; // Mark that changes were made
+          } catch (error) {
+            console.error('Error fetching parking details for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
+    };
+
+    if (reservations.length > 0) {
+      fetchParkings();
+    }
+  }, [reservations]); // Only run when reservations change
+
+  useEffect(() => {
+    const fetchParkingSpots = async () => {
+      const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingSpot && !reservation.parkingS) {
+          try {
+            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+            updatedReservations[i].parkingS = spotRes.data.data;
+            hasChanges = true; // Mark that changes were made
+          } catch (error) {
+            console.error('Error fetching parking spot for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
+    };
+
+    if (reservations.length > 0) {
+      fetchParkingSpots();
+    }
+  }, [reservations]); // Only run when reservations change
 
   const renderUserDetails = (rowData: Reservation) => {
     return rowData.user ? (

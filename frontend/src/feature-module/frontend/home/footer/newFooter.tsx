@@ -1,299 +1,150 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { all_routes } from '../../../../core/data/routes/all_routes'
-import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { all_routes } from '../../../../core/data/routes/all_routes';
+import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 
 const NewFooter = () => {
-    const routes = all_routes
+  const routes = all_routes;
+
   return (
     <>
-    {/* Footer */}
-    <footer>
-      <div className="footer-top">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-6 col-xl-2">
-              <div className="footer-widget">
-                <h5 className="mb-4">Product</h5>
-                <ul className="footer-menu">
-                  <li>
-                    <Link to="#">Features</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Pricing</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Case studies</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Reviews</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Updates</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-md-6 col-xl-2">
-              <div className="footer-widget">
-                <h5 className="mb-4">Support</h5>
-                <ul className="footer-menu">
-                  <li>
-                    <Link to="#">Getting started</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Help center</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Server status</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Report a bug</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Chat support</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-md-6 col-xl-2">
-              <div className="footer-widget">
-                <h5 className="mb-4">For Provider</h5>
-                <ul className="footer-menu">
-                  <li>
-                    <Link to={routes.aboutUs}>About</Link>
-                  </li>
-                  <li>
-                    <Link to={routes.contactUs}>Contact us</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Careers</Link>
-                  </li>
-                  <li>
-                    <Link to={routes.faq}>Faq’s</Link>
-                  </li>
-                  <li>
-                    <Link to={routes.blogGrid}>Blog</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-md-6 col-xl-2">
-              <div className="footer-widget">
-                <h5 className="mb-4">Support</h5>
-                <ul className="footer-menu">
-                  <li>
-                    <Link to="#">Getting started</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Help center</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Other Products</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Report a bug</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Chat support</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-md-6 col-xl-4">
-              <div className="footer-widget">
-                <div className="card bg-light-200 border-0 mb-3">
-                  <div className="card-body">
-                    <h5 className="mb-3">SignUp For Subscription</h5>
-                    <div className="mb-3">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Enter Email Address"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="btn btn-linear-primary btn-lg w-100"
-                    >
-                      Subscribe
-                    </button>
-                  </div>
-                </div>
-                <div className="d-flex align-items-center flex-wrap">
-                  <h6 className="fs-14 me-2">Download Our App</h6>
-                  <ImageWithBasePath
-                    src="assets/img/icons/app-store.svg"
-                    className="me-2"
-                    alt="img"
-                  />
-                  <ImageWithBasePath
-                    src="assets/img/icons/goolge-play.svg"
-                    className="me-2"
-                    alt="img"
-                  />
+      {/* Footer */}
+      <footer>
+        <div className="footer-top">
+          <div className="container">
+            <div className="row">
+              {/* About Section */}
+              <div className="col-md-6 col-xl-3">
+                <div className="footer-widget">
+                  <h5 className="mb-4">About ParkIt</h5>
+                  <p>
+                    ParkIt is your trusted solution for finding and reserving parking spots. 
+                    We aim to make parking hassle-free and efficient for everyone.
+                  </p>
+                  <ul className="social-icon">
+                    <li>
+                      <Link to="#">
+                        <ImageWithBasePath src="assets/img/icons/fb.svg" alt="Facebook" />
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="#">
+                        <ImageWithBasePath src="assets/img/icons/instagram.svg" alt="Instagram" />
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="#">
+                        <ImageWithBasePath src="assets/img/icons/youtube.svg" alt="YouTube" />
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="#">
+                        <ImageWithBasePath src="assets/img/icons/linkedin.svg" alt="LinkedIn" />
+                      </Link>
+                    </li>
+                  </ul>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="d-flex align-items-center justify-content-between flex-wrap mt-3">
-            <ul className="social-icon mb-3">
-              <li>
-                <Link to="#">
-                  <ImageWithBasePath src="assets/img/icons/fb.svg" className="img" alt="Img" />
-                </Link>
-              </li>
-              <li>
-                <Link to="#">
-                  <ImageWithBasePath
-                    src="assets/img/icons/instagram.svg"
-                    className="img"
-                    alt="Img"
-                  />
-                </Link>
-              </li>
-              <li>
-                <Link to="#">
-                  <ImageWithBasePath
-                    src="assets/img/icons/twitter.svg"
-                    className="img"
-                    alt="Img"
-                  />
-                </Link>
-              </li>
-              <li>
-                <Link to="#">
-                  <ImageWithBasePath
-                    src="assets/img/icons/whatsapp.svg"
-                    className="img"
-                    alt="Img"
-                  />
-                </Link>
-              </li>
-              <li>
-                <Link to="#">
-                  <ImageWithBasePath
-                    src="assets/img/icons/youtube.svg"
-                    className="img"
-                    alt="Img"
-                  />
-                </Link>
-              </li>
-              <li>
-                <Link to="#">
-                  <ImageWithBasePath
-                    src="assets/img/icons/linkedin.svg"
-                    className="img"
-                    alt="Img"
-                  />
-                </Link>
-              </li>
-            </ul>
-            <div className="d-flex align-items-center">
-              <div className="dropdown me-3 mb-3">
-                <Link
-                  to="#"
-                  className="dropdown-toggle bg-light-300 fw-medium"
-                  data-bs-toggle="dropdown"
-                >
-                  <ImageWithBasePath
-                    src="assets/img/flags/us.png"
-                    className="flag me-2"
-                    alt="Flag"
-                  />
-                  English
-                </Link>
-                <ul className="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="#">
-                      <ImageWithBasePath
-                        src="assets/img/flags/us.png"
-                        className="flag me-2"
-                        alt="Flag"
-                      />
-                      English
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="#">
-                      <ImageWithBasePath
-                        src="assets/img/flags/jp.png"
-                        className="flag me-2"
-                        alt="Flag"
-                      />
-                      Japanese
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="#">
-                      <ImageWithBasePath
-                        src="assets/img/flags/cn.png"
-                        className="flag me-2"
-                        alt="Flag"
-                      />
-                      Chinese
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div className="dropdown mb-3">
-                <Link
-                  to="#"
-                  className="dropdown-toggle bg-light-300 fw-medium"
-                  data-bs-toggle="dropdown"
-                >
-                  USD
-                </Link>
-                <ul className="dropdown-menu">
-                  <li>
-                    <Link className="dropdown-item" to="#">
-                      USD
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="#">
-                      EURO
-                    </Link>
-                  </li>
-                  <li>
-                    <Link className="dropdown-item" to="#">
-                      YEN
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Footer Bottom */}
-      <div className="footer-bottom">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <div className="d-flex align-items-center justify-content-between flex-wrap">
-                <p className="mb-2">
-                  Copyright © 2025 - All Rights Reserved Pakit
-                </p>
-                <ul className="menu-links mb-2">
-                  <li>
-                    <Link to="#"> Terms and Conditions</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Privacy Policy</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* /Footer Bottom */}
-    </footer>
-    {/* /Footer */}
-  </>
-  
-  )
-}
 
-export default NewFooter
+              {/* Quick Links */}
+              <div className="col-md-6 col-xl-3">
+                <div className="footer-widget">
+                  <h5 className="mb-4">Quick Links</h5>
+                  <ul className="footer-menu">
+                    <li>
+                      <Link to={routes.aboutUs}>About Us</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.contactUs}>Contact Us</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.faq}>FAQs</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.blogGrid}>Blog</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.termsAndConditions}>Terms & Conditions</Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Services */}
+              <div className="col-md-6 col-xl-3">
+                <div className="footer-widget">
+                  <h5 className="mb-4">Our Services</h5>
+                  <ul className="footer-menu">
+                    <li>
+                      <Link to={routes.parkingSearch}>Search Parking</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.providerBooking}>Manage Reservations</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.map}>Parking Map</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.register}>Register</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.login}>Login</Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Newsletter */}
+              <div className="col-md-6 col-xl-3">
+                <div className="footer-widget">
+                  <h5 className="mb-4">Stay Updated</h5>
+                  <p>Subscribe to our newsletter to get the latest updates and offers.</p>
+                  <div className="mb-3">
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="btn btn-linear-primary btn-lg w-100"
+                  >
+                    Subscribe
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Bottom */}
+        <div className="footer-bottom">
+          <div className="container">
+            <div className="row">
+              <div className="col-md-12">
+                <div className="d-flex align-items-center justify-content-between flex-wrap">
+                  <p className="mb-2">
+                    © {new Date().getFullYear()} ParkIt. All Rights Reserved.
+                  </p>
+                  <ul className="footer-menu d-flex">
+                    <li>
+                      <Link to={routes.privacyPolicy}>Privacy Policy</Link>
+                    </li>
+                    <li>
+                      <Link to={routes.termsAndConditions}>Terms of Service</Link>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* /Footer Bottom */}
+      </footer>
+      {/* /Footer */}
+    </>
+  );
+};
+
+export default NewFooter;

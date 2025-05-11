@@ -19,6 +19,7 @@ interface NotificationType {
   type?: string;
   reservationId?: string;
   read?: boolean;
+  userImage?: string; // Add userImage property
 }
 
 const AdminHeader = () => {
@@ -144,6 +145,10 @@ const AdminHeader = () => {
     if (Notification.permission === "default") {
       Notification.requestPermission();
     }
+
+    // Remove any loading spinner logic here
+    // For example, if there's a loading state, ensure it's set to false immediately
+    // setLoading(false); // Remove or bypass this if it exists
 
     return () => {
       socket.disconnect();
@@ -328,11 +333,18 @@ const AdminHeader = () => {
                       <Link to="#">
                         <div className="d-flex">
                           <span className="avatar avatar-lg me-2 flex-shrink-0">
-                            <ImageWithBasePath
-                              src="assets/img/user.jpg"
-                              alt="Profile"
-                              className="rounded-circle"
-                            />
+                          <img
+  src={
+    notification.userImage 
+      ? notification.userImage.startsWith('http') 
+        ? notification.userImage 
+        : '/assets/img/user.jpg' // Handle relative URLs
+      : '/assets/img/user.jpg' // Default image
+  }
+  alt="Profile"
+  className="rounded-circle"
+  style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+/>
                           </span>
                           <div className="flex-grow-1">
                             <div className="d-flex align-items-center">
@@ -393,24 +405,33 @@ const AdminHeader = () => {
             </Link>
             <ul className="dropdown-menu menu-drop-user" aria-labelledby="userDropdown">
               <li className="user-details">
-                <Link to="account" className="dropdown-item">
+                <div className="d-flex align-items-center p-3">
                   <ImageWithBasePath
                     src="assets/img/user.jpg"
                     alt="img"
-                    className="profilesidebar"
+                    className="rounded-circle me-3"
+                    width={50}
+                    height={50}
                   />
-                  <div className="profile-content">
-                    <span>{user ? `${user.firstname} ${user.lastname}` : 'Guest'}</span>
+                  <div>
+                    <h6 className="mb-0">{user ? `${user.firstname} ${user.lastname}` : 'Guest'}</h6>
+                    <p className="mb-0 text-muted">{user?.role}</p>
                   </div>
+                </div>
+              </li>
+              <li>
+                <Link to={routes.account} className="dropdown-item">
+                  <i className="ti ti-user me-2"></i> My Profile
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="#" 
-                  className="dropdown-item text-danger"
-                  onClick={handleLogout}
-                >
-                  Log Out
+                <Link to={routes.settings} className="dropdown-item">
+                  <i className="ti ti-settings me-2"></i> Settings
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="dropdown-item text-danger" onClick={handleLogout}>
+                  <i className="ti ti-power me-2"></i> Log Out
                 </Link>
               </li>
             </ul>
