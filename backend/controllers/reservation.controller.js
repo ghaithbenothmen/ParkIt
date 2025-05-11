@@ -1,5 +1,6 @@
 const Reservation = require('../models/reservation.model.js');
 const ParkingSpot = require('../models/parkingSpot.model');
+const Badge = require('../models/badge.model.js');
 const cron = require('node-cron');
 const NotificationController = require('./notification.controller.js');
 const mongoose = require('mongoose');
@@ -19,6 +20,26 @@ const mongoose = require('mongoose');
         console.error('Error updating expired reservations:', error);
     }
 });
+cron.schedule('0 0 1 * *', async () => {  // Runs at midnight on the first day of every month
+    console.log('Resetting user points for the new month...');
+
+    try {
+        const users = await User.find();
+        
+        for (const user of users) {
+            user.weeklyPoints = 0;  // Reset points to 0 at the beginning of each month
+            user.badge = null; // Optionally reset the badge to null
+            user.lastBadgeUpdate = null; // Optionally reset the badge update time
+            await user.save();  // Save the updated user
+        }
+
+        console.log('User points and badges reset successfully.');
+    } catch (error) {
+        console.error('Error resetting user points and badges:', error);
+    }
+});
+
+
 const User = require('../models/user.model.js');
  */
 exports.createReservation = async (req, res) => {
@@ -49,6 +70,29 @@ exports.createReservation = async (req, res) => {
             totalPrice
         });
         await newReservation.save();
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Increment the user's points by 1 (1 point per reservation)
+        user.weeklyPoints += 1;
+
+        // Assign badge based on the user's points
+        let badge = null;
+        if (user.weeklyPoints >= 101) {
+            badge = await Badge.findOne({ minPoints: { $lte: user.weeklyPoints }, maxPoints: { $gte: user.weeklyPoints }, name: 'Gold' });
+        } else if (user.weeklyPoints >= 11) {
+            badge = await Badge.findOne({ minPoints: { $lte: user.weeklyPoints }, maxPoints: { $gte: user.weeklyPoints }, name: 'Silver' });
+        } else if (user.weeklyPoints >= 1) {
+            badge = await Badge.findOne({ minPoints: { $lte: user.weeklyPoints }, maxPoints: { $gte: user.weeklyPoints }, name: 'Bronze' });
+        }
+
+        if (badge) {
+            user.badge = badge._id; // Assign the badge to the user
+        }
+
+        await user.save();
 
         // Créer une notification après la création de la réservation
         NotificationController.createNotification(newReservation);
@@ -162,7 +206,7 @@ exports.paymentFail = async (req, res) => {
 
 exports.getAllReservations = async (req, res) => {
     try {
-        const reservations = await Reservation.find();
+        const reservations = await Reservation.find().sort({ createdAt: -1 });
 
         // Check for expired reservations and update their status to 'over'
      /*    const now = new Date();
@@ -246,7 +290,7 @@ exports.getAllReservationsByUser = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        const reservations = await Reservation.find({ userId });
+        const reservations = await Reservation.find({ userId }).sort({ createdAt: -1 });
 
         if (reservations.length === 0) {
             return res.status(404).json({ message: 'Aucune réservation trouvée pour cet utilisateur.' });

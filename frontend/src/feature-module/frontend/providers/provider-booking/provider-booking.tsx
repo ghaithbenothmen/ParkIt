@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
-import BookingModals from '../../customers/common/bookingModals';
 import { customerOption, serviceOption, staffOption } from '../../../../core/data/json/dropDownData';
 import CustomDropdown from '../../common/dropdown/commonSelect';
 import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
@@ -458,11 +457,23 @@ const ProviderBooking = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <Link to={routes.booking} className="btn btn-light" data-bs-toggle="modal" data-bs-target="#reschedule">
-                        Reschedule
-                      </Link>
-                    </div>
+                    {(() => {
+                      const startDate = new Date(reservation.startDate);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0); // remove time part for comparison
+
+                      if (startDate >= today) {
+                        return (
+                          <div>
+                            <Link to={routes.booking} className="btn btn-light" data-bs-toggle="modal" data-bs-target="#reschedule">
+                              Reschedule
+                            </Link>
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })()}
                   </div>
                 </div>
               ))
@@ -506,7 +517,7 @@ const ProviderBooking = () => {
 
       </div>
       {/* /Page Wrapper */}
-      <BookingModals />
+      
     </>
 
   );

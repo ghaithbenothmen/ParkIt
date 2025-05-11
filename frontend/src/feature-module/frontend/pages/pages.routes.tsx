@@ -3,19 +3,10 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AboutUs from './about-us/about-us';
 
 import ContactUs from './contact-us/contact-us';
-
-import Pricing from './pricing/pricing';
-
-import Booking1 from './booking/booking-1';
-import SessionExpired from './session-expired/session-expired';
-import Error404 from './Error page/error404';
-import Error500 from './Error page/error500';
-
 import BookingDetails from '../providers/provider-booking/booking-details';
 import PaymentSetting from '../providers/settings/payment-setting';
 
-import BookingWizard from './booking/booking-wizard';
-import Invoice from '../customers/invoice/invoice';
+
 import Map from './map/Map';
 import ParkingDetails from './parking/parking-details/parking-details';
 
@@ -38,44 +29,14 @@ const PagesRoutes = () => {
       route: Route,
     },
   
-    
-    {
-      path: '/invoice',
-      name: 'invoice',
-      element: <Invoice />,
-      route: Route,
-    },
+   
     {
       path: '/parking-details/service-details1',
       name: 'parking-details',
       element: <ParkingDetails />,
       route: Route,
     },
-    {
-      path: '/pricing-plan',
-      name: 'pricing',
-      element: <Pricing />,
-      route: Route,
-    },
- 
-    {
-      path: '/booking',
-      name: 'booking',
-      element: <BookingWizard />,
-      route: Route,
-    },
-    {
-      path: '/booking/booking-1',
-      name: 'booking-1 ',
-      element: <Booking1 />,
-      route: Route,
-    },
-    {
-      path: '/session-expired',
-      name: 'SessionExpired',
-      element: <SessionExpired />,
-      route: Route,
-    },
+
 
     {
       path: '/payment-setting',

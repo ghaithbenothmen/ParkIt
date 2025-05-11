@@ -1,15 +1,21 @@
 const Notification = require('../models/notification.model.js');
+const User = require('../models/user.model.js'); // Ajouter cette ligne
 
 exports.createNotification = async (reservation) => {
     try {
-        // Notification de création immédiate
+        // Récupérer les informations de l'utilisateur
+        const user = await User.findById(reservation.userId);
+        const userName = user ? `${user.firstname} ${user.lastname}` : 'Unknown user';
+
+        // Créer la notification avec le nom de l'utilisateur
         const notification = new Notification({
             userId: reservation.userId,
+            userName: userName, // Ajouter le nom de l'utilisateur
             startDate: reservation.startDate,
             endDate: reservation.endDate,
             reservationId: reservation._id,
             type: 'creation',
-            message: "Your reservation has been created successfully",
+            message: `${userName} created a reservation`,
             createdAt: new Date()
         });
         await notification.save();
@@ -28,11 +34,12 @@ exports.createNotification = async (reservation) => {
             if (minutesUntilStart <= 15 && minutesUntilStart > 14) {
                 const startReminder = new Notification({
                     userId: reservation.userId,
+                    userName: userName, // Ajouter le nom de l'utilisateur
                     startDate: reservation.startDate,
                     endDate: reservation.endDate,
                     reservationId: reservation._id,
                     type: 'start_reminder',
-                    message: "Your reservation starts in 15 minutes",
+                    message: `${userName}, your reservation starts in 15 minutes`,
                     createdAt: new Date()
                 });
                 await startReminder.save();
@@ -45,11 +52,12 @@ exports.createNotification = async (reservation) => {
             if (minutesUntilEnd <= 15 && minutesUntilEnd > 14) {
                 const endReminder = new Notification({
                     userId: reservation.userId,
+                    userName: userName, // Ajouter le nom de l'utilisateur
                     startDate: reservation.startDate,
                     endDate: reservation.endDate,
                     reservationId: reservation._id,
                     type: 'end_reminder',
-                    message: "Your reservation ends in 15 minutes",
+                    message: `${userName}, your reservation ends in 15 minutes`,
                     createdAt: new Date()
                 });
                 await endReminder.save();

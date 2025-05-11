@@ -70,6 +70,20 @@ const UserSchema = new mongoose.Schema(
     resetTokenExpire: { 
       type: Date, default: null
      },
+     badge: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Badge",
+      default: null
+    },
+    weeklyPoints: {
+      type: Number,
+      default: 0
+    },
+    lastBadgeUpdate: {
+      type: Date,
+      default: null
+    },
+
 
   },
   { timestamps: true }

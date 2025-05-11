@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import QuoteModal from '../../common/modals/quote-modal'
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath'
-import BecomeProvider from '../../common/modals/provider-modal'
 import { Link, useNavigate } from 'react-router-dom'
 import { all_routes } from '../../../../core/data/routes/all_routes'
 import FeatureSection from './feature-section'
@@ -518,8 +516,6 @@ useEffect(() => {
         <NewFooter />
       </>
       <AuthModals />
-      <QuoteModal />
-      <BecomeProvider />
     </>
   )
 }

@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../../core/data/routes/all_routes';
 import { BookingInterface } from '../../../core/models/interface';
-
 import {
   AdminDashboardInterface,
   AdminDashboardOne,
@@ -21,42 +20,43 @@ interface Reservation {
   startDate: string;
   endDate: string;
   totalPrice: number;
-  parkingId: string;  // Parking ID
+  parkingId: string;
   status: string;
   parkingSpot: string;
   parking: {
     nom: string;
     image: string;
     adresse: string;
-  } | null; // parking details will be populated later
+  } | null;
   parkingS: {
     numero: string;
   } | null;
-  userId: string;  // User ID field added
+  userId: string;
   user?: {
     firstname: string;
     email: string;
-  }; // User details will be added here // parking details will be populated later
+  };
 }
+
 const Dashboard = () => {
   const routes = all_routes;
 
-
-  const [userCount, setUserCount] = useState(null); // Initialize as null
+  const [userCount, setUserCount] = useState(null);
   const [parcCount, setParcCount] = useState(null);
   const [reservationStat, setReservationStat] = useState(null);
-  const [reservationSummary, setReservationSummary] = useState(null);
+  const [reservationSummary, setReservationSummary] = useState<number[]>(Array(12).fill(0));
+  const [incomeSummary, setIncomeSummary] = useState<number[]>(Array(12).fill(0));
   const [resCount, setResCount] = useState(null);
   const [resCountTot, setResCountTot] = useState(null);
   const [topUsers, setTopUsers] = useState(null);
   const [topParkings, setTopParkings] = useState(null);
   const [reservationWeekendStat, setReservationWeekendStat] = useState<number | null>(null);
   const reservationTypeLegend = [
-    { color: '#4B49AC', label: 'Weekday' },
-    { color: '#FFC107', label: 'Weekend' },
+    { color: '#4169E1', label: 'Weekday' },
+    { color: '#87CEEB', label: 'Weekend' },
   ];
-  const [weekChartData,setWeekChartData] = useState({
-    series:[],
+  const [weekChartData, setWeekChartData] = useState({
+    series: [],
     options: {
       chart: {
         width: 700,
@@ -66,7 +66,7 @@ const Dashboard = () => {
       legend: {
         position: 'bottom',
       },
-      colors: ['#4B49AC', '#FFC107'],
+      colors: ['#4169E1', '#87CEEB'],
     },
   });
   const [bookChartData, setBookChartData] = useState({
@@ -76,8 +76,8 @@ const Dashboard = () => {
         width: 700,
         type: 'pie',
       },
-      labels: ['Confirmed', 'Canceled', 'Pending'], // Match your legend
-      colors: ['#1BA345', '#FF0000', '#FEC001'],
+      labels: ['Confirmed', 'Canceled', 'Pending'],
+      colors: ['#1e4fdd', '#87CEEB', '#0a2b7b'],
       responsive: [
         {
           breakpoint: 480,
@@ -93,7 +93,6 @@ const Dashboard = () => {
       ],
     },
   });
-  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -104,12 +103,13 @@ const Dashboard = () => {
     if (filterStatus === 'over' && reservation.status === 'over') return true;
     return false;
   });
+
   const fetchResCountTot = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/reservations/total'); // Replace with your API endpoint
-      setResCountTot(response.data.totalPrice); // Assuming your API response has a `count` field
+      const response = await axios.get('http://localhost:4000/api/reservations/total');
+      setResCountTot(response.data.totalPrice);
     } catch (error) {
-      console.error('Error fetching user count:', error);
+      console.error('Error fetching total reservation amount:', error);
     }
   };
 
@@ -118,46 +118,41 @@ const Dashboard = () => {
       try {
         const res = await axios.get(`http://localhost:4000/api/reservations`);
         console.log("Fetched reservations:", res.data);
-
-        setReservations(res.data.data);  // Access the array inside 'data'
+        setReservations(res.data.data);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
       }
     };
-
     fetchReservations();
   }, []);
+
   useEffect(() => {
     const fetchParkings = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
-
+      const updatedReservations = [...reservations];
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
         if (reservation.parkingId && !reservation.parking) {
           try {
             const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;  // Assuming parking details come with nom, image, adresse
+            updatedReservations[i].parking = parkingRes.data;
           } catch (error) {
             console.error('Error fetching parking details for reservation:', reservation._id, error);
           }
         }
       }
-
-      setReservations(updatedReservations); // Update the state with parking details
+      setReservations(updatedReservations);
     };
-
     if (reservations.length > 0) {
       fetchParkings();
     }
   }, [reservations]);
+
   const fetchReservationWeekendStat = async () => {
     try {
       const response = await axios.get('http://localhost:4000/api/reservations/weekend');
-      // Assuming response.data.count is a number or array
       console.log('Weekend Reservations:', response.data);
-      const data = response.data.count; // Make sure this is an array like [30, 40, 50]
-      setReservationWeekendStat(data); // You’ll define this in useState
-
+      const data = response.data.count;
+      setReservationWeekendStat(data);
       setWeekChartData((prev) => ({
         ...prev,
         series: data,
@@ -170,10 +165,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchParkingSpots = async () => {
       const updatedReservations = [...reservations];
-
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
-
         if (reservation.parkingSpot && !reservation.parkingS) {
           try {
             console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
@@ -185,50 +178,47 @@ const Dashboard = () => {
           }
         }
       }
-
       setReservations(updatedReservations);
     };
-
     if (reservations.length > 0) {
       fetchParkingSpots();
     }
   }, [reservations]);
+
   const statusButton = (rowData: BookingInterface) => {
     if (rowData.status === 'Completed') {
       return <span className="badge-delete">{rowData.status}</span>;
     } else if (rowData.status === 'Canceleld') {
       return <span className="badge-inactive">{rowData.status}</span>;
-    }
-    else if (rowData.status === 'Pending') {
+    } else if (rowData.status === 'Pending') {
       return <span className="badge-pending">{rowData.status}</span>;
     } else {
       return rowData.status;
     }
   };
+
   const renderStatusBadge = (rowData: Reservation) => {
     let badgeClass = '';
     const label = rowData.status;
-
     switch (rowData.status.toLowerCase()) {
       case 'confirmed':
-        badgeClass = 'badge bg-success'; // Green
+        badgeClass = 'badge bg-success';
         break;
       case 'pending':
-        badgeClass = 'badge bg-primary'; // Blue
+        badgeClass = 'badge bg-primary';
         break;
       case 'over':
-        badgeClass = 'badge bg-danger'; // Red
+        badgeClass = 'badge bg-danger';
         break;
       default:
-        badgeClass = 'badge bg-secondary'; // Gray fallback
+        badgeClass = 'badge bg-secondary';
     }
-
     return <span className={badgeClass}>{label}</span>;
   };
+
   useEffect(() => {
     const fetchUserDetails = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
-
+      const updatedReservations = [...reservations];
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
         if (reservation.userId && !reservation.user) {
@@ -243,10 +233,8 @@ const Dashboard = () => {
           }
         }
       }
-
-      setReservations(updatedReservations); // Update the state with user details
+      setReservations(updatedReservations);
     };
-
     if (reservations.length > 0) {
       fetchUserDetails();
     }
@@ -259,53 +247,61 @@ const Dashboard = () => {
         <div>{rowData.user.email}</div>
       </div>
     ) : (
-      '—' // Fallback if user details are not available yet
+      '—'
     );
   };
 
-  // Function to fetch user count from API
   const fetchUserCount = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/users/users/count'); // Replace with your API endpoint
-      setUserCount(response.data.count); // Assuming your API response has a `count` field
+      const response = await axios.get('http://localhost:4000/api/users/users/count');
+      setUserCount(response.data.count);
     } catch (error) {
       console.error('Error fetching user count:', error);
     }
   };
 
-
   const fetchParkingCount = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/parking/parc/count'); // Replace with your API endpoint
-      setParcCount(response.data.count); // Assuming your API response has a `count` field
+      const response = await axios.get('http://localhost:4000/api/parking/parc/count');
+      setParcCount(response.data.count);
     } catch (error) {
       console.error('Error fetching parc count:', error);
     }
   };
 
-  const fetchReservationSummary = async () => {
-    const response = await axios.get('http://localhost:4000/api/reservations/reservation-summary');
-    setReservationSummary(response.data.count);
+  const fetchReservationSummary = () => {
+    const counts = Array(12).fill(0);
+    reservations.forEach(reservation => {
+      const date = new Date(reservation.startDate);
+      const month = date.getMonth();
+      counts[month]++;
+    });
+    setReservationSummary(counts);
   };
+
+  const fetchIncomeSummary = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/reservation-summary');
+      setIncomeSummary(response.data.count);
+    } catch (error) {
+      console.error('Error fetching income summary:', error);
+    }
+  };
+
   const fetchResCount = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/reservations/count'); // Replace with your API endpoint
-      setResCount(response.data.count); // Assuming your API response has a `count` field
+      const response = await axios.get('http://localhost:4000/api/reservations/count');
+      setResCount(response.data.count);
     } catch (error) {
-      console.error('Error fetching user count:', error);
+      console.error('Error fetching reservation count:', error);
     }
   };
 
   const fetchReservationStat = async () => {
     try {
-      const response = await axios.get(
-        'http://localhost:4000/api/reservations/reservation-statistics'
-      );
-
-      const data = response.data.count; // Make sure this is an array like [30, 40, 50]
+      const response = await axios.get('http://localhost:4000/api/reservations/reservation-statistics');
+      const data = response.data.count;
       setReservationStat(data);
-
-      // Update chart data here
       setBookChartData((prev) => ({
         ...prev,
         series: data,
@@ -324,49 +320,34 @@ const Dashboard = () => {
         console.error('Error fetching top users:', error);
       }
     };
-
     fetchTopUsers();
   }, []);
+
   useEffect(() => {
     const fetchTopParkings = async () => {
       try {
         const response = await axios.get('http://localhost:4000/api/reservations/top-parkings');
         setTopParkings(response.data.topParkings);
       } catch (error) {
-        console.error('Error fetching top users:', error);
+        console.error('Error fetching top parkings:', error);
       }
     };
-
     fetchTopParkings();
   }, []);
 
-
   useEffect(() => {
     fetchReservationWeekendStat();
-  }, []);
-
-  useEffect(() => {
-    fetchUserCount(); // Fetch user count on component mount
-  }, []);
-
-  useEffect(() => {
-    fetchResCount(); // Fetch user count on component mount
-  }, []);
-  useEffect(() => {
-    fetchResCountTot(); // Fetch user count on component mount
-  }, []);
-
-  useEffect(() => {
-    fetchParkingCount(); // Fetch user count on component mount
-  }, []);
-  useEffect(() => {
-    fetchReservationSummary(); // Fetch user count on component mount
-  }, []);
-
-  useEffect(() => {
+    fetchUserCount();
+    fetchResCount();
+    fetchResCountTot();
+    fetchParkingCount();
     fetchReservationStat();
+    fetchIncomeSummary();
   }, []);
-  console.log(reservationStat);
+
+  useEffect(() => {
+    fetchReservationSummary();
+  }, [reservations]);
 
   const serviceImage1 = (rowData: AdminDashboardInterface) => {
     const [service] = rowData.service.split('\n');
@@ -390,11 +371,7 @@ const Dashboard = () => {
     const [service] = rowData.service.split('\n');
     return (
       <Link to={routes.viewServices} className="table-imgname">
-        <ImageWithBasePath
-          src={rowData.serviceImg}
-          className="me-2"
-          alt="img"
-        />
+        <ImageWithBasePath src={rowData.serviceImg} className="me-2" alt="img" />
         <span>{service}</span>
       </Link>
     );
@@ -412,38 +389,26 @@ const Dashboard = () => {
     const [provider] = rowData.provider.split('\n');
     return (
       <Link to={routes.viewServices} className="table-imgname">
-        <ImageWithBasePath
-          src={rowData.providerImg}
-          className="me-2"
-          alt="img"
-        />
+        <ImageWithBasePath src={rowData.providerImg} className="me-2" alt="img" />
         <span>{provider}</span>
       </Link>
     );
   };
 
-  const data1 = useSelector(
-    (state: AdminDashboardOne) => state.admin_dashboard_1,
-  );
-  const data2 = useSelector(
-    (state: AdminDashboardTwo) => state.admin_dashboard_2,
-  );
-  const data3 = useSelector(
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    (state: AdminDashboardThree) => state.admin_dashboard_3,
-  );
+  const data1 = useSelector((state: AdminDashboardOne) => state.admin_dashboard_1);
+  const data2 = useSelector((state: AdminDashboardTwo) => state.admin_dashboard_2);
+  const data3 = useSelector((state: AdminDashboardThree) => state.admin_dashboard_3);
 
   const Revenue = {
     series: [
       {
         name: 'series1',
         data: [11, 32, 45, 32, 34, 52, 41],
-        colors: [' #4169E1'],
+        colors: ['#4169E1'],
       },
       {
         name: 'series2',
-        colors: [' #4169E1'],
+        colors: ['#4169E1'],
         data: [31, 40, 28, 51, 42, 109, 100],
       },
     ],
@@ -452,7 +417,7 @@ const Dashboard = () => {
       type: 'area',
     },
     fill: {
-      colors: [' #4169E1', '#4169E1'],
+      colors: ['#4169E1', '#4169E1'],
       type: 'gradient',
       gradient: {
         shade: 'dark',
@@ -475,7 +440,7 @@ const Dashboard = () => {
       dashArray: [0, 8, 5],
       opacityFrom: 0.5,
       opacityTo: 0.5,
-      colors: [' #4169E1'],
+      colors: ['#4169E1'],
     },
     xaxis: {
       type: 'month',
@@ -483,29 +448,57 @@ const Dashboard = () => {
     },
     tooltip: {},
   };
-  const book = {
-    series: reservationStat,
-    chart: {
-      width: 700,
-      type: 'pie',
-    },
-    labels: ['Team A', 'Team B', 'Team C'],
-    color: ['#1BA345', '#0081FF', ' #FEC001'],
-    responsive: [
-      {
-        breakpoint: 480,
-        options: {
-          chart: {
-            width: 200,
-          },
-          legend: {
-            position: 'bottom',
-          },
-        },
+
+  const reservationChartOptions = {
+    colors: ['#4169E1'],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        endingShape: 'rounded',
       },
-    ],
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['transparent'],
+    },
+    xaxis: {
+      categories: [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ],
+    },
+    yaxis: {
+      title: {
+        text: 'RESERVATIONS',
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      width: 400,
+    },
+    chart: {
+      type: 'bar',
+      height: 350,
+      toolbar: {
+        show: false,
+      },
+    },
   };
 
+  const reservationChartSeries = [
+    {
+      name: 'Reservations',
+      type: 'column',
+      data: reservationSummary,
+    },
+  ];
 
   const chartOptions = {
     colors: ['#4169E1'],
@@ -532,7 +525,7 @@ const Dashboard = () => {
     },
     yaxis: {
       title: {
-        text: '$ (thousands)',
+        text: 'DINARS',
       },
     },
     fill: {
@@ -554,24 +547,22 @@ const Dashboard = () => {
     {
       name: 'Received',
       type: 'column',
-      data: reservationSummary ?? [], // make sure it's not null or undefined
+      data: incomeSummary,
     },
     {
       name: 'Revenue',
-      data: [], // Replace with actual numbers
+      data: [],
     },
     {
       name: 'Free Cash Flow',
-      data: [], // Replace with actual numbers
+      data: [],
     },
   ];
-
 
   return (
     <div className="page-wrapper">
       <div className="content">
         <div className="row">
-
           <div className="col-lg-3 col-sm-6 col-12 d-flex widget-path widget-service">
             <div className="card">
               <div className="card-body">
@@ -579,123 +570,62 @@ const Dashboard = () => {
                   <div className="home-userhead">
                     <div className="home-usercount">
                       <span>
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/user.svg"
-                          alt="img"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/user.svg" alt="img" />
                       </span>
                       <h6>Total User</h6>
                     </div>
                     <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                         <i className="fa fa-ellipsis-v" aria-hidden="true" />
                       </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link to="#" className="dropdown-item">
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="dropdown-item">
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to="#" className="dropdown-item">View</Link></li>
+                        <li><Link to="#" className="dropdown-item">Edit</Link></li>
                       </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={30}>
                           {userCount !== null ? userCount : 'Loading...'}
                         </span>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-
-
-
           <div className="col-lg-3 col-sm-6 col-12 d-flex widget-path widget-service">
             <div className="card">
               <div className="card-body">
                 <div className="home-user home-service">
                   <div className="home-userhead">
                     <div className="home-usercount">
-                      <span>
-                        <i className="fas fa-parking"></i>
-                      </span>
+                      <span><i className="fas fa-parking"></i></span>
                       <h6>Parking</h6>
                     </div>
                     <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                         <i className="fa fa-ellipsis-v" aria-hidden="true" />
                       </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link
-                            to={routes.allServices}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            to={routes.editService}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to={routes.allServices} className="dropdown-item">View</Link></li>
+                        <li><Link to={routes.editService} className="dropdown-item">Edit</Link></li>
                       </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={30}>
                           {parcCount !== null ? parcCount : 'Loading...'}
                         </span>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -707,64 +637,30 @@ const Dashboard = () => {
                 <div className="home-user home-subscription">
                   <div className="home-userhead">
                     <div className="home-usercount">
-                      <span>
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/money.svg"
-                          alt="img"
-                        />
-                      </span>
+                      <span><ImageWithBasePath src="assets/admin/img/icons/money.svg" alt="img" /></span>
                       <h6>Income</h6>
                     </div>
                     <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                         <i className="fa fa-ellipsis-v" aria-hidden="true" />
                       </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link
-                            to={routes.membership}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="dropdown-item">
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to={routes.membership} className="dropdown-item">View</Link></li>
+                        <li><Link to="#" className="dropdown-item">Edit</Link></li>
                       </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={650}>
                           ${resCountTot !== null ? resCountTot : 'Loading...'}
                         </span>
                       </div>
-
                     </div>
-
                   </div>
-
                 </div>
-
               </div>
             </div>
           </div>
@@ -774,59 +670,28 @@ const Dashboard = () => {
                 <div className="home-user home-service">
                   <div className="home-userhead">
                     <div className="home-usercount">
-                      <span>
-                        <i className="fas fa-parking"></i>
-                      </span>
+                      <span><i className="fas fa-parking"></i></span>
                       <h6>Total Reservations</h6>
                     </div>
                     <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                         <i className="fa fa-ellipsis-v" aria-hidden="true" />
                       </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link
-                            to={routes.booking}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            to={routes.editService}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to={routes.booking} className="dropdown-item">View</Link></li>
+                        <li><Link to={routes.editService} className="dropdown-item">Edit</Link></li>
                       </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={30}>
                           {resCount !== null ? resCount : 'Loading...'}
                         </span>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -834,39 +699,35 @@ const Dashboard = () => {
           </div>
           <div className="px-3">
             <div className="row justify-content-between">
-              <div className="col-lg-4 col-sm-12 d-flex widget-path mb-4">
-                <div className="card">
-                  <div className="card-body">
+              <div className="col-lg-6 col-sm-12 d-flex widget-path mb-4">
+                <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+                  <div className="card-body p-4">
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
-                        <h2>Time of Reservation</h2>
-                        <Link to={routes.booking} className="btn btn-viewall">
+                        <h2 className="text-xl font-semibold text-gray-800">Time of Reservation</h2>
+                        <Link to={routes.booking} className="btn btn-viewall bg-pink-600 text-white hover:bg-pink-700">
                           View All
-                          <ImageWithBasePath
-                            src="assets/admin/img/icons/arrow-right.svg"
-                            className="ms-2"
-                            alt="img"
-                          />
+                          <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                         </Link>
                       </div>
                       <div className="chartgraph">
                         <div className="row align-items-center">
-                          <div className="col-lg-7 col-sm-6">
+                          <div className="col-lg-8 col-sm-6">
                             <ReactApexChart
                               options={weekChartData.options}
                               series={weekChartData.series}
                               type="pie"
-                              height={350}
-                              width={200}
+                              height={300}
+                              width={250}
                             />
                           </div>
-                          <div className="col-lg-5 col-sm-6">
+                          <div className="col-lg-4 col-sm-6">
                             <div className="bookingstatus">
-                              <ul>
+                              <ul className="space-y-2">
                                 {reservationTypeLegend.map((item, index) => (
-                                  <li key={index}>
-                                    <span style={{ backgroundColor: item.color }} />
-                                    <h6>{item.label}</h6>
+                                  <li key={index} className="flex items-center">
+                                    <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }} />
+                                    <h6 className="text-sm text-gray-700">{item.label}</h6>
                                   </li>
                                 ))}
                               </ul>
@@ -878,102 +739,35 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-
-
-              <div className="col-lg-4 col-sm-12 d-flex widget-path mb-4">
-                <div className="card">
-                  <div className="card-body">
+              <div className="col-lg-6 col-sm-12 d-flex widget-path mb-4">
+                <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+                  <div className="card-body p-4">
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
-                        <h2>Reservation Statistics</h2>
-                        <Link to={routes.booking} className="btn btn-viewall">
+                        <h2 className="text-xl font-semibold text-gray-800">Reservation Statistics</h2>
+                        <Link to={routes.booking} className="btn btn-viewall bg-blue-600 text-white hover:bg-blue-700">
                           View All
-                          <ImageWithBasePath
-                            src="assets/admin/img/icons/arrow-right.svg"
-                            className="ms-2"
-                            alt="img"
-                          />
+                          <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                         </Link>
                       </div>
                       <div className="chartgraph">
                         <div className="row align-items-center">
-                          <div className="col-lg-7 col-sm-6">
+                          <div className="col-lg-8 col-sm-6">
                             <ReactApexChart
                               options={bookChartData.options}
                               series={bookChartData.series}
                               type="pie"
-                              height={350}
-                              width={200}
+                              height={300}
+                              width={250}
                             />
                           </div>
-                          <div className="col-lg-5 col-sm-6">
+                          <div className="col-lg-4 col-sm-6">
                             <div className="bookingstatus">
-                              <ul>
-                                <li>
-                                  <span style={{ backgroundColor: '#1BA345' }} />
-                                  <h6>Confirmed</h6>
-                                </li>
-                                <li>
-                                  <span style={{ backgroundColor: '#FEC001' }} />
-                                  <h6>Pending</h6>
-                                </li>
-                                <li>
-                                  <span style={{ backgroundColor: '#FF4C4C' }} />
-                                  <h6>Canceled</h6>
-                                </li>
+                              <ul className="space-y-2">
+                                <li className="flex items-center"><span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#1e4fdd' }} /><h6 className="text-sm text-gray-700">Confirmed</h6></li>
+                                <li className="flex items-center"><span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#87CEEB' }} /><h6 className="text-sm text-gray-700">Canceled</h6></li>
+                                <li className="flex items-center"><span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#0a2b7b' }} /><h6 className="text-sm text-gray-700">Pending</h6></li>
                               </ul>
-
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-lg-4 col-sm-12 d-flex widget-path mb-4">
-                <div className="card">
-                  <div className="card-body">
-                    <div className="home-user">
-                      <div className="home-head-user home-graph-header">
-                        <h2>Reservation Statistics</h2>
-                        <Link to={routes.booking} className="btn btn-viewall">
-                          View All
-                          <ImageWithBasePath
-                            src="assets/admin/img/icons/arrow-right.svg"
-                            className="ms-2"
-                            alt="img"
-                          />
-                        </Link>
-                      </div>
-                      <div className="chartgraph">
-                        <div className="row align-items-center">
-                          <div className="col-lg-7 col-sm-6">
-                            <ReactApexChart
-                              options={bookChartData.options}
-                              series={bookChartData.series}
-                              type="pie"
-                              height={350}
-                              width={200}
-                            />
-                          </div>
-                          <div className="col-lg-5 col-sm-6">
-                            <div className="bookingstatus">
-                              <ul>
-                                <li>
-                                  <span style={{ backgroundColor: '#1BA345' }} />
-                                  <h6>Confirmed</h6>
-                                </li>
-                                <li>
-                                  <span style={{ backgroundColor: '#FEC001' }} />
-                                  <h6>Pending</h6>
-                                </li>
-                                <li>
-                                  <span style={{ backgroundColor: '#FF4C4C' }} />
-                                  <h6>Canceled</h6>
-                                </li>
-                              </ul>
-
                             </div>
                           </div>
                         </div>
@@ -986,79 +780,29 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="row">
-          <div className="col-lg-6 col-sm-6 col-12 d-flex  widget-path">
-            <div className="card">
-              <div className="card-body">
+          <div className="col-lg-6 col-sm-6 col-12 d-flex widget-path">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user">
-                    <h2>Income</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Reservations Summary</h2>
                     <div className="home-select">
                       <div className="dropdown">
-                        <button
-                          className="btn btn-action btn-sm dropdown-toggle"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Monthly
-                        </button>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Weekly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Monthly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Yearly
-                            </Link>
-                          </li>
-                        </ul>
-                      </div>
-                      <div className="dropdown">
-                        <Link
-                          className="delete-table bg-white"
-                          to="#"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="true"
-                        >
+                        <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                           <i className="fa fa-ellipsis-v" aria-hidden="true" />
                         </Link>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              View
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              Edit
-                            </Link>
-                          </li>
+                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                          <li><Link to="#" className="dropdown-item">View</Link></li>
+                          <li><Link to="#" className="dropdown-item">Edit</Link></li>
                         </ul>
                       </div>
                     </div>
                   </div>
                   <div className="chartgraph">
                     <ReactApexChart
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-expect-error
-                      options={Revenue}
-                      series={Revenue.series}
-                      type="area"
+                      options={reservationChartOptions}
+                      series={reservationChartSeries}
+                      type="bar"
                       height={350}
                     />
                   </div>
@@ -1066,67 +810,32 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          <div className="col-lg-6 col-sm-6 col-12 d-flex  widget-path">
-            <div className="card">
-              <div className="card-body">
+          <div className="col-lg-6 col-sm-6 col-12 d-flex widget-path">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user">
-                    <h2>Reservation Summary</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Income</h2>
                     <div className="home-select">
                       <div className="dropdown">
-
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Weekly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Monthly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Yearly
-                            </Link>
-                          </li>
+                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                          <li><Link to="#" className="dropdown-item">Weekly</Link></li>
+                          <li><Link to="#" className="dropdown-item">Monthly</Link></li>
+                          <li><Link to="#" className="dropdown-item">Yearly</Link></li>
                         </ul>
                       </div>
                       <div className="dropdown">
-                        <Link
-                          className="delete-table bg-white"
-                          to="#"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="true"
-                        >
+                        <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                           <i className="fa fa-ellipsis-v" aria-hidden="true" />
                         </Link>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              View
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              Edit
-                            </Link>
-                          </li>
+                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                          <li><Link to="#" className="dropdown-item">View</Link></li>
+                          <li><Link to="#" className="dropdown-item">Edit</Link></li>
                         </ul>
                       </div>
                     </div>
                   </div>
                   <div className="chartgraph">
-
                     <ReactApexChart
                       options={chartOptions}
                       series={chartSeries}
@@ -1141,18 +850,14 @@ const Dashboard = () => {
         </div>
         <div className="row">
           <div className="col-lg-6 col-sm-12 d-flex widget-path">
-            <div className="card">
-              <div className="card-body">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Top Parking</h2>
-                    <Link to={routes.allServices} className="btn btn-viewall">
+                    <h2 className="text-xl font-semibold text-gray-800">Top Parking</h2>
+                    <Link to={routes.allServices} className="btn btn-viewall bg-green-600 text-white hover:bg-green-700">
                       View All
-                      <ImageWithBasePath
-                        src="assets/admin/img/icons/arrow-right.svg"
-                        className="ms-2"
-                        alt="img"
-                      />
+                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
@@ -1164,11 +869,7 @@ const Dashboard = () => {
                         paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                         currentPageReportTemplate="{first} to {last} of {totalRecords}"
                       >
-                        <Column
-                          header="#"
-                          body={(rowData, { rowIndex }) => rowIndex + 1}
-                          style={{ width: '50px' }}
-                        />
+                        <Column header="#" body={(rowData, { rowIndex }) => rowIndex + 1} style={{ width: '50px' }} />
                         <Column field="name" header="Name" sortable />
                         <Column field="adresse" header="Adress" sortable />
                         <Column field="totalReservations" header="Reservations" sortable />
@@ -1180,18 +881,14 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="col-lg-6 col-sm-12 d-flex widget-path">
-            <div className="card">
-              <div className="card-body">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Top Users</h2>
-                    <Link to={routes.users} className="btn btn-viewall">
+                    <h2 className="text-xl font-semibold text-gray-800">Top Users</h2>
+                    <Link to={routes.users} className="btn btn-viewall bg-purple-600 text-white hover:bg-purple-700">
                       View All
-                      <ImageWithBasePath
-                        src="assets/admin/img/icons/arrow-right.svg"
-                        className="ms-2"
-                        alt="img"
-                      />
+                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
@@ -1203,50 +900,38 @@ const Dashboard = () => {
                         paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                         currentPageReportTemplate="{first} to {last} of {totalRecords}"
                       >
-                        <Column
-                          header="#"
-                          body={(rowData, { rowIndex }) => rowIndex + 1}
-                          style={{ width: '50px' }}
-                        />
+                        <Column header="#" body={(rowData, { rowIndex }) => rowIndex + 1} style={{ width: '50px' }} />
                         <Column field="name" header="Name" sortable />
                         <Column field="email" header="Email" sortable />
                         <Column field="totalReservations" header="Reservations" sortable />
                       </DataTable>
                     </table>
                   </div>
-
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div className="row">
-
-        </div>
-        <div className="row">
           <div className="col-lg-12 widget-path">
-            <div className="card mb-0">
-              <div className="card-body">
+            <div className="card mb-0" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Recent Booking</h2>
-                    <Link to={routes.booking} className="btn btn-viewall">
+                    <h2 className="text-xl font-semibold text-gray-800">Recent Booking</h2>
+                    <Link to={routes.booking} className="btn btn-viewall bg-indigo-600 text-white hover:bg-indigo-700">
                       View All
-                      <ImageWithBasePath
-                        src="assets/admin/img/icons/arrow-right.svg"
-                        className="ms-2"
-                        alt="img"
-                      />
+                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
                     <table className="table datatable">
                       <DataTable
-                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
+                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                         currentPageReportTemplate="{first} to {last} of {totalRecords}"
                         value={filteredReservations}
                         paginator
-                        rows={10}
+                        rows={5}
                         rowsPerPageOptions={[5, 10, 25, 50]}
                         tableStyle={{ minWidth: '50rem' }}
                       >
@@ -1258,7 +943,6 @@ const Dashboard = () => {
                         <Column header="Address" body={(rowData) => rowData.parking?.adresse || '—'} />
                         <Column header="Spot" body={(rowData) => rowData.parkingS?.numero || '—'} />
                         <Column field="status" header="Status" body={renderStatusBadge} sortable />
-
                       </DataTable>
                     </table>
                   </div>
