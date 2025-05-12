@@ -7,13 +7,22 @@ import axios from 'axios';
 import { Toast } from 'primereact/toast';
 import { Modal } from 'bootstrap';
 
+interface Review {
+  _id: string;
+  parkingId: { nom: string } | null;
+  userId: { firstname: string; lastname: string } | null;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 const Reviews = () => {
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [filteredReviews, setFilteredReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [filteredReviews, setFilteredReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
-  const [reviewToDelete, setReviewToDelete] = useState<any>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null);
   const [formData, setFormData] = useState({ rating: 5, comment: '' });
   const [errors, setErrors] = useState<any>({});
   const [reviewId, setReviewId] = useState<string | null>(null);
@@ -21,13 +30,20 @@ const Reviews = () => {
   const deleteModalRef = useRef<any>(null);
   const editModalRef = useRef<any>(null);
 
-  // Load reviews from API
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         const response = await axios.get('http://localhost:4000/api/reviews');
-        setReviews(response.data);
-        setFilteredReviews(response.data);
+        console.log('Full API Response:', JSON.stringify(response.data, null, 2));
+        const formattedReviews = response.data.map((review: any) => ({
+          ...review,
+          parkingId: review.parkingId || { nom: 'Unknown' },
+          userId: review.userId || { firstname: 'Unknown', lastname: '' },
+          rating: typeof review.rating === 'number' && review.rating >= 1 && review.rating <= 5 ? review.rating : 0,
+        }));
+        console.log('Formatted Reviews:', formattedReviews);
+        setReviews(formattedReviews);
+        setFilteredReviews(formattedReviews);
       } catch (error) {
         showToast('error', 'Error', 'Failed to load reviews');
         console.error('Error loading reviews:', error);
@@ -37,18 +53,17 @@ const Reviews = () => {
     };
 
     fetchReviews();
-    deleteModalRef.current = new Modal(document.getElementById('delete-review-modal'));
-    editModalRef.current = new Modal(document.getElementById('edit-review'));
+    deleteModalRef.current = new Modal(document.getElementById('delete-review-modal')!);
+    editModalRef.current = new Modal(document.getElementById('edit-review')!);
   }, []);
 
-  // Load review data when edit modal opens
   useEffect(() => {
     const editModal = document.getElementById('edit-review');
     const handleShow = (event: any) => {
       const review = JSON.parse(event.relatedTarget.getAttribute('data-review'));
       setFormData({
-        rating: review.rating,
-        comment: review.comment,
+        rating: review.rating || 5,
+        comment: review.comment || '',
       });
       setReviewId(review._id);
       setErrors({});
@@ -60,18 +75,16 @@ const Reviews = () => {
     };
   }, []);
 
-  // Show toast notification
   const showToast = (severity: string, summary: string, detail: string) => {
     toast.current?.show({ severity, summary, detail, life: 3000 });
   };
 
-  // Apply filters
   const applyFilters = (query: string, rating: number | null) => {
     let filtered = [...reviews];
 
     if (query) {
       const lowerQuery = query.toLowerCase();
-      filtered = filtered.filter((review: any) =>
+      filtered = filtered.filter((review) =>
         review.parkingId?.nom?.toLowerCase().includes(lowerQuery) ||
         `${review.userId?.firstname || ''} ${review.userId?.lastname || ''}`.toLowerCase().includes(lowerQuery) ||
         review.comment?.toLowerCase().includes(lowerQuery)
@@ -79,13 +92,12 @@ const Reviews = () => {
     }
 
     if (rating !== null) {
-      filtered = filtered.filter((review: any) => review.rating === rating);
+      filtered = filtered.filter((review) => review.rating === rating);
     }
 
     setFilteredReviews(filtered);
   };
 
-  // Filter handlers
   const filterBySearch = (query: string) => {
     setSearchQuery(query);
     applyFilters(query, ratingFilter);
@@ -97,8 +109,7 @@ const Reviews = () => {
     applyFilters(searchQuery, newRatingFilter);
   };
 
-  // Review deletion
-  const confirmDeleteReview = (review: any) => {
+  const confirmDeleteReview = (review: Review) => {
     setReviewToDelete(review);
     deleteModalRef.current?.show();
   };
@@ -115,13 +126,12 @@ const Reviews = () => {
       showToast('success', 'Success', 'Review deleted successfully');
     } catch (error) {
       console.error('Error deleting review:', error);
-      showToast('error', 'Error', error.response?.data?.message || 'Failed to delete review');
+      showToast('error', 'Error', (error as any).response?.data?.message || 'Failed to delete review');
     } finally {
       setReviewToDelete(null);
     }
   };
 
-  // Edit review form validation
   const validateForm = (data: any) => {
     const errors: any = {};
     if (!data.rating || data.rating < 1 || data.rating > 5) {
@@ -133,13 +143,11 @@ const Reviews = () => {
     return errors;
   };
 
-  // Handle form change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: name === 'rating' ? Number(value) : value });
   };
 
-  // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validateForm(formData);
@@ -150,26 +158,30 @@ const Reviews = () => {
         await axios.put(`http://localhost:4000/api/reviews/${reviewId}`, formData);
         showToast('success', 'Success', 'Review updated successfully');
         const response = await axios.get('http://localhost:4000/api/reviews');
-        setReviews(response.data);
-        setFilteredReviews(response.data);
+        const formattedReviews = response.data.map((review: any) => ({
+          ...review,
+          parkingId: review.parkingId || { nom: 'Unknown' },
+          userId: review.userId || { firstname: 'Unknown', lastname: '' },
+          rating: typeof review.rating === 'number' && review.rating >= 1 && review.rating <= 5 ? review.rating : 0,
+        }));
+        setReviews(formattedReviews);
+        setFilteredReviews(formattedReviews);
         editModalRef.current?.hide();
         resetForm();
       } catch (error) {
-        showToast('error', 'Error', error.response?.data?.message || 'Failed to update review');
+        showToast('error', 'Error', (error as any).response?.data?.message || 'Failed to update review');
         console.error('Error updating review:', error);
       }
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setFormData({ rating: 5, comment: '' });
     setErrors({});
     setReviewId(null);
   };
 
-  // Action buttons for each review
-  const actionButton = (review: any) => {
+  const actionButton = (review: Review) => {
     return (
       <div className="table-actions d-flex">
         <Link
@@ -195,24 +207,8 @@ const Reviews = () => {
     );
   };
 
-  // Format date
-  const formatDate = (rowData: any) => {
+  const formatDate = (rowData: Review) => {
     return new Date(rowData.createdAt).toLocaleDateString();
-  };
-
-  // Render rating stars
-  const renderRating = (rowData: any) => {
-    return (
-      <div>
-        {[...Array(5)].map((_, index) => (
-          <i
-            key={index}
-            className={`pi pi-star-fill ${index < rowData.rating ? 'text-warning' : 'text-muted'}`}
-            style={{ fontSize: '1rem' }}
-          />
-        ))}
-      </div>
-    );
   };
 
   return (
@@ -224,7 +220,6 @@ const Reviews = () => {
             <h5>Reviews</h5>
             <div className="list-btn">
               <ul className="d-flex flex-wrap gap-2">
-                {/* Search bar */}
                 <li>
                   <div className="input-group">
                     <span className="input-group-text">
@@ -239,8 +234,6 @@ const Reviews = () => {
                     />
                   </div>
                 </li>
-
-                {/* Rating filter */}
                 <li>
                   <div className="btn-group" role="group">
                     {[1, 2, 3, 4, 5].map((rating) => (
@@ -259,7 +252,6 @@ const Reviews = () => {
             </div>
           </div>
 
-          {/* Reviews table */}
           <div className="row">
             <div className="col-12">
               <div className="table-responsive">
@@ -281,7 +273,7 @@ const Reviews = () => {
                       `${rowData.userId?.firstname || 'Unknown'} ${rowData.userId?.lastname || ''}`
                     }
                   />
-                  <Column sortable field="rating" header="Rating" body={renderRating} />
+                  <Column sortable field="rating" header="Rating" />
                   <Column sortable field="comment" header="Comment" />
                   <Column sortable field="createdAt" header="Created At" body={formatDate} />
                   <Column header="Actions" body={actionButton} />
@@ -292,7 +284,6 @@ const Reviews = () => {
         </div>
       </div>
 
-      {/* Delete confirmation modal */}
       <div className="modal fade" id="delete-review-modal" tabIndex={-1} aria-hidden="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -328,7 +319,6 @@ const Reviews = () => {
         </div>
       </div>
 
-      {/* Edit review modal */}
       <div className="modal fade" id="edit-review" tabIndex={-1} aria-hidden="true">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">

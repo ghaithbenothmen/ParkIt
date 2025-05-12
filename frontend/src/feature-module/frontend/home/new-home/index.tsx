@@ -210,13 +210,16 @@ useEffect(() => {
                            
                           </div>
                           <button 
-                            
-                            onClick={handleSearch} 
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSearch();
+                            }} 
                             className="btn btn-linear-primary"
-                            style={{ zIndex: 5 }}
+                            style={{ zIndex: 5, marginLeft: '-50px' }}
                           >
-                            
-                            <Search style={{ fontSize: '15px', marginRight: '5px' }} /> Search
+                            <Search style={{ fontSize: '15px', marginRight: '0px' }} /> Search
                           </button>
 
                           {/* Display suggestions below input */}
