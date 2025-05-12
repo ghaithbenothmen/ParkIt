@@ -6,7 +6,6 @@ import FeatureSection from './feature-section'
 import PopularSection from './popular-section'
 import WorkSection from './workSection'
 import CustomerSection from './customerSection'
-import BlogAndJoinus from './blogAndJoinus'
 import BussinessWithUs from './bussinessWithUs'
 import HomeHeader from '../header/home-header'
 import NewFooter from '../footer/newFooter'
@@ -514,7 +513,6 @@ useEffect(() => {
         <PopularSection />
         <WorkSection />
         <CustomerSection />
-        <BlogAndJoinus />
         <BussinessWithUs />
         <NewFooter />
       </>

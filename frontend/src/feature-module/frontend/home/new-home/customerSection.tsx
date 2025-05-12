@@ -24,6 +24,9 @@ const CustomerSection = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [totalReviews, setTotalReviews] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
+  const [expandedReviews, setExpandedReviews] = useState<string[]>([]);
+  const [selectedComment, setSelectedComment] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchReviews();
@@ -65,6 +68,19 @@ const CustomerSection = () => {
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return `${diffDays} Days Ago`;
+  };
+
+  const toggleReviewExpansion = (reviewId: string) => {
+    setExpandedReviews(prev => 
+      prev.includes(reviewId) 
+        ? prev.filter(id => id !== reviewId)
+        : [...prev, reviewId]
+    );
+  };
+
+  const handleShowMore = (comment: string) => {
+    setSelectedComment(comment);
+    setShowModal(true);
   };
 
   const imgslideroption = {
@@ -122,40 +138,73 @@ const CustomerSection = () => {
 
         <Slider {...imgslideroption} className="service-slider owl-carousel nav-center">
           {reviews.map((review) => (
-            <div key={review._id} className="testimonial-item wow fadeInUp" data-wow-delay="0.2s">
-              <div className="d-flex align-items-center mb-3">
-                {renderStars(review.rating)}
+            <div key={review._id} className={`testimonial-item`}>
+              <div className="ratings-row">
+                <div>{renderStars(review.rating)}</div>
+                <h5 className="parking-name">{review.parkingId.nom}</h5>
               </div>
-              <h5 className="mb-2">{review.parkingId.nom}</h5>
-              <p className="mb-4">
-                &ldquo;{review.comment}&rdquo;
-              </p>
-              <div className="d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center overflow-hidden">
-                  <span className="avatar avatar-lg flex-shrink-0">
-                     <img
-                                      src={
-                                        review.userId?.image
-                                          ? review.userId.image.startsWith("//")
-                                            ? `https:${review.userId.image}`
-                                            : review.userId.image
-                                          : "assets/img/user.jpg" // Default image
-                                      }
-                                      alt="User"
-                                      className="rounded-circle"
-                                      style={{ width: "40px", height: "40px", objectFit: "cover" }}
-                                      onError={(e) => (e.currentTarget.src = "assets/img/user.jpg")} // Fallback to default image
-                                    />
-                  </span>
-                  <h6 className="text-truncate ms-2">
+              <div className="comment-text-container">
+                <p className={`comment-text ${!expandedReviews.includes(review._id) ? 'collapsed' : 'expanded'}`}>
+                  {review.comment}
+                  {!expandedReviews.includes(review._id) && review.comment.length > 100 && (
+                    <span 
+                      className="show-more-dots"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleReviewExpansion(review._id);
+                      }}
+                    >
+                      ...
+                    </span>
+                  )}
+                  {expandedReviews.includes(review._id) && (
+                    <span 
+                      className="show-less-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleReviewExpansion(review._id);
+                      }}
+                    >
+                      Show less
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="user-info">
+                <div className="user-details">
+                  <img
+                    src={review.userId?.image || "assets/img/user.jpg"}
+                    alt="User"
+                    className="user-image"
+                    onError={(e) => (e.currentTarget.src = "assets/img/user.jpg")}
+                  />
+                  <h6 className="user-name">
                     {`${review.userId?.firstname || "Unknown"} ${review.userId?.lastname || ""}`}
                   </h6>
                 </div>
-                <p>{formatDate(review.createdAt)}</p>
+                <span className="review-date">{formatDate(review.createdAt)}</span>
               </div>
             </div>
           ))}
         </Slider>
+
+        {/* Modal pour afficher le commentaire complet */}
+        {showModal && (
+          <div className="modal fade show" style={{ display: 'block' }}>
+            <div className="modal-dialog comment-modal">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Full Comment</h5>
+                  <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <p className="full-comment">{selectedComment}</p>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show" onClick={() => setShowModal(false)}></div>
+          </div>
+        )}
 
         <div className="text-center wow fadeInUp" data-wow-delay="0.2s">
           <h6 className="mb-2">

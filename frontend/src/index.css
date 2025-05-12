@@ -1026,7 +1026,7 @@ span.p-multiselect-token-label {
 }
 
 div.p-multiselect.p-component.p-inputwrapper.p-multiselect-chip {
-  background-color: #f9f9fb;
+  background-color: #f9f9f9;
 }
 div.multiple-img.p-multiselect.p-component.p-inputwrapper.p-multiselect-chip {
   background-color: #fff;
@@ -1757,6 +1757,61 @@ margin-right: 20px;
   right: 0px;
   left: auto;
 }
+
+/* Styles pour les conteneurs de commentaires */
+.testimonial-item {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 5px;
+  padding: 12px;
+  height: 180px !important; /* Hauteur fixe non modifiable */
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.comment-text-container {
+  position: relative;
+  height: 85px; /* Hauteur fixe pour la zone de commentaire */
+  overflow: hidden;
+}
+
+.testimonial-item .comment-text {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  padding-right: 10px;
+}
+
+.testimonial-item .comment-text.collapsed {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.testimonial-item .comment-text.expanded {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Style pour la scrollbar */
+.testimonial-item .comment-text.expanded::-webkit-scrollbar {
+  width: 4px;
+}
+
+.testimonial-item .comment-text.expanded::-webkit-scrollbar-thumb {
+  background-color: #FF008A;
+  border-radius: 4px;
+}
+
+.testimonial-item .comment-text.expanded::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+  border-radius: 4px;
+}
+
 /* Styles for traffic separation */
 .traffic-lane {
   border-radius: 8px;
@@ -2344,3 +2399,613 @@ margin-right: 20px;
     -webkit-backdrop-filter: blur(5px);
   }
 }
+
+/* Nouveaux styles pour les conteneurs de commentaires */
+.testimonial-item {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 5px;
+  padding: 12px;
+  height: 160px !important; /* Hauteur fixe */
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.testimonial-item .content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.testimonial-item .ratings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.testimonial-item .comment-text {
+  position: relative;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.testimonial-item .show-more-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(to left, #fff 50%, transparent);
+  padding: 0 5px;
+  font-size: 11px;
+  color: #007bff;
+  border: none;
+  cursor: pointer;
+}
+
+.testimonial-item .user-info {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.testimonial-item .user-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.testimonial-item .user-image {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.testimonial-item .user-name {
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.testimonial-item .review-date {
+  font-size: 11px;
+  color: #666;
+}
+
+/* Style pour la modal de commentaire complet */
+.comment-modal {
+  max-width: 500px;
+  margin: 1.75rem auto;
+}
+
+.comment-modal .modal-content {
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.comment-modal .full-comment {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 15px 0;
+}
+
+/* Mise à jour des styles pour les testimonials */
+.testimonial-item .comment-container {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.testimonial-item .comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.testimonial-item .show-more-btn {
+  font-size: 11px;
+  color: #007bff;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.testimonial-item .show-more-btn:hover {
+  color: #0056b3;
+}
+
+.testimonial-item .show-more-btn i {
+  font-size: 10px;
+}
+
+.testimonial-item .comment-text {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.testimonial-item .comment-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Mise à jour des styles pour le testimonial */
+.testimonial-item {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 5px;
+  padding: 12px;
+  height: 160px !important;
+  display: flex !important;
+  flex-direction: column;
+  transition: height 0.3s ease;
+}
+
+.testimonial-item.expanded {
+  height: auto !important;
+  min-height: 160px;
+}
+
+.testimonial-item .comment-text {
+  position: relative;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.testimonial-item .comment-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.testimonial-item .show-more-btn {
+  font-size: 11px;
+  color: #007bff;
+  background: none;
+  border: none;
+  padding: 2px 0;
+  margin-top: 4px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Mise à jour des styles testimonial */
+.testimonial-item {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 5px;
+  padding: 12px;
+  height: 180px !important;
+  display: flex !important;
+  flex-direction: column;
+  transition: height 0.3s ease;
+}
+
+.testimonial-item.expanded {
+  height: auto !important;
+}
+
+.testimonial-item .comment-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.testimonial-item .show-more-btn {
+  align-self: flex-end;
+  font-size: 11px;
+  color: #007bff;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.testimonial-item .comment-text {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.testimonial-item .comment-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Mise à jour des styles pour le testimonial */
+.testimonial-item .comment-text {
+  position: relative;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.testimonial-item .show-more-btn {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #FF008A;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.testimonial-item .show-more-btn:hover {
+  opacity: 0.8;
+}
+
+.testimonial-item p {
+  display: inline;
+}
+
+.testimonial-item .comment-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.testimonial-item .show-more-btn {
+  font-size: 12px;
+  color: #FF008A;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  align-self: flex-start;
+  text-decoration: none;
+}
+
+.testimonial-item .comment-text {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+}
+
+.testimonial-item .comment-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+.testimonial-item .show-more-btn {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #FF008A;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.testimonial-item .comment-text {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+}
+
+.testimonial-item .comment-text.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Nouveaux styles pour les boutons de commentaires */
+.comment-text-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.show-more-dots {
+  display: inline-block;
+  color: #FF008A;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 4px;
+  transition: all 0.3s ease;
+}
+
+.show-more-dots:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.show-less-button {
+  display: inline-block;
+  color: #FF008A;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 6px;
+  margin-left: 4px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.show-less-button:hover {
+  background-color: rgba(255, 0, 138, 0.1);
+}
+
+.testimonial-item .comment-text {
+  transition: max-height 0.3s ease-out;
+}
+
+.testimonial-item .comment-text.collapsed {
+  max-height: 4.2em; /* 3 lignes x 1.4em line-height */
+}
+
+.testimonial-item .comment-text.expanded {
+  max-height: none;
+}
+
+/* Mise à jour des styles pour le conteneur de texte du commentaire */
+.comment-text-container {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.testimonial-item .comment-text {
+  position: relative;
+  transition: max-height 0.3s ease-out;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.testimonial-item .comment-text.collapsed {
+  max-height: 4.2em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.testimonial-item .comment-text.expanded {
+  max-height: none;
+}
+
+/* Style pour les points de suspension cliquables */
+.show-more-dots {
+  display: inline-block;
+  position: relative;
+  color: #FF008A;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 4px;
+  background: white;
+  margin-left: 2px;
+  z-index: 2;
+}
+
+.show-more-dots:hover {
+  text-decoration: underline;
+}
+
+/* Gradient de fondu pour le texte tronqué */
+.testimonial-item .comment-text.collapsed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40%;
+  height: 1.4em;
+  background: linear-gradient(to right, transparent, white 50%);
+  pointer-events: none;
+}
+
+/* Style pour le bouton "Show less" */
+.show-less-button {
+  color: #FF008A;
+  font-size: 12px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  display: inline-block;
+  margin-left: 4px;
+  text-decoration: underline;
+}
+
+/* Mise à jour des styles pour les commentaires */
+.testimonial-item {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 5px;
+  padding: 12px;
+  height: auto !important;
+  min-height: 180px;
+  max-height: 250px;
+  display: flex !important;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.comment-text-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonial-item .comment-text {
+  position: relative;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  padding-right: 20px; /* Espace pour les points de suspension */
+}
+
+.testimonial-item .comment-text.collapsed {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Style amélioré pour le bouton "voir plus" */
+.show-more-dots {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to left, white 40%, transparent);
+  padding: 0 8px 0 20px;
+  color: #FF008A;
+  cursor: pointer;
+  font-weight: 500;
+  z-index: 2;
+}
+
+.show-more-dots:hover {
+  color: #cc006e;
+}
+
+/* Style pour le bouton "voir moins" */
+.show-less-button {
+  display: inline-block;
+  color: #FF008A;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.show-less-button:hover {
+  color: #cc006e;
+  text-decoration: underline;
+}
+
+/* Ajustement de l'espacement */
+.testimonial-item .user-info {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Nouveaux styles pour le testimonial avec expansion complète */
+.testimonial-item {
+  position: relative;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 5px;
+  padding: 12px;
+  height: auto;
+  min-height: 160px;
+  display: flex !important;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.testimonial-item.expanded {
+  height: auto;
+  max-height: none;
+  z-index: 10;
+}
+
+.comment-text-container {
+  position: relative;
+  overflow: visible;
+  width: 100%;
+}
+
+.testimonial-item .comment-text {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 5px;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+}
+
+.testimonial-item .comment-text.collapsed {
+  max-height: 4.5em;
+  -webkit-line-clamp: 3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.testimonial-item .comment-text.expanded {
+  max-height: none;
+  display: block;
+}
+
+/* Style pour les boutons Voir plus/moins */
+.show-more-dots,
+.show-less-button {
+  color: #FF008A;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-block;
+  margin-left: 4px;
+}
+
+.show-more-dots:hover,
+.show-less-button:hover {
+  text-decoration: underline;
+  color: #cc006e;
+}
+
+/* Suppression du gradient qui causait des problèmes */
+.testimonial-item .comment-text.collapsed::after {
+  display: none;
+}
+
+/* Ajustement de l'espacement */
+.testimonial-item .user-info {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
