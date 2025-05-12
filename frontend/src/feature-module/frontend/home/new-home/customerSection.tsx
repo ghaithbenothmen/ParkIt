@@ -133,14 +133,22 @@ const CustomerSection = () => {
               <div className="d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center overflow-hidden">
                   <span className="avatar avatar-lg flex-shrink-0">
-                    <ImageWithBasePath
-                      src={review.userId.image || "assets/img/user.jpg"}
-                      className="img-fluid rounded-circle"
-                      alt={review.userId.firstname}
-                    />
+                     <img
+                                      src={
+                                        review.userId?.image
+                                          ? review.userId.image.startsWith("//")
+                                            ? `https:${review.userId.image}`
+                                            : review.userId.image
+                                          : "assets/img/user.jpg" // Default image
+                                      }
+                                      alt="User"
+                                      className="rounded-circle"
+                                      style={{ width: "40px", height: "40px", objectFit: "cover" }}
+                                      onError={(e) => (e.currentTarget.src = "assets/img/user.jpg")} // Fallback to default image
+                                    />
                   </span>
                   <h6 className="text-truncate ms-2">
-                    {`${review.userId.firstname} ${review.userId.lastname}`}
+                    {`${review.userId?.firstname || "Unknown"} ${review.userId?.lastname || ""}`}
                   </h6>
                 </div>
                 <p>{formatDate(review.createdAt)}</p>

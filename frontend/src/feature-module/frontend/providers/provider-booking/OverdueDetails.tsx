@@ -108,7 +108,7 @@ const OverdueDetails = () => {
                   <div className="alert alert-warning text-center mb-4">
                     <h4 className="mb-0">
                       <i className="ti ti-alert-circle me-2"></i>
-                      Additional Fee Due: <strong>${reservation.additionalFee.toFixed(2)}</strong>
+                      Additional Fee Due: <strong>{reservation.additionalFee.toFixed(2)}DT</strong>
                     </h4>
                   </div>
 

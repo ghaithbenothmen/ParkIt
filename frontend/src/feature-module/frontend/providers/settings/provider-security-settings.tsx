@@ -287,7 +287,7 @@ const ProviderSecuritySettings = () => {
                 <div className="linked-wrap">
                   <div className="linked-acc">
                     <span className="link-icon rounded-circle">
-                      <i className="ti ti-fingerprint-scan" />
+                      <i className="ti ti-lock" />
                     </span>
                     <div className="linked-info row align-items-center">
                       <div className="col-md-9">
@@ -371,45 +371,7 @@ const ProviderSecuritySettings = () => {
               </div>
             )}
 
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-device-mobile" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">
-                          Phone Number Verification{" "}
-                        </h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Verified Mobile Number :{" "}
-                          <span className="text-dark fs-12"> +99264710583</span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <button
-                      className="btn btn-dark btn-sm"
-                      data-bs-toggle="modal"
-                      data-bs-target="#change-phone-number"
-                    >
-                      Change
-                    </button>
-                    <button className="btn btn-light btn-sm">Remove</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      
             <div className="col-xl-4 col-md-4 d-flex mb-3">
               <div className="linked-item flex-fill">
                 <div className="linked-wrap">
@@ -447,82 +409,7 @@ const ProviderSecuritySettings = () => {
                 </div>
               </div>
             </div>
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-device-imac" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">Device Management</h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Last Changed :
-                          <span className="text-dark fs-12">
-                            {" "}
-                            22 Jul 2024, 10:30:55 AM
-                          </span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <Link
-                      to={routes.providerDeviceManagement}
-                      className="btn btn-dark btn-sm"
-                    >
-                      Manage
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-user-edit" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">Account Activity</h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Last Changed :
-                          <span className="text-dark fs-12">
-                            {" "}
-                            22 Jul 2024, 10:30:55 AM
-                          </span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <Link
-                      to={routes.providerLoginActivity}
-                      className="btn btn-dark btn-sm"
-                    >
-                      Manage
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
           </div>
           {/* /Security Settings */}
         </div>

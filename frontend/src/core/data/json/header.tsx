@@ -19,16 +19,16 @@ export const header = [
   },
   {
     id:3,
-    tittle: 'Reviews',
+     tittle: 'How It Works',
     showAsTab: false,
-    routes: '/#reviews',
+    routes: '/#works',
     separateRoute: false,
   },
   {
     id:4,
-    tittle: 'How It Works',
+   tittle: 'Reviews',
     showAsTab: false,
-    routes: '/#works',
+    routes: '/#reviews',
     separateRoute: false,
   },
   {
