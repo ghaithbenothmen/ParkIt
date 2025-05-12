@@ -5,7 +5,6 @@ import { Dropdown } from 'primereact/dropdown';
 import { TagsInput } from 'react-tag-input-component';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import BreadCrumb from '../../common/breadcrumb/breadCrumb';
-import CustomerSideBar from '../common/sidebar';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -35,9 +34,6 @@ const CustomerProfile = () => {
         <div className="content">
           <div className="container">
             <div className="row justify-content-center">
-              <div className="col-xl-3 col-lg-4 ">
-                <CustomerSideBar />
-              </div>
               <div className="col-xl-9 col-lg-8">
               <h4 className="mb-3">Account Settings</h4>
               <h6 className="mb-4">Profile Picture</h6>

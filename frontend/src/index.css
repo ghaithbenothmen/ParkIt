@@ -3,8 +3,20 @@
 @import 'react-clock/dist/Clock.css';
 @import 'react-phone-input-2/lib/style.css';
 @import 'primereact/resources/themes/lara-light-indigo/theme.css';
+
 .search-section {
   position: relative;  /* Ensure that the suggestions are positioned relative to this container */
+}
+
+.ti-alert-circle {
+  color: #dc3545; /* Rouge pour indiquer un problème */
+  font-size: 1.5rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.ti-alert-circle:hover {
+  transform: scale(1.2); /* Agrandir légèrement au survol */
+  cursor: pointer;
 }
 
 .suggestions-list {
@@ -42,6 +54,19 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+}
+
+/* CSS pour le conteneur de l'image */
+.image-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden; /* Pour cacher les parties de l'image qui dépassent */
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .spinner-border {
@@ -294,13 +319,11 @@ span.p-calendar.p-component.p-inputwrapper {
 /* .car-blogs-section .car-blog-slider button.slick-prev {
   left: 47%;
   bottom: 0;
-  top: unset;
 }
 
 .car-blogs-section .car-blog-slider button.slick-next {
   right: 45%;
   bottom: 0;
-  top: unset;
 } */
 
 .home-banner-three .search-box-five .select.p-dropdown {
@@ -1578,10 +1601,10 @@ div.slick-slider button.slick-arrow {
   background: #0D0D0D;
   color: #C5CCDB;
 }
-.dark .react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name {
+.dark .react-datepicker__day-name, .dark .react-datepicker__day, .dark .react-datepicker__time-name {
   color: #C5CCDB;
 }
-.dark .react-datepicker__day:hover, .react-datepicker__month-text:hover, .react-datepicker__quarter-text:hover, .react-datepicker__year-text:hover {
+.dark .react-datepicker__day:hover, .dark .react-datepicker__month-text:hover, .dark .react-datepicker__quarter-text:hover, .dark .react-datepicker__year-text:hover {
   color: #C5CCDB;
   background: #0D0D0D;
 }
@@ -1733,4 +1756,591 @@ margin-right: 20px;
 .home-eight .testimonals-eight-slider.slick-slider button.slick-arrow.slick-next {
   right: 0px;
   left: auto;
+}
+/* Styles for traffic separation */
+.traffic-lane {
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f8f9fa 50%, #ffffff 50%);
+}
+
+.traffic-separator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 100%;
+  width: 2px;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent,
+    transparent 10px,
+    #dee2e6 10px,
+    #dee2e6 20px
+  );
+}
+
+.traffic-arrows {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 30px;
+  background: white;
+  padding: 0 10px;
+}
+
+.traffic-arrows i {
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+/* Parking spots styling */
+.parking-side {
+  width: 48%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spot-btn {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.spot-btn.active {
+  border-color: #0d6efd;
+  background-color: #e8f1ff;
+  transform: scale(1.05);
+}
+
+.spot-placeholder img {
+  opacity: 0.7;
+  max-width: 50px;
+}
+
+.confirm-btn {
+  padding: 12px 40px;
+  border: none;
+  border-radius: 25px;
+  background-color: #dee2e6;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn.active {
+  background-color: #0d6efd;
+  color: white;
+  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+}
+
+.left-side {
+  padding-right: 15px;
+}
+
+.right-side {
+  padding-left: 15px;
+}
+
+/* Parking Visualization Styles */
+.exit-path-container, .entry-path-container {
+  position: relative;
+}
+
+.exit-path, .entry-path {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.exit-path:after, .entry-path:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  background: #ddd;
+  transform: translateX(-50%);
+}
+
+.exit-path:before, .entry-path:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #ddd;
+}
+
+.exit-path-segment, .entry-path-segment {
+  position: relative;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exit-label {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #d9534f; /* Red for exit */
+}
+
+.entry-label {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #5cb85c; /* Green for entry */
+}
+
+.center-area {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.spot-btn, .spot-placeholder {
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.spot-btn {
+  background: #f5f5f5;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spot-btn:hover {
+  background: #e9effd;
+  border-color: #3f80ea;
+}
+
+.spot-btn.active {
+  background: #3f80ea;
+  color: white;
+  border-color: #2970e0;
+}
+
+.spot-placeholder.empty {
+  border: 1px dashed #eee;
+  background: #fafafa;
+}
+
+.confirm-btn {
+  padding: 10px 24px;
+  border-radius: 4px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  cursor: not-allowed;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.confirm-btn.active {
+  background: #3f80ea;
+  color: white;
+  border-color: #2970e0;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.parking-layout {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Additional styles for making the layout look like the screenshot */
+.w-30 {
+  width: 30%;
+}
+
+.w-15 {
+  width: 15%;
+}
+
+.parking-side {
+  margin-bottom: 1rem;
+}
+
+/* For car images */
+.spot-placeholder img {
+  max-width: 80%;
+  height: auto;
+}
+
+/* Make the confirm button match the screenshot */
+.confirm-btn.active {
+  background: #4285F4;
+  border-color: #4285F4;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dropdown-item.active {
+  background-color: #f8f9fa;
+  color: #FF008A;
+}
+
+.notification-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #ff0000;
+  color: white;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.notify-link {
+  position: relative;
+}
+
+/* Styles pour les boutons d'action */
+.action-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.action-button i {
+  font-size: 14px;
+  min-width: 14px; /* Assure une largeur minimale pour l'icône */
+}
+
+.action-button span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+  display: none; /* Caché par défaut */
+}
+
+.action-button:hover {
+  width: auto;
+  padding: 0 12px;
+}
+
+.action-button:hover span {
+  opacity: 1;
+  display: inline; /* Afficher au survol */
+}
+
+.action-button-edit {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #333;
+}
+
+.action-button-delete {
+  background-color: #dc3545;
+  border: none;
+  color: white;
+}
+
+.action-button i {
+  font-size: 14px;
+}
+
+.action-button span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+}
+
+.action-button:hover {
+  width: auto;
+  padding: 0 12px;
+}
+
+.action-button:hover span {
+  opacity: 1;
+}
+
+.action-button-edit:hover {
+  background-color: #e9ecef;
+}
+
+.action-button-delete:hover {
+  background-color: #c82333;
+}
+
+/* Styles pour les boutons de filtrage */
+.filter-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
+  background: white;
+  color: #666;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.filter-button:hover {
+  border-color: #bd1111;
+  color: #bd1111;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.filter-button.active {
+  background: #bd1111;
+  color: white;
+  border-color: #bd1111;
+}
+
+.filter-button .stars-container {
+  display: flex;
+  gap: 2px;
+}
+
+.filter-button .rating-count {
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+.filter-button.active .fa-star {
+  color: #FFD700 !important;
+}
+
+.filter-button:not(.active) .fa-star.text-warning {
+  color: #FFD700 !important;
+}
+
+.filter-button:not(.active) .fa-star.text-muted {
+  color: #d1d1d1 !important;
+}
+
+@media (max-width: 768px) {
+  .filter-button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .filter-buttons-container {
+    gap: 8px;
+  }
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff0000;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+.header-feather-icons {
+  position: relative;
+  display: inline-block;
+}
+
+/* Styles pour le dropdown des notifications */
+.notification-dropdown {
+  width: 450px !important;
+  max-width: 90vw !important;
+}
+
+.noti-content {
+  max-height: 600px !important; /* Augmentation de la hauteur maximale */
+}
+
+.notification-dropdown .border-bottom {
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.notification-dropdown p.mb-1 {
+  line-height: 1.6;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.notification-dropdown .d-flex {
+  gap: 15px;
+}
+
+.notification-dropdown .avatar {
+  min-width: 50px;
+  width: 50px;
+  height: 50px;
+}
+
+/* Styles pour le header dropdown notifications */
+.dropdown-menu.notifications {
+  width: 450px !important;
+  max-width: 90vw !important;
+  padding: 20px !important;
+  border: 1px solid #eee;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.notification-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.notification-title .text-gray {
+  color: #74788d;
+  font-size: 14px;
+}
+
+.noti-content {
+  max-height: 600px !important;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.noti-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.noti-content::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 10px;
+}
+
+.dropdown-body {
+  padding: 15px !important;
+  margin-bottom: 15px !important;
+}
+
+.dropdown-body p.mb-1 {
+  line-height: 1.6;
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdown-body .avatar {
+  min-width: 50px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.dropdown-body .text-primary {
+  color: #FF008A !important;
+}
+
+.dropdown-body .text-muted {
+  color: #74788d !important;
+}
+
+/* Dark Modal Styles */
+.modal.dark-modal .modal-content {
+  background-color: #1a1a1a;
+  color: #fff;
+  border: 1px solid #333;
+}
+
+.dark-modal .modal-header {
+  border-bottom: 1px solid #333;
+}
+
+.dark-modal .modal-footer {
+  border-top: 1px solid #333;
+}
+
+.dark-modal .form-control {
+  background-color: #333;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.dark-modal .form-control:focus {
+  background-color: #404040;
+  border-color: #666;
+  color: #fff;
+}
+
+.dark-modal .form-label {
+  color: #fff;
+}
+
+.dark-modal .input-group-text {
+  background-color: #333;
+  border: 1px solid #444;
+  color: #fff;
+}
+
+.dark-modal .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Modal backdrop blur effect */
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+@supports (backdrop-filter: blur(5px)) {
+  .modal-backdrop.show {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
 }

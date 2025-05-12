@@ -35,5 +35,17 @@ services:
     volumes:
       - db-data:/data/db
 
+  lpr:
+    build:
+      context: ./lpr-python
+      dockerfile: Dockerfile
+    container_name: lpr
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./lpr-python:/app
+    depends_on:
+      - api
+      - mongo
 volumes:
   db-data: {}

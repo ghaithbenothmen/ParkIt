@@ -5,6 +5,8 @@ import PhoneInput from 'react-phone-input-2';
 import axios from 'axios';
 import SuccessModal from '../../../../modals/SuccessModal';
 import { Modal } from 'bootstrap';
+import { jwtDecode } from 'jwt-decode';
+import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 
 const ProviderSecuritySettings = () => {
   const routes = all_routes;
@@ -37,6 +39,7 @@ const ProviderSecuritySettings = () => {
   const storedUser = localStorage.getItem('user');
   const user = storedUser ? JSON.parse(storedUser) : null; // Get user data from local storage
   const email = user?.email; // Extract the user's email
+  const id = user?._id;
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -82,6 +85,31 @@ const ProviderSecuritySettings = () => {
 
     fetch2FAStatus();
   }, []);
+  const handleFaceRegistration = async () => {
+    try {
+      const userId = id;
+  
+      const response = await axios.post('http://localhost:4000/api/auth/register_face', 
+        { userId }, // <- send as JSON, not FormData
+        {
+          headers: {
+            'Content-Type': 'application/json', // <- tell server it's JSON
+            Authorization: `Bearer ${localStorage.getItem('token')}`, // if your endpoint needs auth
+          },
+        }
+      );
+  
+      if (response.data.message) {
+        alert('Face registration successful!');
+      } else {
+        alert('Face registration failed!');
+      }
+    } catch (error) {
+      console.error('Error registering face data:', error);
+      alert('An error occurred during face registration.');
+    }
+  };
+  
 
   // Handle 2FA toggle
   const handle2FAToggle = async () => {
@@ -229,6 +257,29 @@ const ProviderSecuritySettings = () => {
                 </div>
               </div>
             </div>
+            <div className="col-xxl-4 col-md-6">
+                    <div className="card dash-widget-2">
+                      <div className="card-body">
+                        <div className="d-flex align-items-center mb-3">
+                          <span className="set-icon bg-light d-flex justify-content-center align-items-center rounded-circle p-1 me-2">
+                            <i className="ti ti-camera text-dark fs-20" /> {/* Camera icon */}
+                          </span>
+                          <div>
+                            <p className="mb-0 text-gray-9 fw-medium">Face Registration</p>
+                            <span className="fs-12 text-truncate">
+                              Register your face for future logins.
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          className="btn btn-dark"
+                          onClick={handleFaceRegistration} // Trigger face registration
+                        >
+                          Register Face
+                        </button>
+                      </div>
+                    </div>
+                  </div>
             {/* 2FA Section */}
             {/* 2FA Section */}
             <div className="col-xl-4 col-md-4 d-flex mb-3">
@@ -236,7 +287,7 @@ const ProviderSecuritySettings = () => {
                 <div className="linked-wrap">
                   <div className="linked-acc">
                     <span className="link-icon rounded-circle">
-                      <i className="ti ti-fingerprint-scan" />
+                      <i className="ti ti-lock" />
                     </span>
                     <div className="linked-info row align-items-center">
                       <div className="col-md-9">
@@ -320,45 +371,7 @@ const ProviderSecuritySettings = () => {
               </div>
             )}
 
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-device-mobile" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">
-                          Phone Number Verification{" "}
-                        </h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Verified Mobile Number :{" "}
-                          <span className="text-dark fs-12"> +99264710583</span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <button
-                      className="btn btn-dark btn-sm"
-                      data-bs-toggle="modal"
-                      data-bs-target="#change-phone-number"
-                    >
-                      Change
-                    </button>
-                    <button className="btn btn-light btn-sm">Remove</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      
             <div className="col-xl-4 col-md-4 d-flex mb-3">
               <div className="linked-item flex-fill">
                 <div className="linked-wrap">
@@ -396,82 +409,7 @@ const ProviderSecuritySettings = () => {
                 </div>
               </div>
             </div>
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-device-imac" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">Device Management</h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Last Changed :
-                          <span className="text-dark fs-12">
-                            {" "}
-                            22 Jul 2024, 10:30:55 AM
-                          </span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <Link
-                      to={routes.providerDeviceManagement}
-                      className="btn btn-dark btn-sm"
-                    >
-                      Manage
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-user-edit" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">Account Activity</h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Last Changed :
-                          <span className="text-dark fs-12">
-                            {" "}
-                            22 Jul 2024, 10:30:55 AM
-                          </span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <Link
-                      to={routes.providerLoginActivity}
-                      className="btn btn-dark btn-sm"
-                    >
-                      Manage
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
           </div>
           {/* /Security Settings */}
         </div>

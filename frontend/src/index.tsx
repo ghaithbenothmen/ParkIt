@@ -14,8 +14,6 @@ import { base_path } from './environment';
 import AllRoutes from './feature-module/router/router';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-
-
 const rootElement = document.getElementById('root');
 // const location = window.location.pathname;
 

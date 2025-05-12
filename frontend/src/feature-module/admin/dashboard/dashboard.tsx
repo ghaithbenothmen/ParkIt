@@ -7,6 +7,7 @@ import { Column } from 'primereact/column';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../../core/data/routes/all_routes';
+import { BookingInterface } from '../../../core/models/interface';
 import {
   AdminDashboardInterface,
   AdminDashboardOne,
@@ -14,40 +15,423 @@ import {
 } from '../../../core/models/interface';
 import { AdminDashboardThree } from '../../../core/data/json/admin-dashboard3';
 
+interface Reservation {
+  _id: string;
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  parkingId: string;
+  status: string;
+  parkingSpot: string;
+  parking: {
+    nom: string;
+    image: string;
+    adresse: string;
+  } | null;
+  parkingS: {
+    numero: string;
+  } | null;
+  userId: string;
+  user?: {
+    firstname: string;
+    email: string;
+  };
+}
+
 const Dashboard = () => {
   const routes = all_routes;
-  
-    const [userCount, setUserCount] = useState(null); // Initialize as null
-    const [parcCount, setParcCount] = useState(null); 
-    // Function to fetch user count from API
-    const fetchUserCount = async () => {
+
+  const [userCount, setUserCount] = useState(null);
+  const [parcCount, setParcCount] = useState(null);
+  const [reservationStat, setReservationStat] = useState(null);
+  const [reservationSummary, setReservationSummary] = useState<number[]>(Array(12).fill(0));
+  const [incomeSummary, setIncomeSummary] = useState<number[]>(Array(12).fill(0));
+  const [resCount, setResCount] = useState(null);
+  const [resCountTot, setResCountTot] = useState(null);
+  const [topUsers, setTopUsers] = useState(null);
+  const [topParkings, setTopParkings] = useState(null);
+  const [reservationWeekendStat, setReservationWeekendStat] = useState<number | null>(null);
+  const reservationTypeLegend = [
+    { color: '#4169E1', label: 'Weekday' },
+    { color: '#87CEEB', label: 'Weekend' },
+  ];
+  const [weekChartData, setWeekChartData] = useState({
+    series: [],
+    options: {
+      chart: {
+        width: 700,
+        type: 'pie',
+      },
+      labels: ['Weekday', 'Weekend'],
+      legend: {
+        position: 'bottom',
+      },
+      colors: ['#4169E1', '#87CEEB'],
+    },
+  });
+  const [bookChartData, setBookChartData] = useState({
+    series: [],
+    options: {
+      chart: {
+        width: 700,
+        type: 'pie',
+      },
+      labels: ['Confirmed', 'Canceled', 'Pending'],
+      colors: ['#1e4fdd', '#87CEEB', '#0a2b7b'],
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            chart: {
+              width: 200,
+            },
+            legend: {
+              position: 'bottom',
+            },
+          },
+        },
+      ],
+    },
+  });
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const filteredReservations = reservations.filter(reservation => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'confirmed' && reservation.status === 'confirmed') return true;
+    if (filterStatus === 'pending' && reservation.status === 'pending') return true;
+    if (filterStatus === 'over' && reservation.status === 'over') return true;
+    return false;
+  });
+
+  const fetchResCountTot = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/total');
+      setResCountTot(response.data.totalPrice);
+    } catch (error) {
+      console.error('Error fetching total reservation amount:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchReservations = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/users/users/count'); // Replace with your API endpoint
-        setUserCount(response.data.count); // Assuming your API response has a `count` field
+        const res = await axios.get(`http://localhost:4000/api/reservations`);
+        console.log("Fetched reservations:", res.data);
+        setReservations(res.data.data);
       } catch (error) {
-        console.error('Error fetching user count:', error);
+        console.error("Failed to fetch reservations:", error);
+      }
+    };
+    fetchReservations();
+  }, []);
+
+  useEffect(() => {
+    const fetchParkings = async () => {
+      const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingId && !reservation.parking) {
+          try {
+            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+            updatedReservations[i].parking = parkingRes.data;
+            hasChanges = true; // Mark that changes were made
+          } catch (error) {
+            console.error('Error fetching parking details for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
+    };
+    if (reservations.length > 0) {
+      fetchParkings();
+    }
+  }, [reservations]);
+
+  const fetchReservationWeekendStat = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/weekend');
+      console.log('Weekend Reservations:', response.data);
+      const data = response.data.count;
+      setReservationWeekendStat(data);
+      setWeekChartData((prev) => ({
+        ...prev,
+        series: data,
+      }));
+    } catch (error) {
+      console.error('Error fetching weekend reservation statistics:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchParkingSpots = async () => {
+      const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingSpot && !reservation.parkingS) {
+          try {
+            console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
+            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+            console.log("Parking spot fetched:", spotRes.data);
+            updatedReservations[i].parkingS = spotRes.data.data;
+            hasChanges = true; // Mark that changes were made
+          } catch (error) {
+            console.error('Error fetching parking spot for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
+    };
+    if (reservations.length > 0) {
+      fetchParkingSpots();
+    }
+  }, [reservations]);
+
+  const statusButton = (rowData: BookingInterface) => {
+    if (rowData.status === 'Completed') {
+      return <span className="badge-delete">{rowData.status}</span>;
+    } else if (rowData.status === 'Canceleld') {
+      return <span className="badge-inactive">{rowData.status}</span>;
+    } else if (rowData.status === 'Pending') {
+      return <span className="badge-pending">{rowData.status}</span>;
+    } else {
+      return rowData.status;
+    }
+  };
+
+  const renderStatusBadge = (rowData: Reservation) => {
+    let badgeClass = '';
+    const label = rowData.status;
+    switch (rowData.status.toLowerCase()) {
+      case 'confirmed':
+        badgeClass = 'badge bg-success';
+        break;
+      case 'pending':
+        badgeClass = 'badge bg-primary';
+        break;
+      case 'over':
+        badgeClass = 'badge bg-danger';
+        break;
+      default:
+        badgeClass = 'badge bg-secondary';
+    }
+    return <span className={badgeClass}>{label}</span>;
+  };
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const updatedReservations = [...reservations];
+      const fetchedUserIds = new Set(); // Track already fetched user IDs
+      let hasChanges = false; // Track if any changes are made
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+
+        // Only fetch user details if not already fetched
+        if (reservation.userId && !reservation.user && !fetchedUserIds.has(reservation.userId)) {
+          try {
+            const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+            updatedReservations[i].user = {
+              firstname: userRes.data.firstname,
+              email: userRes.data.email,
+            };
+            fetchedUserIds.add(reservation.userId); // Mark user as fetched
+            hasChanges = true; // Mark that changes were made
+          } catch (error) {
+            console.error('Error fetching user details for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
       }
     };
 
+    if (reservations.length > 0) {
+      fetchUserDetails();
+    }
+  }, [reservations]); // Only run when reservations change
 
-    const fetchParkingCount = async () => {
-      try {
-        const response = await axios.get('http://localhost:4000/api/parking/parc/count'); // Replace with your API endpoint
-        setParcCount(response.data.count); // Assuming your API response has a `count` field
-      } catch (error) {
-        console.error('Error fetching parc count:', error);
+  useEffect(() => {
+    const fetchParkings = async () => {
+      const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingId && !reservation.parking) {
+          try {
+            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+            updatedReservations[i].parking = parkingRes.data;
+            hasChanges = true; // Mark that changes were made
+          } catch (error) {
+            console.error('Error fetching parking details for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
       }
     };
-  
 
-    
-    useEffect(() => {
-      fetchUserCount(); // Fetch user count on component mount
-    }, []);
+    if (reservations.length > 0) {
+      fetchParkings();
+    }
+  }, [reservations]); // Only run when reservations change
 
-    useEffect(() => {
-      fetchParkingCount(); // Fetch user count on component mount
-    }, []);
+  useEffect(() => {
+    const fetchParkingSpots = async () => {
+      const updatedReservations = [...reservations];
+      let hasChanges = false; // Track if any changes are made
+
+      for (let i = 0; i < updatedReservations.length; i++) {
+        const reservation = updatedReservations[i];
+        if (reservation.parkingSpot && !reservation.parkingS) {
+          try {
+            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+            updatedReservations[i].parkingS = spotRes.data.data;
+            hasChanges = true; // Mark that changes were made
+          } catch (error) {
+            console.error('Error fetching parking spot for reservation:', reservation._id, error);
+          }
+        }
+      }
+
+      // Only update state if changes were made
+      if (hasChanges) {
+        setReservations(updatedReservations);
+      }
+    };
+
+    if (reservations.length > 0) {
+      fetchParkingSpots();
+    }
+  }, [reservations]); // Only run when reservations change
+
+  const renderUserDetails = (rowData: Reservation) => {
+    return rowData.user ? (
+      <div>
+        <div>{rowData.user.firstname}</div>
+        <div>{rowData.user.email}</div>
+      </div>
+    ) : (
+      '—'
+    );
+  };
+
+  const fetchUserCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/users/users/count');
+      setUserCount(response.data.count);
+    } catch (error) {
+      console.error('Error fetching user count:', error);
+    }
+  };
+
+  const fetchParkingCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/parking/parc/count');
+      setParcCount(response.data.count);
+    } catch (error) {
+      console.error('Error fetching parc count:', error);
+    }
+  };
+
+  const fetchReservationSummary = () => {
+    const counts = Array(12).fill(0);
+    reservations.forEach(reservation => {
+      const date = new Date(reservation.startDate);
+      const month = date.getMonth();
+      counts[month]++;
+    });
+    setReservationSummary(counts);
+  };
+
+  const fetchIncomeSummary = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/reservation-summary');
+      setIncomeSummary(response.data.count);
+    } catch (error) {
+      console.error('Error fetching income summary:', error);
+    }
+  };
+
+  const fetchResCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/count');
+      setResCount(response.data.count);
+    } catch (error) {
+      console.error('Error fetching reservation count:', error);
+    }
+  };
+
+  const fetchReservationStat = async () => {
+    try {
+      const response = await axios.get('http://localhost:4000/api/reservations/reservation-statistics');
+      const data = response.data.count;
+      setReservationStat(data);
+      setBookChartData((prev) => ({
+        ...prev,
+        series: data,
+      }));
+    } catch (error) {
+      console.error('Error fetching reservation statistics:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchTopUsers = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/reservations/top-users');
+        setTopUsers(response.data.topUsers);
+      } catch (error) {
+        console.error('Error fetching top users:', error);
+      }
+    };
+    fetchTopUsers();
+  }, []);
+
+  useEffect(() => {
+    const fetchTopParkings = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/reservations/top-parkings');
+        setTopParkings(response.data.topParkings);
+      } catch (error) {
+        console.error('Error fetching top parkings:', error);
+      }
+    };
+    fetchTopParkings();
+  }, []);
+
+  useEffect(() => {
+    fetchReservationWeekendStat();
+    fetchUserCount();
+    fetchResCount();
+    fetchResCountTot();
+    fetchParkingCount();
+    fetchReservationStat();
+    fetchIncomeSummary();
+  }, []);
+
+  useEffect(() => {
+    fetchReservationSummary();
+  }, [reservations]);
 
   const serviceImage1 = (rowData: AdminDashboardInterface) => {
     const [service] = rowData.service.split('\n');
@@ -71,11 +455,7 @@ const Dashboard = () => {
     const [service] = rowData.service.split('\n');
     return (
       <Link to={routes.viewServices} className="table-imgname">
-        <ImageWithBasePath
-          src={rowData.serviceImg}
-          className="me-2"
-          alt="img"
-        />
+        <ImageWithBasePath src={rowData.serviceImg} className="me-2" alt="img" />
         <span>{service}</span>
       </Link>
     );
@@ -93,38 +473,26 @@ const Dashboard = () => {
     const [provider] = rowData.provider.split('\n');
     return (
       <Link to={routes.viewServices} className="table-imgname">
-        <ImageWithBasePath
-          src={rowData.providerImg}
-          className="me-2"
-          alt="img"
-        />
+        <ImageWithBasePath src={rowData.providerImg} className="me-2" alt="img" />
         <span>{provider}</span>
       </Link>
     );
   };
 
-  const data1 = useSelector(
-    (state: AdminDashboardOne) => state.admin_dashboard_1,
-  );
-  const data2 = useSelector(
-    (state: AdminDashboardTwo) => state.admin_dashboard_2,
-  );
-  const data3 = useSelector(
-     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-    (state: AdminDashboardThree) => state.admin_dashboard_3,
-  );
+  const data1 = useSelector((state: AdminDashboardOne) => state.admin_dashboard_1);
+  const data2 = useSelector((state: AdminDashboardTwo) => state.admin_dashboard_2);
+  const data3 = useSelector((state: AdminDashboardThree) => state.admin_dashboard_3);
 
   const Revenue = {
     series: [
       {
         name: 'series1',
         data: [11, 32, 45, 32, 34, 52, 41],
-        colors: [' #4169E1'],
+        colors: ['#4169E1'],
       },
       {
         name: 'series2',
-        colors: [' #4169E1'],
+        colors: ['#4169E1'],
         data: [31, 40, 28, 51, 42, 109, 100],
       },
     ],
@@ -133,7 +501,7 @@ const Dashboard = () => {
       type: 'area',
     },
     fill: {
-      colors: [' #4169E1', '#4169E1'],
+      colors: ['#4169E1', '#4169E1'],
       type: 'gradient',
       gradient: {
         shade: 'dark',
@@ -156,7 +524,7 @@ const Dashboard = () => {
       dashArray: [0, 8, 5],
       opacityFrom: 0.5,
       opacityTo: 0.5,
-      colors: [' #4169E1'],
+      colors: ['#4169E1'],
     },
     xaxis: {
       type: 'month',
@@ -164,29 +532,8 @@ const Dashboard = () => {
     },
     tooltip: {},
   };
-  const book = {
-    series: [10, 45, 45],
-    chart: {
-      width: 700,
-      type: 'pie',
-    },
-    labels: ['Team A', 'Team B', 'Team C'],
-    color: ['#1BA345', '#0081FF', ' #FEC001'],
-    responsive: [
-      {
-        breakpoint: 480,
-        options: {
-          chart: {
-            width: 200,
-          },
-          legend: {
-            position: 'bottom',
-          },
-        },
-      },
-    ],
-  };
-  const chartData = {
+
+  const reservationChartOptions = {
     colors: ['#4169E1'],
     plotOptions: {
       bar: {
@@ -205,48 +552,21 @@ const Dashboard = () => {
     },
     xaxis: {
       categories: [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
       ],
     },
     yaxis: {
       title: {
-        text: '$ (thousands)',
+        text: 'RESERVATIONS',
       },
     },
     fill: {
       opacity: 1,
     },
     legend: {
-      // position: '',
       width: 400,
-      // position: 'top',
     },
-    series: [
-      {
-        name: 'Received',
-        type: 'column',
-        data: [70, 150, 80, 180, 150, 175, 201, 60, 200, 120, 190, 160],
-      },
-      {
-        name: 'Revenue',
-        // data: [76, 85, 101, 98, 87, 105, 91, 114, 94]
-      },
-      {
-        name: 'Free Cash Flow',
-        // data: [35, 41, 36, 26, 45, 48, 52, 53, 41]
-      },
-    ],
     chart: {
       type: 'bar',
       height: 350,
@@ -255,6 +575,73 @@ const Dashboard = () => {
       },
     },
   };
+
+  const reservationChartSeries = [
+    {
+      name: 'Reservations',
+      type: 'column',
+      data: reservationSummary,
+    },
+  ];
+
+  const chartOptions = {
+    colors: ['#4169E1'],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        endingShape: 'rounded',
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['transparent'],
+    },
+    xaxis: {
+      categories: [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ],
+    },
+    yaxis: {
+      title: {
+        text: 'DINARS',
+      },
+    },
+    fill: {
+      opacity: 1,
+    },
+    legend: {
+      width: 400,
+    },
+    chart: {
+      type: 'bar',
+      height: 350,
+      toolbar: {
+        show: false,
+      },
+    },
+  };
+
+  const chartSeries = [
+    {
+      name: 'Received',
+      type: 'column',
+      data: incomeSummary,
+    },
+    {
+      name: 'Revenue',
+      data: [],
+    },
+    {
+      name: 'Free Cash Flow',
+      data: [],
+    },
+  ];
 
   return (
     <div className="page-wrapper">
@@ -267,123 +654,62 @@ const Dashboard = () => {
                   <div className="home-userhead">
                     <div className="home-usercount">
                       <span>
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/user.svg"
-                          alt="img"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/user.svg" alt="img" />
                       </span>
                       <h6>Total User</h6>
                     </div>
                     <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                         <i className="fa fa-ellipsis-v" aria-hidden="true" />
                       </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link to="#" className="dropdown-item">
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="dropdown-item">
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to="#" className="dropdown-item">View</Link></li>
+                        <li><Link to="#" className="dropdown-item">Edit</Link></li>
                       </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={30}>
-                        {userCount !== null ? userCount : 'Loading...'}
-                        </span> 
+                          {userCount !== null ? userCount : 'Loading...'}
+                        </span>
                       </div>
                     </div>
-                    
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
-           
-                     
-                      
           <div className="col-lg-3 col-sm-6 col-12 d-flex widget-path widget-service">
             <div className="card">
               <div className="card-body">
                 <div className="home-user home-service">
                   <div className="home-userhead">
                     <div className="home-usercount">
-                    <span>
-  <i className="fas fa-parking"></i>
-</span>
+                      <span><i className="fas fa-parking"></i></span>
                       <h6>Parking</h6>
                     </div>
                     <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                         <i className="fa fa-ellipsis-v" aria-hidden="true" />
                       </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link
-                            to={routes.allServices}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            to={routes.editService}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to={routes.allServices} className="dropdown-item">View</Link></li>
+                        <li><Link to={routes.editService} className="dropdown-item">Edit</Link></li>
                       </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={30}>
-                        {parcCount !== null ? parcCount : 'Loading...'}
-                        </span> 
+                          {parcCount !== null ? parcCount : 'Loading...'}
+                        </span>
                       </div>
                     </div>
-                    
                   </div>
                 </div>
               </div>
@@ -395,60 +721,142 @@ const Dashboard = () => {
                 <div className="home-user home-subscription">
                   <div className="home-userhead">
                     <div className="home-usercount">
-                      <span>
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/money.svg"
-                          alt="img"
-                        />
-                      </span>
+                      <span><ImageWithBasePath src="assets/admin/img/icons/money.svg" alt="img" /></span>
                       <h6>Income</h6>
                     </div>
                     <div className="home-useraction">
-                      <Link
-                        className="delete-table bg-white"
-                        to="#"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="true"
-                      >
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                         <i className="fa fa-ellipsis-v" aria-hidden="true" />
                       </Link>
-                      <ul
-                        className="dropdown-menu"
-                        data-popper-placement="bottom-end"
-                      >
-                        <li>
-                          <Link
-                            to={routes.membership}
-                            className="dropdown-item"
-                          >
-                            {' '}
-                            View
-                          </Link>
-                        </li>
-                        <li>
-                          <Link to="#" className="dropdown-item">
-                            {' '}
-                            Edit
-                          </Link>
-                        </li>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to={routes.membership} className="dropdown-item">View</Link></li>
+                        <li><Link to="#" className="dropdown-item">Edit</Link></li>
                       </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
-                        <ImageWithBasePath
-                          src="assets/admin/img/icons/arrow-up.svg"
-                          alt="img"
-                          className="me-2"
-                        />
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={650}>
-                          $650
+                          ${resCountTot !== null ? resCountTot : 'Loading...'}
                         </span>
                       </div>
-                      
                     </div>
-                    
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="col-lg-3 col-sm-6 col-12 d-flex widget-path widget-service">
+            <div className="card">
+              <div className="card-body">
+                <div className="home-user home-service">
+                  <div className="home-userhead">
+                    <div className="home-usercount">
+                      <span><i className="fas fa-parking"></i></span>
+                      <h6>Total Reservations</h6>
+                    </div>
+                    <div className="home-useraction">
+                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
+                        <i className="fa fa-ellipsis-v" aria-hidden="true" />
+                      </Link>
+                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                        <li><Link to={routes.booking} className="dropdown-item">View</Link></li>
+                        <li><Link to={routes.editService} className="dropdown-item">Edit</Link></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="home-usercontent">
+                    <div className="home-usercontents">
+                      <div className="home-usercontentcount">
+                        <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
+                        <span className="counters" data-count={30}>
+                          {resCount !== null ? resCount : 'Loading...'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="px-3">
+            <div className="row justify-content-between">
+              <div className="col-lg-6 col-sm-12 d-flex widget-path mb-4">
+                <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+                  <div className="card-body p-4">
+                    <div className="home-user">
+                      <div className="home-head-user home-graph-header">
+                        <h2 className="text-xl font-semibold text-gray-800">Time of Reservation</h2>
+                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-primary-dark">
+                          View All
+                          <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
+                        </Link>
+                      </div>
+                      <div className="chartgraph">
+                        <div className="row align-items-center">
+                          <div className="col-lg-8 col-sm-6">
+                            <ReactApexChart
+                              options={weekChartData.options}
+                              series={weekChartData.series}
+                              type="pie"
+                              height={300}
+                              width={250}
+                            />
+                          </div>
+                          <div className="col-lg-4 col-sm-6">
+                            <div className="bookingstatus">
+                              <ul className="space-y-2">
+                                {reservationTypeLegend.map((item, index) => (
+                                  <li key={index} className="flex items-center">
+                                    <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }} />
+                                    <h6 className="text-sm text-gray-700">{item.label}</h6>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-lg-6 col-sm-12 d-flex widget-path mb-4">
+                <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+                  <div className="card-body p-4">
+                    <div className="home-user">
+                      <div className="home-head-user home-graph-header">
+                        <h2 className="text-xl font-semibold text-gray-800">Reservation Statistics</h2>
+                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-success-dark">
+                          View All
+                          <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
+                        </Link>
+                      </div>
+                      <div className="chartgraph">
+                        <div className="row align-items-center">
+                          <div className="col-lg-8 col-sm-6">
+                            <ReactApexChart
+                              options={bookChartData.options}
+                              series={bookChartData.series}
+                              type="pie"
+                              height={300}
+                              width={250}
+                            />
+                          </div>
+                          <div className="col-lg-4 col-sm-6">
+                            <div className="bookingstatus">
+                              <ul className="space-y-2">
+                                <li className="flex items-center"><span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#1e4fdd' }} /><h6 className="text-sm text-gray-700">Confirmed</h6></li>
+                                <li className="flex items-center"><span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#87CEEB' }} /><h6 className="text-sm text-gray-700">Canceled</h6></li>
+                                <li className="flex items-center"><span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#0a2b7b' }} /><h6 className="text-sm text-gray-700">Pending</h6></li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -456,79 +864,29 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="row">
-          <div className="col-lg-6 col-sm-6 col-12 d-flex  widget-path">
-            <div className="card">
-              <div className="card-body">
+          <div className="col-lg-6 col-sm-6 col-12 d-flex widget-path">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user">
-                    <h2>Income</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Reservations Summary</h2>
                     <div className="home-select">
                       <div className="dropdown">
-                        <button
-                          className="btn btn-action btn-sm dropdown-toggle"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Monthly
-                        </button>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Weekly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Monthly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Yearly
-                            </Link>
-                          </li>
-                        </ul>
-                      </div>
-                      <div className="dropdown">
-                        <Link
-                          className="delete-table bg-white"
-                          to="#"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="true"
-                        >
+                        <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                           <i className="fa fa-ellipsis-v" aria-hidden="true" />
                         </Link>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              View
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              Edit
-                            </Link>
-                          </li>
+                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                          <li><Link to="#" className="dropdown-item">View</Link></li>
+                          <li><Link to="#" className="dropdown-item">Edit</Link></li>
                         </ul>
                       </div>
                     </div>
                   </div>
                   <div className="chartgraph">
                     <ReactApexChart
-                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                      options={Revenue}
-                      series={Revenue.series}
-                      type="area"
+                      options={reservationChartOptions}
+                      series={reservationChartSeries}
+                      type="bar"
                       height={350}
                     />
                   </div>
@@ -536,77 +894,35 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          <div className="col-lg-6 col-sm-6 col-12 d-flex  widget-path">
-            <div className="card">
-              <div className="card-body">
+          <div className="col-lg-6 col-sm-6 col-12 d-flex widget-path">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user">
-                    <h2>Booking Summary</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Income</h2>
                     <div className="home-select">
                       <div className="dropdown">
-                        <button
-                          className="btn btn-action btn-sm dropdown-toggle"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Monthly
-                        </button>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Weekly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Monthly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Yearly
-                            </Link>
-                          </li>
+                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                          <li><Link to="#" className="dropdown-item">Weekly</Link></li>
+                          <li><Link to="#" className="dropdown-item">Monthly</Link></li>
+                          <li><Link to="#" className="dropdown-item">Yearly</Link></li>
                         </ul>
                       </div>
                       <div className="dropdown">
-                        <Link
-                          className="delete-table bg-white"
-                          to="#"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="true"
-                        >
+                        <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                           <i className="fa fa-ellipsis-v" aria-hidden="true" />
                         </Link>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              View
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              Edit
-                            </Link>
-                          </li>
+                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
+                          <li><Link to="#" className="dropdown-item">View</Link></li>
+                          <li><Link to="#" className="dropdown-item">Edit</Link></li>
                         </ul>
                       </div>
                     </div>
                   </div>
                   <div className="chartgraph">
-                    
-                    <ReactApexChart                    
-                      options={chartData}
-                      series={chartData.series}
+                    <ReactApexChart
+                      options={chartOptions}
+                      series={chartSeries}
                       type="bar"
                       height={350}
                     />
@@ -618,44 +934,29 @@ const Dashboard = () => {
         </div>
         <div className="row">
           <div className="col-lg-6 col-sm-12 d-flex widget-path">
-            <div className="card">
-              <div className="card-body">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Top Parking</h2>
-                    <Link to={routes.allServices} className="btn btn-viewall">
+                    <h2 className="text-xl font-semibold text-gray-800">Top Parking</h2>
+                    <Link to={routes.allServices} className="btn btn-viewall bg-primary text-white hover:bg-danger-dark">
                       View All
-                      <ImageWithBasePath
-                        src="assets/admin/img/icons/arrow-right.svg"
-                        className="ms-2"
-                        alt="img"
-                      />
+                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
                     <table className="table datatable">
                       <DataTable
-                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
+                        value={topParkings}
+                        paginator
+                        rows={5}
+                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                         currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                        value={data1}
                       >
-                        <Column sortable field="#" header="#"></Column>
-                        <Column
-                          sortable
-                          field="service"
-                          header="Service"
-                          body={serviceImage1}
-                        ></Column>
-                        <Column
-                          sortable
-                          field="category"
-                          header="Category"
-                        ></Column>
-                        <Column
-                          sortable
-                          field="amount"
-                          header="Amount"
-                        ></Column>
+                        <Column header="#" body={(rowData, { rowIndex }) => rowIndex + 1} style={{ width: '50px' }} />
+                        <Column field="name" header="Name" sortable />
+                        <Column field="adresse" header="Adress" sortable />
+                        <Column field="totalReservations" header="Reservations" sortable />
                       </DataTable>
                     </table>
                   </div>
@@ -664,36 +965,29 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="col-lg-6 col-sm-12 d-flex widget-path">
-            <div className="card">
-              <div className="card-body">
+            <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Top Users</h2>
-                    <Link to={routes.provider} className="btn btn-viewall">
+                    <h2 className="text-xl font-semibold text-gray-800">Top Users</h2>
+                    <Link to={routes.users} className="btn btn-viewall bg-primary text-white hover:bg-warning-dark">
                       View All
-                      <ImageWithBasePath
-                        src="assets/admin/img/icons/arrow-right.svg"
-                        className="ms-2"
-                        alt="img"
-                      />
+                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
-                    <table className="table datatable ">
+                    <table className="table datatable">
                       <DataTable
-                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
+                        value={topUsers}
+                        paginator
+                        rows={5}
+                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                         currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                        value={data2}
                       >
-                        <Column sortable field="#" header="#"></Column>
-                        <Column
-                          sortable
-                          field="providerName"
-                          header="Provider Name"
-                          body={serviceImage2}
-                        ></Column>
-                        <Column sortable field="email" header="Email"></Column>
-                        <Column sortable field="phone" header="Phone"></Column>
+                        <Column header="#" body={(rowData, { rowIndex }) => rowIndex + 1} style={{ width: '50px' }} />
+                        <Column field="name" header="Name" sortable />
+                        <Column field="email" header="Email" sortable />
+                        <Column field="totalReservations" header="Reservations" sortable />
                       </DataTable>
                     </table>
                   </div>
@@ -703,260 +997,36 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="row">
-          <div className="col-lg-8 col-sm-12 d-flex widget-path">
-            <div className="card">
-              <div className="card-body">
-                <div className="home-user">
-                  <div className="home-head-user home-graph-header">
-                    <h2>Top Countries</h2>
-                    <div className="home-select">
-                      <div className="dropdown">
-                        <button
-                          className="btn btn-action btn-sm dropdown-toggle"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                        >
-                          Monthly
-                        </button>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Weekly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Monthly
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              Yearly
-                            </Link>
-                          </li>
-                        </ul>
-                      </div>
-                      <div className="dropdown">
-                        <Link
-                          className="delete-table bg-white"
-                          to="#"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="true"
-                        >
-                          <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                        </Link>
-                        <ul
-                          className="dropdown-menu"
-                          data-popper-placement="bottom-end"
-                        >
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              View
-                            </Link>
-                          </li>
-                          <li>
-                            <Link to="#" className="dropdown-item">
-                              {' '}
-                              Edit
-                            </Link>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="chartgraph">
-                    <div className="row align-items-center">
-                      <div className="col-lg-7">
-                        <div id="world_map" />
-                        {/* <WorldMap
-                          color="blue"
-                          value-suffix="people"
-                          size="sm"
-                          data={data}
-                        /> */}
-                        <div style={{ height: '400px', width: '100%' }}>
-                        <iframe
-                      src="https://www.google.com/maps/embed"
-                      style={{ border: "0", height: "265px", width: "364px" }}
-                       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-expect-error
-                      allowFullScreen=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      className="contact-map"
-                    />
-                        </div>
-                      </div>
-                      <div className="col-lg-5">
-                        <div className="bookingmap">
-                          <ul>
-                            <li>
-                              <span>
-                                <ImageWithBasePath
-                                  src="assets/admin/img/flags/us.png"
-                                  alt="img"
-                                  className="me-2"
-                                />
-                                United State
-                              </span>
-                              <h6>60%</h6>
-                            </li>
-                            <li>
-                              <span>
-                                <ImageWithBasePath
-                                  src="assets/admin/img/flags/in.png"
-                                  alt="img"
-                                  className="me-2"
-                                />
-                                India
-                              </span>
-                              <h6>80%</h6>
-                            </li>
-                            <li>
-                              <span>
-                                <ImageWithBasePath
-                                  src="assets/admin/img/flags/ca.png"
-                                  alt="img"
-                                  className="me-2"
-                                />
-                                Canada
-                              </span>
-                              <h6>50%</h6>
-                            </li>
-                            <li>
-                              <span>
-                                <ImageWithBasePath
-                                  src="assets/admin/img/flags/au.png"
-                                  alt="img"
-                                  className="me-2"
-                                />
-                                Australia
-                              </span>
-                              <h6>75%</h6>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="col-lg-4 col-sm-12 d-flex widget-path">
-            <div className="card">
-              <div className="card-body">
-                <div className="home-user">
-                  <div className="home-head-user home-graph-header">
-                    <h2>Booking Statistics</h2>
-                    <Link to={routes.booking} className="btn btn-viewall">
-                      View All
-                      <ImageWithBasePath
-                        src="assets/admin/img/icons/arrow-right.svg"
-                        className="ms-2"
-                        alt="img"
-                      />
-                    </Link>
-                  </div>
-                  <div className="chartgraph">
-                    <div className="row align-items-center">
-                      <div className="col-lg-7 col-sm-6">
-                        <ReactApexChart
-                          options={book}
-                          series={book.series}
-                          type="pie"
-                          height={350}
-                          width={200}
-                        />
-                      </div>
-                      <div className="col-lg-5 col-sm-6">
-                        <div className="bookingstatus">
-                          <ul>
-                            <li>
-                              <span />
-                              <h6>Completed</h6>
-                            </li>
-                            <li className="process-status">
-                              <span />
-                              <h6>Process</h6>
-                            </li>
-                            <li className="process-pending">
-                              <span />
-                              <h6>Pending</h6>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="row">
           <div className="col-lg-12 widget-path">
-            <div className="card mb-0">
-              <div className="card-body">
+            <div className="card mb-0" style={{ background: 'linear-gradient(135deg, #f0f4f8, #e0e7f0)', borderRadius: '15px' }}>
+              <div className="card-body p-4">
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
-                    <h2>Recent Booking</h2>
-                    <Link to={routes.booking} className="btn btn-viewall">
+                    <h2 className="text-xl font-semibold text-gray-800">Recent Booking</h2>
+                    <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-indigo-700">
                       View All
-                      <ImageWithBasePath
-                        src="assets/admin/img/icons/arrow-right.svg"
-                        className="ms-2"
-                        alt="img"
-                      />
+                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
                     <table className="table datatable">
                       <DataTable
-                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
+                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                         currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                        value={data3}
+                        value={filteredReservations}
+                        paginator
+                        rows={5}
+                        rowsPerPageOptions={[5, 10, 25, 50]}
+                        tableStyle={{ minWidth: '50rem' }}
                       >
-                        <Column sortable field="#" header="#"></Column>
-                        <Column sortable field="date" header="Date"></Column>
-                        <Column
-                          sortable
-                          field="bookingTime"
-                          header="Booking Time"
-                        ></Column>
-                        <Column
-                          sortable
-                          field="provider"
-                          header="Provider"
-                          body={providerImage}
-                        ></Column>
-                        <Column
-                          sortable
-                          field="user"
-                          header="User"
-                          body={userImage}
-                        ></Column>
-                        <Column
-                          sortable
-                          field="service"
-                          header="Service"
-                          body={serviceImage3}
-                        ></Column>
-                        <Column
-                          sortable
-                          field="amount"
-                          header="Amount"
-                        ></Column>
-                        <Column
-                          sortable
-                          field="status"
-                          header="Status"
-                        ></Column>
+                        <Column header="User" body={renderUserDetails} />
+                        <Column field="startDate" header="Start Date" sortable />
+                        <Column field="endDate" header="End Date" sortable />
+                        <Column field="totalPrice" header="Total Price" sortable />
+                        <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
+                        <Column header="Address" body={(rowData) => rowData.parking?.adresse || '—'} />
+                        <Column header="Spot" body={(rowData) => rowData.parkingS?.numero || '—'} />
+                        <Column field="status" header="Status" body={renderStatusBadge} sortable />
                       </DataTable>
                     </table>
                   </div>

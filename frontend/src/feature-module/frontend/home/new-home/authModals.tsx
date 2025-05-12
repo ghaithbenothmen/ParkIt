@@ -15,6 +15,7 @@ interface User {
   name: string;
   image: string;
   token: string;
+  badge?: string;
 }
 
 const AuthModals = () => {
@@ -44,7 +45,7 @@ const AuthModals = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [twoFAError, setTwoFAError] = useState<string | null>(null);
 
-  
+
   const navigate = useNavigate();
 
 
@@ -58,7 +59,7 @@ const AuthModals = () => {
 
   useEffect(() => {
     console.log("Updated show2FAModal:", show2FAModal);
-  
+
     if (show2FAModal) {
       // Hide the login modal first
       const loginModalElement = document.getElementById('login-modal');
@@ -68,22 +69,22 @@ const AuthModals = () => {
           loginBsModal.hide();
         }
       }
-  
-    
-      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-  
 
-    
-        const twoFAModalElement = document.getElementById('2fa-verification-modal');
-        if (twoFAModalElement) {
-          const twoFAModal = new Modal(twoFAModalElement);
-          twoFAModal.show();
-        }
-    
+
+      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+
+
+
+      const twoFAModalElement = document.getElementById('2fa-verification-modal');
+      if (twoFAModalElement) {
+        const twoFAModal = new Modal(twoFAModalElement);
+        twoFAModal.show();
+      }
+
     }
   }, [show2FAModal]);
-  
-  
+
+
 
 
   useEffect(() => {
@@ -102,7 +103,12 @@ const AuthModals = () => {
         const token = result.data.token;
 
         // Save user info in localStorage
-        localStorage.setItem('user', JSON.stringify({ email, name, image, token }));
+        localStorage.setItem('token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
+  
+        // Extract and store role
+        const role = result.data.user?.role || 'user';
+        localStorage.setItem('role', role);
         setEmail(email);
         // Call the backend to check if the user has a phone number
         const response = await axios.post('http://localhost:4000/api/users/check', {
@@ -241,79 +247,45 @@ const AuthModals = () => {
       }
 
       document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
+      document.body.classList.remove('modal-open');
     } catch (error: any) {
       console.error('Error during registration:', error);
       setRegisterError(error.message);
     }
   };
 
-  /*   const handleEnable2FA = async () => {
-      try {
-        const response = await axios.post('http://localhost:4000/api/auth/enable-2fa', {
-          email: user.email,
-        });
-    
-        setQrCodeUrl(response.data.qrCodeUrl);
-        setShowQRCodeModal(true);
-      } catch (error) {
-        console.error('Error enabling 2FA:', error);
-      }
-    }; 
-   */
+  
+  
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    validateEmail(email);
-
-    if (error || password.length < 8) {
-      return;
-    }
-
+  const handleFaceLogin = async () => {
     try {
-      const data = await login(email, password);
-      console.log('Login response:', data);
-
-      // Check if the account is activated
-      if (!data.user.isActive) {
-        setError("Account is not activated. Please check your email.");
-        return;
+      console.log("🧠 Starting face login...");
+  
+      const response = await axios.post("http://localhost:4000/api/auth/login_face");
+  
+      console.log('Face login response:', response.data);
+  
+      if (response.data.token) {
+        // Store token and user
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+  
+        // Extract and store role
+        const role = response.data.user?.role || 'user';
+        localStorage.setItem('role', role);
+  
+        console.log('Login successful. Role:', role);
+  
+        setTimeout(() => {
+          navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+          window.location.reload(); // <--- THIS
+        }, 100);
+      } else {
+        console.log("❌ Face not recognized.");
+        setError("Face not recognized. Please try again or login with email/password.");
       }
-
-      // Check if 2FA is enabled for the user
-      if (data.user.twoFactorEnabled) {
-        console.log('2FA is enabled for this user.');
-        console.log("Setting show2FAPopup to:", show2FAModal);
-
-        setShow2FAModal(true);
-        console.log("Setting show2FAPopup to:", show2FAModal);
-
-        setEmail(data.user.email); // Save the email for 2FA verification
-        return; // Stop here and wait for the 2FA code
-      }
-
-      // If 2FA is not enabled, proceed to login
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      const modal = document.getElementById('login-modal');
-      if (modal) {
-        const bsModal = Modal.getInstance(modal);
-        bsModal?.hide();
-      }
-
-      document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-      document.body.classList.remove('modal-open');
-
-      const role = data.user?.role || 'user';
-      localStorage.setItem('role', role);
-
-      console.log('Login successful. Role:', role);
-      setTimeout(() => {
-        navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
-      }, 100);
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Face login error:', error);
       if (error.response) {
         if (error.response?.data?.message) {
           setError(error.response.data.message);
@@ -326,6 +298,101 @@ const AuthModals = () => {
         setError(error.message);
       } else {
         setError("An unexpected error occurred. Please try again.");
+      }
+    }
+  };
+  
+  
+  
+  
+  
+
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    validateEmail(email);
+  
+    if (error || password.length < 8) {
+      return;
+    }
+  
+    try {
+      const data = await login(email, password);
+      console.log('Login response:', data);
+  
+      // Check if the account is activated
+      if (!data.user.isActive) {
+        setError('Account is not activated. Please check your email.');
+        return;
+      }
+  
+      // Check if 2FA is enabled for the user
+      if (data.user.twoFactorEnabled) {
+        console.log('2FA is enabled for this user.');
+        setShow2FAModal(true);
+        setEmail(data.user.email); // Save the email for 2FA verification
+        return; // Stop here and wait for the 2FA code
+      }
+  
+      // If 2FA is not enabled, proceed to login
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+  
+      const modalElement = document.getElementById('login-modal');
+      if (modalElement) {
+        const bsModal = Modal.getInstance(modalElement);
+        if (bsModal) {
+          // Wait for the modal to be fully hidden before navigating
+          modalElement.addEventListener(
+            'hidden.bs.modal',
+            () => {
+              // Clean up modal-related classes and backdrops
+              document.body.classList.remove('modal-open');
+              document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+              document.body.style.overflow = ''; // Ensure scrolling is enabled
+  
+              const role = data.user?.role || 'user';
+              localStorage.setItem('role', role);
+              console.log('Login successful. Role:', role);
+  
+              // Navigate to the appropriate dashboard
+              navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+            },
+            { once: true } // Ensure the event listener is removed after firing
+          );
+          bsModal.hide(); // Trigger modal hide
+        } else {
+          // Fallback if bsModal is not initialized
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+          document.body.style.overflow = '';
+  
+          const role = data.user?.role || 'user';
+          localStorage.setItem('role', role);
+          console.log('Login successful. Role:', role);
+          navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+        }
+      } else {
+        // Fallback if modal element is not found
+        const role = data.user?.role || 'user';
+        localStorage.setItem('role', role);
+        console.log('Login successful. Role:', role);
+        navigate(role === 'user' ? '/providers/dashboard' : '/admin/dashboard');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.response) {
+        if (error.response?.data?.message) {
+          setError(error.response.data.message);
+        } else if (error.response.statusText) {
+          setError(error.response.statusText);
+        } else {
+          setError('An unexpected error occurred. Please try again.');
+        }
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
       }
     }
   };
@@ -364,12 +431,12 @@ const AuthModals = () => {
       }, 100);
     } catch (error: any) {
       console.error("2FA Verification Error:", error);
-    
-    if (error.response?.data?.message) {
-      setTwoFAError(error.response.data.message);
-    } else {
-      setTwoFAError("Invalid 2FA code. Please try again.");
-    }
+
+      if (error.response?.data?.message) {
+        setTwoFAError(error.response.data.message);
+      } else {
+        setTwoFAError("Invalid 2FA code. Please try again.");
+      }
 
     }
   };
@@ -517,7 +584,7 @@ const AuthModals = () => {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-            
+
               </div>
               <div className="modal-body p-4">
                 <div className="text-center mb-3">
@@ -525,7 +592,7 @@ const AuthModals = () => {
                   <p>Enter the 6-digit code from your authenticator app.</p>
                 </div>
                 <div className="mb-3">
-                {twoFAError && <div className="alert alert-danger">{twoFAError}</div>}
+                  {twoFAError && <div className="alert alert-danger">{twoFAError}</div>}
                   <label className="form-label">2FA Code</label>
                   <input
                     type="text"
@@ -749,12 +816,16 @@ const AuthModals = () => {
                     <ImageWithBasePath src="assets/img/icons/google-icon.svg" className="me-2" alt="Img" />
                     Google
                   </Link>
-                  <Link to="#" className="btn btn-light flex-fill d-flex align-items-center justify-content-center">
-                    <ImageWithBasePath src="assets/img/icons/fb-icon.svg" className="me-2" alt="Img" />
-                    Facebook
+                  <Link to="#" className="btn btn-light flex-fill d-flex align-items-center justify-content-center" onClick={handleFaceLogin}>
+                    <ImageWithBasePath src="assets/img/icons/camera-icon.svg" className="me-2" alt="Img" />
+                    Face Recognition
                   </Link>
+                  
+                    
                 </div>
+                
                 <div className="d-flex justify-content-center">
+
                   <p>
                     Don’t have an account?{' '}
                     <Link to="#" className="text-primary" data-bs-toggle="modal" data-bs-target="#register-modal">

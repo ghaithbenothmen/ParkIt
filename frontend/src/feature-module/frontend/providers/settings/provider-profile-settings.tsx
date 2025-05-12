@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 
 
+
 const ProviderProfileSettings: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -17,6 +18,11 @@ const ProviderProfileSettings: React.FC = () => {
   });
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    target.onerror = null;
+    target.src = 'assets/img/user.jpg'; // Set your default avatar path
+  };
 
   useEffect(() => {
     axios
@@ -85,6 +91,24 @@ const ProviderProfileSettings: React.FC = () => {
     }
   };
 
+  const handleChangePassword = async () => {
+    try {
+      const response = await axios.post('http://localhost:4000/api/auth/change-password', {
+        currentPassword,
+        newPassword,
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
+      if (response.data.success) {
+        setAlert({ type: 'success', message: response.data.message });
+      }
+    } catch (error) {
+      console.error('Error changing password:', error.response?.data || error.message);
+      setAlert({ type: 'error', message: error.response?.data?.message || 'Failed to change password.' });
+    }
+  };
+
   return (
     <div className="page-wrapper">
       <div className="content container-fluid">
@@ -111,21 +135,23 @@ const ProviderProfileSettings: React.FC = () => {
         <div className="card-body">
           <h6 className="user-title">Profile Picture</h6>
           <div className="pro-picture">
-            <div className="pro-img avatar avatar-xl">
-              {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="user"
-                  className="img-fluid rounded-circle"
-                />
-              ) : (
-                <ImageWithBasePath
-                  src="assets/img/user.jpg"
-                  alt="user"
-                  className="img-fluid rounded-circle"
-                />
-              )}
-            </div>
+          <div className="pro-img avatar avatar-xl">
+        {imagePreview ? (
+          <img
+            src={imagePreview}
+            alt="user"
+            className="img-fluid rounded-circle"
+            onError={handleImageError}
+            referrerPolicy="no-referrer" // Important for Google images
+          />
+        ) : (
+          <ImageWithBasePath
+            src="assets/img/user.jpg"
+            alt="user"
+            className="img-fluid rounded-circle"
+          />
+        )}
+      </div>
             <div className="pro-info">
               <div className="d-flex mb-2">
                 <label

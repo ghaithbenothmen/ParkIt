@@ -9,7 +9,7 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
-
+const FormData = require('form-data');
 const axios = require('axios');
 const { oauth2Client } = require('../utils/googleClients.js');
 
@@ -149,7 +149,27 @@ exports.login = async (req, res) => {
     
     
     console.log('hi')
-    const { email, password } = req.body;
+    const { email, password,faceData  } = req.body;
+
+    if (faceData) {
+      const response = await axios.post('http://host.docker.internal:8000/verify-face/', { face_data: faceData });
+
+      if (response.data.isMatch) {
+        // If face recognition is successful, log in the user
+        const user = await User.findOne({ email });
+        if (!user || !user.isActive) {
+          return res.status(400).json({ message: "Account is not activated or does not exist" });
+        }
+
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_EXPIRES_IN,
+        });
+
+        return res.json({ token, user });
+      } else {
+        return res.status(400).json({ message: "Face recognition failed" });
+      }
+    }
 
     // Find the user by email
     const user = await User.findOne({ email });
@@ -209,7 +229,33 @@ exports.login = async (req, res) => {
     res.status(statusCode).json({ message });
   }
 };
+exports.loginWithFace = async (req, res) => {
+  try {
+    const response = await axios.post('http://host.docker.internal:8000/verify-face/'); // FastAPI camera scan
 
+    const { isMatch, userId } = response.data;
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Face not recognized' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.status(200).json({ token, user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Face login failed' });
+  }
+};
 exports.verifyActivation = async (req, res) => {
   try {
     const { token } = req.params;
@@ -221,10 +267,10 @@ exports.verifyActivation = async (req, res) => {
 
     // Find the user by ID
     const user = await User.findById(decoded.id);
-    if (!user) {
-      const frontendErrorUrl = `http://localhost:3000/activation-error`;
-      return res.redirect(frontendErrorUrl);
-    }
+      if (!user) {
+        const frontendErrorUrl = `http://localhost:3000/activation-error`;
+        return res.redirect(frontendErrorUrl);
+      }
     console.log("User Before Activation:", user);
 
     // Activate the user
@@ -283,10 +329,42 @@ exports.updateProfile = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
-    res.clearCookie("token");
-    res.status(200).json({ message: "Logout successful" });
+    // Clear any server-side session data if needed
+    res.clearCookie('token');
+    
+    // Send a success response
+    res.status(200).json({ 
+      success: true,
+      message: "Logout successful" 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    console.error('Logout error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Server error during logout" 
+    });
+  }
+};
+
+exports.register_face_data = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const formData = new FormData();
+    formData.append('name', userId); // must match what FastAPI expects
+
+    const response = await axios.post('http://host.docker.internal:8000/register-face/', formData, {
+      headers: formData.getHeaders(),
+    });
+
+    if (response.data.message) {
+      return res.json({ message: response.data.message });
+    }
+
+    res.status(500).json({ error: 'Face registration failed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error registering face' });
   }
 };
 
@@ -327,17 +405,18 @@ exports.googleAuth = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Create a new user
-      user = await User.create({
+      // Create a new user without setting password field at all
+      user = new User({
         firstname: name.split(" ")[0],
         lastname: name.split(" ")[1] || "",
-        phone: null, // Default phone number for Google users
         email,
-        password: null, // No password for Google-authenticated users
         image: picture,
-        isActive: true, // Automatically activate Google-authenticated users
-        authUser: "google", // Set authentication provider to "google"
+        isActive: true,
+        authUser: "google",
+        // Don't include phone or password fields
       });
+      
+      await user.save();
     }
 
     // Generate a JWT token
@@ -345,10 +424,25 @@ exports.googleAuth = async (req, res) => {
       expiresIn: process.env.JWT_EXPIRES_IN || "1h",
     });
 
-    res.status(200).json({ message: "Google authentication successful", token, user });
+    res.status(200).json({ 
+      message: "Google authentication successful", 
+      token, 
+      user: {
+        _id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        image: user.image,
+        role: user.role,
+        authUser: user.authUser
+      }
+    });
   } catch (error) {
     console.error("Google Auth Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ 
+      message: "Internal Server Error",
+      error: error.message 
+    });
   }
 };
 
@@ -529,11 +623,8 @@ exports.updatePassword = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
     }
 
-    // Hash the new password using argon2
-    const hashedPassword = await argon2.hash(newPassword);
-
-    // Update the user's password
-    user.password = hashedPassword;
+    // Assign the new password directly (hashing will be handled by the pre-save middleware)
+    user.password = newPassword;
     await user.save();
 
     // Return success response

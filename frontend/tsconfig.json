@@ -22,6 +22,6 @@
     "allowImportingTsExtensions":false,
   },
   "include": [
-    "src"
+    "src",
   ]
 }
