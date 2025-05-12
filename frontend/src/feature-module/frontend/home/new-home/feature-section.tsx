@@ -36,9 +36,15 @@ const FeatureSection = () => {
   const fetchParkings = async () => {
     try {
       const response = await axios.get('http://localhost:4000/api/parking');
-      setParkings(response.data);
+      const normalizedParkings = response.data.map(parking => ({
+        ...parking,
+        images: parking.images ? parking.images.map(img => 
+          img.startsWith('/uploads/parkings/') ? img : `/uploads/parkings/${img}`
+        ) : []
+      }));
+      setParkings(normalizedParkings);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Une erreur inconnue est survenue');
     } finally {
       setLoading(false);
     }
@@ -55,7 +61,6 @@ const FeatureSection = () => {
   return (
     <section className="section service-section" id="parkings">
       <div className="container">
-        {/* Nouvelle section d'en-tête intégrée */}
         <div className="row justify-content-center">
           <div className="col-lg-6 text-center wow fadeInUp" data-wow-delay="0.2s">
             <div className="section-header text-center">
@@ -69,25 +74,57 @@ const FeatureSection = () => {
             </div>
           </div>
         </div>
-        {/* Fin de la section d'en-tête */}
 
-        <Slider {...sliderSettings} className="mt-4"> {/* Ajout de marge en haut */}
+        <Slider {...sliderSettings} className="mt-4">
           {parkings.map((parking) => (
-            <div className="service-item" key={parking._id}>
+            <div className="service-item h-100" key={parking._id} style={{ display: 'flex', flexDirection: 'column' }}>
               <Link 
                 to={`/parkings/parking-details/${parking._id}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
+                style={{ textDecoration: 'none', color: 'inherit', flex: 1, display: 'flex', flexDirection: 'column' }}
               >
-                <div className="service-img">
-                  <ImageWithBasePath
-                    src="assets/img/parking.jpg"
-                    className="img-fluid"
-                    alt={`Parking ${parking.nom}`}
-                  />
+                <div className="service-img" style={{ height: '200px', overflow: 'hidden' }}>
+                  {parking.images && parking.images.length > 0 ? (
+                    <img
+                      src={`http://localhost:4000${parking.images[0]}`}
+                      className="img-fluid w-100 h-100"
+                      alt={`Parking ${parking.nom}`}
+                      style={{ 
+                        objectFit: 'cover',
+                        borderRadius: '8px 8px 0 0'
+                      }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'http://localhost:4000/uploads/parkings/default.jpg';
+                        target.style.objectFit = 'cover';
+                      }}
+                    />
+                  ) : (
+                    <ImageWithBasePath
+                      src="assets/img/parking.jpg"
+                      className="img-fluid w-100 h-100"
+                      alt={`Parking ${parking.nom}`}
+                      style={{ 
+                        objectFit: 'cover',
+                        borderRadius: '8px 8px 0 0'
+                      }}
+                    />
+                  )}
                 </div>
-                <div className="service-content">
-                  <h6>{parking.nom}</h6>
-                  <p>{parking.adresse}</p>
+                <div className="service-content p-3" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div>
+                    <h6 className="mb-1">{parking.nom}</h6>
+                    <p className="text-muted mb-2">{parking.adresse}</p>
+                  </div>
+                  <div className="mt-auto">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span className="badge bg-primary">
+                        {parking.nbr_place} places disponibles
+                      </span>
+                      <span className="text-primary fw-bold">
+                        {parking.tarif_horaire} DT/h
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </Link>
             </div>

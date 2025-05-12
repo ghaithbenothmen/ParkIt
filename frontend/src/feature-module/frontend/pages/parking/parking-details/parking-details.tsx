@@ -32,8 +32,8 @@ const ParkingDetails = () => {
     email: '',
     phone: ''
   });
-
-  // State to track if the user has already reviewed this parking
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [userReview, setUserReview] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -43,7 +43,6 @@ const ParkingDetails = () => {
       try {
         if (storedUser.startsWith('{')) {
           const user = JSON.parse(storedUser);
-          console.log("Loaded user object from localStorage:", user);
           setUserInfo({
             _id: user._id || '',
             firstname: user.firstname || '',
@@ -53,7 +52,6 @@ const ParkingDetails = () => {
           });
         } else {
           const decoded = jwtDecode(storedUser);
-          console.log("Decoded user from JWT token:", decoded);
           setUserInfo({
             _id: decoded._id || '',
             firstname: decoded.firstname || '',
@@ -90,7 +88,6 @@ const ParkingDetails = () => {
 
     try {
       if (isEditing && userReview) {
-        // Update existing review
         const response = await axios.put(
           `http://localhost:4000/api/reviews/${userReview._id}`,
           {
@@ -101,14 +98,13 @@ const ParkingDetails = () => {
           }
         );
 
-        setReviewMessage('Avis modifié avec succès !');
+        setReviewMessage('Review updated successfully!');
         setReviews(
           reviews.map((review) =>
             review._id === userReview._id ? response.data : review
           )
         );
       } else {
-        // Create new review
         const response = await axios.post(
           'http://localhost:4000/api/reviews',
           {
@@ -119,7 +115,7 @@ const ParkingDetails = () => {
           }
         );
 
-        setReviewMessage('Avis soumis avec succès !');
+        setReviewMessage('Review submitted successfully!');
         setReviews([...reviews, response.data]);
       }
 
@@ -131,13 +127,12 @@ const ParkingDetails = () => {
         document.body.classList.remove('modal-open');
         const modalBackdrop = document.querySelector('.modal-backdrop');
         if (modalBackdrop) modalBackdrop.remove();
-        window.location.reload();
       }, 2000);
     } catch (error) {
       setReviewMessage(
-        error.response?.data?.message || "Erreur lors de la soumission de l'avis"
+        error.response?.data?.message || "Error submitting review"
       );
-      console.error('Erreur:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -156,12 +151,18 @@ const ParkingDetails = () => {
     axios
       .get(`http://localhost:4000/api/parking/${id}`)
       .then((response) => {
-        setParking(response.data);
+        const parkingData = {
+          ...response.data,
+          images: response.data.images ? response.data.images.map(img => 
+            img.startsWith('/uploads/parkings/') ? img : `/uploads/parkings/${img}`
+          ) : []
+        };
+        setParking(parkingData);
         setLoading(false);
       })
       .catch((error) => {
         console.error('Error fetching parking details:', error);
-        setError('Erreur lors du chargement des détails du parking');
+        setError('Error loading parking details');
         setLoading(false);
       });
 
@@ -169,7 +170,6 @@ const ParkingDetails = () => {
       .get(`http://localhost:4000/api/reviews/parking/${id}`)
       .then((response) => {
         setReviews(response.data);
-        // Check if the current user has already reviewed this parking
         const existingReview = response.data.find(
           (review) => review.userId?._id === userInfo._id
         );
@@ -183,7 +183,7 @@ const ParkingDetails = () => {
         }
       })
       .catch((error) => {
-        console.error('Erreur lors du chargement des avis:', error);
+        console.error('Error loading reviews:', error);
       });
   }, [id, userInfo._id]);
 
@@ -192,7 +192,6 @@ const ParkingDetails = () => {
     setNav2(sliderRef2.current);
   }, []);
 
-  // Handle opening the modal for editing
   const handleOpenReviewModal = () => {
     if (userReview) {
       setIsEditing(true);
@@ -207,12 +206,18 @@ const ParkingDetails = () => {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  const openLightbox = (index) => {
+    setCurrentImageIndex(index);
+    setLightboxOpen(true);
+  };
+
+  if (loading) return <div className="text-center py-5">Loading...</div>;
+  if (error) return <div className="text-center py-5">{error}</div>;
 
   const defaultImages = ['assets/img/parking.jpg'];
-  const defaultDescription = 'Parking sécurisé avec caméras et service 24h.';
-  const defaultReviewCount = 0;
+  const imagesToDisplay = parking?.images && parking.images.length > 0 
+    ? parking.images 
+    : defaultImages;
 
   const settings1 = {
     dots: false,
@@ -230,7 +235,7 @@ const ParkingDetails = () => {
     arrows: true,
     infinite: true,
     speed: 500,
-    slidesToShow: 5,
+    slidesToShow: Math.min(5, imagesToDisplay.length),
     slidesToScroll: 1,
     focusOnSelect: true,
     asNavFor: nav1 || undefined,
@@ -256,7 +261,7 @@ const ParkingDetails = () => {
                         <h3 className="mb-2">{parking?.nom}</h3>
                         <span className="badge badge-purple-transparent mb-2">
                           <i className="ti ti-calendar-check me-1" />
-                          {defaultReviewCount}+ Bookings
+                          {reviews.length}+ Bookings
                         </span>
                       </div>
                       <div className="d-flex align-items-center justify-content-between flex-wrap mb-2">
@@ -277,7 +282,6 @@ const ParkingDetails = () => {
                             {reviews.length} reviews)
                           </p>
                         </div>
-                        <div className="d-flex align-items-center flex-wrap"></div>
                       </div>
                     </div>
                     <div className="service-wrap mb-4">
@@ -286,96 +290,54 @@ const ParkingDetails = () => {
                           {...settings1}
                           className="owl-carousel reactslick service-carousel nav-center mb-3"
                         >
-                          <div className="service-img">
-                            <ImageWithBasePath
-                              src="assets/img/parking.jpg"
-                              className="img-fluid"
-                              alt="Slider Img"
-                            />
-                          </div>
-                          <div className="service-img">
-                            <ImageWithBasePath
-                              src="assets/img/parking.jpg"
-                              className="img-fluid"
-                              alt="Slider Img"
-                            />
-                          </div>
-                          <div className="service-img">
-                            <ImageWithBasePath
-                              src="assets/img/parking.jpg"
-                              className="img-fluid"
-                              alt="Slider Img"
-                            />
-                          </div>
-                          <div className="service-img">
-                            <ImageWithBasePath
-                              src="assets/img/parking.jpg"
-                              className="img-fluid"
-                              alt="Slider Img"
-                            />
-                          </div>
-                          <div className="service-img">
-                            <ImageWithBasePath
-                              src="assets/img/parking.jpg"
-                              className="img-fluid"
-                              alt="Slider Img"
-                            />
-                          </div>
-                          <div className="service-img">
-                            <ImageWithBasePath
-                              src="assets/img/parking.jpg"
-                              className="img-fluid"
-                              alt="Slider Img"
-                            />
-                          </div>
+                          {imagesToDisplay.map((image, index) => (
+                            <div className="service-img" key={index}>
+                              <img
+                                src={image.startsWith('/uploads/') 
+                                  ? `http://localhost:4000${image}`
+                                  : image}
+                                className="img-fluid"
+                                alt={`Parking ${parking?.nom} ${index + 1}`}
+                                style={{ 
+                                  width: '100%', 
+                                  height: '400px', 
+                                  objectFit: 'cover',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => openLightbox(index)}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = 'http://localhost:4000/uploads/parkings/default.jpg';
+                                }}
+                              />
+                            </div>
+                          ))}
                         </Slider>
                       </div>
                       <Slider
                         {...settings2}
                         className="owl-carousel slider-nav-thumbnails reactslick nav-center"
                       >
-                        <div>
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="img-fluid"
-                            alt="Slider Img"
-                          />
-                        </div>
-                        <div>
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="img-fluid"
-                            alt="Slider Img"
-                          />
-                        </div>
-                        <div>
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="img-fluid"
-                            alt="Slider Img"
-                          />
-                        </div>
-                        <div>
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="img-fluid"
-                            alt="Slider Img"
-                          />
-                        </div>
-                        <div>
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="img-fluid"
-                            alt="Slider Img"
-                          />
-                        </div>
-                        <div>
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="img-fluid"
-                            alt="Slider Img"
-                          />
-                        </div>
+                        {imagesToDisplay.map((image, index) => (
+                          <div key={index}>
+                            <img
+                              src={image.startsWith('/uploads/') 
+                                ? `http://localhost:4000${image}`
+                                : image}
+                              className="img-fluid"
+                              alt={`Thumbnail ${index + 1}`}
+                              style={{ 
+                                width: '100%', 
+                                height: '80px', 
+                                objectFit: 'cover'
+                              }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'http://localhost:4000/uploads/parkings/default.jpg';
+                              }}
+                            />
+                          </div>
+                        ))}
                       </Slider>
                     </div>
                     <div className="accordion service-accordion">
@@ -397,7 +359,7 @@ const ParkingDetails = () => {
                         >
                           <div className="accordion-body border-0 p-0 pt-3">
                             <div className="more-text">
-                              <p>{defaultDescription}</p>
+                              <p>{parking?.description || 'No description available'}</p>
                             </div>
                           </div>
                         </div>
@@ -456,9 +418,9 @@ const ParkingDetails = () => {
                       ) : (
                         <p>
                           <Link to="/login" className="text-primary">
-                            Connectez-vous
+                            Sign in
                           </Link>{' '}
-                          pour écrire un avis.
+                          to write a review.
                         </p>
                       )}
                     </div>
@@ -533,7 +495,7 @@ const ParkingDetails = () => {
                                   </span>
                                   <div>
                                     <h6 className="fs-16 fw-medium">
-                                      {review.userId?.firstname || 'Utilisateur'}
+                                      {review.userId?.firstname || 'User'}
                                     </h6>
                                     <div className="d-flex align-items-center flex-wrap date-info">
                                       <p className="fs-14 mb-0">
@@ -552,59 +514,13 @@ const ParkingDetails = () => {
                                 </span>
                               </div>
                               <p className="mb-2">{review.comment}</p>
-                              <div className="d-flex align-items-center justify-content-between flex-wrap like-info">
-                                <div className="d-inline-flex align-items-center">
-                                  <Link
-                                    to="#"
-                                    className="d-inline-flex align-items-center me-2"
-                                  >
-                                    <i className="ti ti-thumb-up me-2" />
-                                    Reply
-                                  </Link>
-                                  <Link
-                                    to="#"
-                                    className="d-inline-flex align-items-center me-2"
-                                  >
-                                    <i className="ti ti-thumb-up me-2" />
-                                    Like
-                                  </Link>
-                                  <Link
-                                    to="#"
-                                    className="d-inline-flex align-items-center"
-                                  >
-                                    <i className="ti ti-thumb-down me-2" />
-                                    Dislike
-                                  </Link>
-                                </div>
-                                <div className="d-inline-flex align-items-center">
-                                  <Link
-                                    to="#"
-                                    className="d-inline-flex align-items-center me-2"
-                                  >
-                                    <i className="ti ti-thumb-up me-2" />
-                                    0
-                                  </Link>
-                                  <Link
-                                    to="#"
-                                    className="d-inline-flex align-items-center me-2"
-                                  >
-                                    <i className="ti ti-thumb-down me-2" />
-                                    0
-                                  </Link>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <p>Aucun avis pour ce parking.</p>
+                      <p>No reviews for this parking.</p>
                     )}
-                    <div className="text-center">
-                      <Link to="#" className="btn btn-light btn-sm">
-                        Load More
-                      </Link>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -649,31 +565,14 @@ const ParkingDetails = () => {
                           .
                         </div>
                       )}
-                      <Link
-                        to="#"
-                        data-bs-toggle="modal"
-                        data-bs-target="#add-enquiry"
-                        className="btn btn-lg btn-outline-light d-flex align-items-center justify-content-center w-100"
-                      >
-                        <i className="ti ti-mail me-2" />
-                        Send Enquiry
-                      </Link>
                     </div>
                   </div>
                   <div className="card border-0">
                     <div className="card-body">
                       <h4 className="mb-3">Business Hours</h4>
                       <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6 className="fs-16 fw-medium mb-0">Monday</h6>
-                        <p>9:30 AM - 7:00 PM</p>
-                      </div>
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6 className="fs-16 fw-medium mb-0">Tuesday</h6>
-                        <p>9:30 AM - 7:00 PM</p>
-                      </div>
-                      <div className="d-flex align-items-center justify-content-between mb-3">
-                        <h6 className="fs-16 fw-medium mb-0">Wednesday</h6>
-                        <p>9:30 AM - 7:00 PM</p>
+                        <h6 className="fs-16 fw-medium mb-0">Monday - Sunday</h6>
+                        <p>24/7</p>
                       </div>
                     </div>
                   </div>
@@ -682,44 +581,35 @@ const ParkingDetails = () => {
                       <h4 className="mb-3">Location</h4>
                       <div className="map-wrap">
                         <iframe
-                          src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d${parking?.longitude}!3d${parking?.latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${encodeURIComponent(
-                            parking?.adresse
+                          src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d${parking?.longitude || 0}!3d${parking?.latitude || 0}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z${encodeURIComponent(
+                            parking?.adresse || ''
                           )}!5e0!3m2!1sen!2sus!4v1669181581381!5m2!1sen!2sus`}
                           allowFullScreen
                           loading="lazy"
                           referrerPolicy="no-referrer-when-downgrade"
                           className="contact-map"
                         />
-                        <div className="map-location bg-white d-flex align-items-center">
-                          <div className="d-flex align-items-center me-2">
-                            <span className="avatar avatar-lg flex-shrink-0">
-                              <ImageWithBasePath
-                                src="assets/img/services/service-thumb-01.jpg"
-                                alt="img"
-                                className="br-10"
-                              />
-                            </span>
-                            <div className="ms-2 overflow-hidden">
-                              <p className="two-line-ellipsis">{parking?.adresse}</p>
-                            </div>
-                          </div>
-                          <span>
-                            <i className="feather icon-send fs-16" />
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>
-                  <Link to="#" className="text-danger fs-14">
-                    <i className="ti ti-pennant-filled me-2" />
-                    Report Provider
-                  </Link>
                 </StickyBox>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={imagesToDisplay.map(image => ({
+          src: image.startsWith('/uploads/') 
+            ? `http://localhost:4000${image}`
+            : image,
+          alt: `Parking ${parking?.nom}`
+        }))}
+        index={currentImageIndex}
+      />
 
       <div
         className="modal fade"
@@ -732,7 +622,7 @@ const ParkingDetails = () => {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="addReviewLabel">
-                {isEditing ? 'Modifier un avis' : 'Soumettre un avis'}
+                {isEditing ? 'Edit Review' : 'Submit Review'}
               </h5>
               <button
                 type="button"
@@ -745,7 +635,7 @@ const ParkingDetails = () => {
               {reviewMessage && (
                 <div
                   className={`alert ${
-                    reviewMessage.includes('succès') ? 'alert-success' : 'alert-danger'
+                    reviewMessage.includes('success') ? 'alert-success' : 'alert-danger'
                   }`}
                 >
                   {reviewMessage}
@@ -754,7 +644,7 @@ const ParkingDetails = () => {
               <form onSubmit={handleReviewSubmit}>
                 <div className="mb-3">
                   <label htmlFor="rating" className="form-label">
-                    Note (1 à 5)
+                    Rating (1 to 5)
                   </label>
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -775,7 +665,7 @@ const ParkingDetails = () => {
                 </div>
                 <div className="mb-3">
                   <label htmlFor="comment" className="form-label">
-                    Commentaire
+                    Comment
                   </label>
                   <textarea
                     className="form-control"
@@ -789,15 +679,9 @@ const ParkingDetails = () => {
                 </div>
                 <button
                   type="submit"
-                  className="btn"
-                  style={{
-                    backgroundColor: '#d32f2f',
-                    color: 'white',
-                    border: 'none',
-                    padding: '10px 20px',
-                  }}
+                  className="btn btn-primary"
                 >
-                  {isEditing ? 'Modifier' : 'Soumettre'}
+                  {isEditing ? 'Update' : 'Submit'}
                 </button>
               </form>
             </div>

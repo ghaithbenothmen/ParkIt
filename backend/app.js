@@ -89,7 +89,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
 app.use('/api/notifications', notificationRoutes); // Utiliser la route Notification ici
 app.use('/api/badges', badgeRoutes);
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
 
