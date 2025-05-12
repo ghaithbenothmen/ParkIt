@@ -175,19 +175,19 @@ const ParkingVisualization = ({
 
   return (
     <div className="page-wrapper">
-      <div class="content container-fluid">
-        <div class="row justify-content-center">
-          <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-4">
+      <div className="content container-fluid">
+        <div className="row justify-content-center">
+          <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-4">
             <h4>Select Parking Spot - {parkingInfo?.nom}</h4>
             {parkingInfo && (
-              <div class="small text-muted">
+              <div className="small text-muted">
                 Price: {parkingInfo.tarif_horaire}$ per hour • {parkingInfo.nbr_place} total spots
               </div>
             )}
           </div>
 
-          <div class="card border-0 shadow-lg">
-            <div class="card-body p-4">
+          <div className="card border-0 shadow-lg">
+            <div className="card-body p-4">
               {generateParkingLayout()}
             </div>
           </div>
