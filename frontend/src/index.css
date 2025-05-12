@@ -2337,7 +2337,267 @@ margin-right: 20px;
 .modal-backdrop.show {
   opacity: 0.5;
 }
+/* General styles */
+.page-wrapper {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 20px;
+}
 
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Parking Layout */
+.parking-layout {
+  background-color: #a9a9a9; /* Asphalt gray */
+  padding: 40px;
+  border-radius: 10px;
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid #666;
+  background-image: linear-gradient(90deg, #a9a9a9 50%, #b0b0b0 50%);
+  background-size: 20px 20px;
+}
+
+.entry-sign {
+  background-color: #28a745; /* Green for ENTRY */
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.parking-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 900px;
+  position: relative;
+  flex: 1;
+}
+
+.left-lane,
+.right-lane {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 35%;
+}
+
+.parking-spot-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.access-lane {
+  width: 60px;
+  height: 20px;
+  background-color: #a9a9a9;
+  border-top: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  margin-right: 10px; /* For left side */
+  position: relative;
+}
+
+.parking-spot-container.right-side .access-lane {
+  margin-left: 10px;
+  margin-right: 0;
+}
+
+.access-lane::before,
+.access-lane::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 30px;
+  background-color: #fff;
+  top: -5px;
+}
+
+.access-lane::before {
+  left: 0;
+}
+
+.access-lane::after {
+  right: 0;
+}
+
+.parking-spot {
+  width: 80px;
+  height: 50px;
+  background-color: #fff;
+  border: 2px solid #000;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  position: relative;
+}
+
+.parking-spot::before,
+.parking-spot::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 15px;
+  background-color: #000;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.parking-spot::before {
+  top: -15px;
+}
+
+.parking-spot::after {
+  bottom: -15px;
+}
+
+.parking-spot.occupied {
+  background-color: #ff4500;
+  cursor: not-allowed;
+}
+
+.parking-spot.occupied .spot-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.parking-spot.occupied .occupied-spot-img {
+  width: 70%;
+  height: auto;
+}
+
+.spot-btn {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.spot-btn.active {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.spot-btn:hover:not(.active) {
+  background-color: #e9ecef;
+}
+
+.main-road {
+  width: 30%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.road-boundary {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: #fff;
+}
+
+.road-boundary.left {
+  left: 20%;
+}
+
+.road-boundary.right {
+  right: 20%;
+}
+
+.road-marking {
+  width: 2px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to bottom,
+    #fff 0,
+    #fff 20px,
+    #a9a9a9 20px,
+    #a9a9a9 40px
+  );
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.exit-sign {
+  background-color: #ffd700; /* Yellow for EXIT */
+  color: #000;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform {
+  transform-style: preserve-3d;
+  transition: all 0.3s ease;
+}
+
+.scale-125 {
+  transform: scale(1.25);
+}
+
+.scale-90 {
+  transform: scale(0.9);
+}
+
+.rotate-y-0 {
+  transform: rotateY(0deg);
+}
+
+.rotate-y-15 {
+  transform: rotateY(15deg);
+}
+
+.rotate-y--15 {
+  transform: rotateY(-15deg);
+}
+
+.opacity-100 {
+  opacity: 1;
+}
+
+.opacity-70 {
+  opacity: 0.7;
+}
+.force-horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  gap: 2rem !important; /* Equivalent to space-x-8 */
+}
 @supports (backdrop-filter: blur(5px)) {
   .modal-backdrop.show {
     backdrop-filter: blur(5px);

@@ -6,8 +6,8 @@ interface ParkingVisualizationProps {
   parkingId: string;
   selectedSpot: string | null;
   setSelectedSpot: (spotId: string | null) => void;
-  selectedStartTime: string; // ⛔ missing
-  selectedEndTime: string;   // ⛔ missing
+  selectedStartTime: string;
+  selectedEndTime: string;
 }
 
 interface ParkingSpot {
@@ -24,24 +24,22 @@ const ParkingVisualization = ({
   selectedSpot,
   setSelectedSpot,
   selectedStartTime,
-  selectedEndTime
+  selectedEndTime,
 }: ParkingVisualizationProps) => {
   const navigate = useNavigate();
   const [parkingSpots, setParkingSpots] = useState<ParkingSpot[]>([]);
-  const [occupiedSpots, setOccupiedSpots] = useState<ParkingSpot[]>([]);
   const [parkingInfo, setParkingInfo] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [reservations, setReservations] = useState<any[]>([]); // Initialize as an empty array
+  const [reservations, setReservations] = useState<any[]>([]);
 
-  // Mapping each spot to the required format
   const mapSpotData = (spot: any) => {
     return {
       id: spot.numero,
       _id: spot._id,
       position: spot.numero.match(/[0-9]+/)[0] % 7 === 0 || spot.numero.match(/[0-9]+/)[0] <= 2 ? 'right' : 'left',
       row: determineCustomRow(spot.numero),
-      disponibilite: spot.disponibilite, // Ensure availability status is included
+      disponibilite: spot.disponibilite,
     };
   };
 
@@ -56,31 +54,27 @@ const ParkingVisualization = ({
       try {
         setLoading(true);
 
-        // Fetch parking details (info such as name, rate, etc.)
         const parkingResponse = await axios.get(`http://localhost:4000/api/parking/${parkingId}`);
         const parkingData = parkingResponse.data;
-        console.log('Fetched parking details:', parkingData); // Log parking info
+        console.log('Fetched parking details:', parkingData);
         setParkingInfo(parkingData);
 
-
-
-        const reservationsResponse = await axios.get(`http://localhost:4000/api/reservations/by-parking/${parkingId}`)
-      .catch(err => {
-        if (err.response && err.response.status === 404) {
-          console.warn("No reservations found for this parking.");
-          return { data: { data: [] } }; // simulate empty reservation list
-        }
-        throw err; // rethrow for other types of errors
-      });
+        const reservationsResponse = await axios.get(`http://localhost:4000/api/reservations/by-parking/${parkingId}`).catch(err => {
+          if (err.response && err.response.status === 404) {
+            console.warn("No reservations found for this parking.");
+            return { data: { data: [] } };
+          }
+          throw err;
+        });
         const allReservations = reservationsResponse.data?.data || [];
         setReservations(allReservations);
-        console.log("allReservations",allReservations)
+        console.log("allReservations", allReservations);
 
         const spotsResponse = await axios.get(`http://localhost:4000/api/parking-spots/by-parking/${parkingId}`);
-        console.log('Fetched parking spots:', spotsResponse.data); // Log parking spots data
+        console.log('Fetched parking spots:', spotsResponse.data);
         if (spotsResponse.data && spotsResponse.data.data) {
-          const spots = spotsResponse.data.data.map(mapSpotData); // Map spots data before setting
-          setParkingSpots(spots); // Make sure this contains the correct spots data
+          const spots = spotsResponse.data.data.map(mapSpotData);
+          setParkingSpots(spots);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -91,128 +85,110 @@ const ParkingVisualization = ({
     };
 
     fetchData();
-  }, [parkingId]);  // Only re-run when parkingId changes
+  }, [parkingId]);
 
   const determineCustomRow = (spotNumber: string) => {
     const number = parseInt(spotNumber.replace(/[^0-9]/g, ''));
     return number <= 2 ? number : number - 2;
   };
 
-  // Function to check if a spot is occupied based on reservation dates
   const isSpotOccupied = (spotId: string) => {
     const selectedStart = new Date(selectedStartTime);
     const selectedEnd = new Date(selectedEndTime);
-  
+
     const result = reservations.some((reservation: any) => {
       if (reservation.parkingSpot !== spotId) return false;
-  
+
       const reservationStart = new Date(reservation.startDate);
       const reservationEnd = new Date(reservation.endDate);
-  
+
       const overlap = selectedStart < reservationEnd && selectedEnd > reservationStart;
       return overlap;
     });
-  
+
     console.log(`>>> Final result for spot ${spotId}: ${result}`);
     return result;
   };
-  
 
   const handleSelectSpot = (event: React.MouseEvent<HTMLButtonElement>, spotId: string) => {
     event.preventDefault();
-    if (isSpotOccupied(spotId)) {
-      return; // Do not select the spot if it's occupied
-    }
-    setSelectedSpot(spotId); // Save the MongoDB _id instead of spot.numero
-  };
-
-  const renderPath = (label: string) => {
-    const maxRows = Math.max(parkingSpots.filter(spot => spot.position === 'left').length,
-      parkingSpots.filter(spot => spot.position === 'right').length);
-    return Array.from({ length: maxRows }, (_, i) => (
-      <div className={`${label.toLowerCase()}-path-segment`} key={`${label}-${i}`}>
-        {i === Math.floor(maxRows / 2) && <div className={`${label.toLowerCase()}-label`}>{label}</div>}
-      </div>
-    ));
+    if (isSpotOccupied(spotId)) return;
+    setSelectedSpot(spotId);
   };
 
   const renderSpots = (spots: ParkingSpot[], side: 'left' | 'right') => {
-    const emptyCount = Math.max(parkingSpots.length - spots.length, 0);
-    const placeholders = Array.from({ length: emptyCount }, (_, i) => (
-      <div className={`parking-side ${side}-side mb-3`} key={`empty-${side}-${i}`}>
-        <div className="spot-placeholder empty"></div>
-      </div>
-    ));
-
-    const renderedSpots = spots.map((spot) => {
+    const sortedSpots = spots.sort((a, b) => parseInt(a.id.replace(/[^0-9]/g, '')) - parseInt(b.id.replace(/[^0-9]/g, '')));
+    return sortedSpots.map((spot) => {
       const isSelected = selectedSpot === spot._id;
       const occupied = isSpotOccupied(spot._id);
-      
 
       return (
-        <div className={`parking-side ${side}-side mb-3`} key={`${side}-${spot.id}`}>
-          {occupied ? (
-            <div className="spot-placeholder">
-              <img src="/assets/img/car2D.png" alt="Occupied" className="occupied-spot-img" />
-            </div>
-          ) : (
-            <button
-              className={`spot-btn ${isSelected ? 'active' : ''}`}
-              onClick={(e) => handleSelectSpot(e, spot._id)}
-            >
-              {spot.id}
-            </button>
-          )}
+        <div className={`parking-spot-container ${side}-side`} key={spot._id}>
+          <div className="access-lane"></div>
+          <div className={`parking-spot ${occupied ? 'occupied' : ''}`}>
+            {occupied ? (
+              <div className="spot-placeholder">
+                <img src="/assets/img/car2D.png" alt="Occupied" className="occupied-spot-img" />
+              </div>
+            ) : (
+              <button
+                className={`spot-btn ${isSelected ? 'active' : ''}`}
+                onClick={(e) => handleSelectSpot(e, spot._id)}
+              >
+                {spot.id.replace(/[^0-9]/g, '')}
+              </button>
+            )}
+          </div>
         </div>
       );
     });
-
-    return side === 'left'
-      ? [...renderedSpots, ...placeholders]
-      : [...placeholders, ...renderedSpots];
   };
-
 
   const generateParkingLayout = () => {
     const leftSpots = parkingSpots.filter(spot => spot.position === 'left');
     const rightSpots = parkingSpots.filter(spot => spot.position === 'right');
-    const maxRows = Math.max(leftSpots.length, rightSpots.length);
 
     return (
-      <div className="d-flex justify-content-between">
-        <div className="w-30 px-1">{renderSpots(leftSpots, 'left')}</div>
-        <div className="exit-path-container w-15 px-1">{renderPath('EXIT')}</div>
-        <div className="w-30 px-1">{renderSpots(rightSpots, 'right')}</div>
-        <div className="entry-path-container w-15 ps-1">{renderPath('ENTRY')}</div>
+      <div className="parking-layout">
+        <div className="entry-sign">ENTRY</div>
+        <div className="parking-container">
+          <div className="left-lane">
+            {renderSpots(leftSpots, 'left')}
+          </div>
+          <div className="main-road">
+            <div className="road-boundary left"></div>
+            <div className="road-boundary right"></div>
+            <div className="road-marking"></div>
+          </div>
+          <div className="right-lane">
+            {renderSpots(rightSpots, 'right')}
+          </div>
+        </div>
+        <div className="exit-sign">EXIT</div>
       </div>
     );
   };
 
   if (loading) return <div className="text-center p-5"><span className="spinner-border"></span></div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
-
-  if (!parkingSpots.length) {
-    return <div className="text-center p-5">No available parking spots.</div>;
-  }
+  if (!parkingSpots.length) return <div className="text-center p-5">No available parking spots.</div>;
 
   return (
     <div className="page-wrapper">
-      <div className="content container-fluid">
-        <div className="row justify-content-center">
-          <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-4">
+      <div class="content container-fluid">
+        <div class="row justify-content-center">
+          <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-4">
             <h4>Select Parking Spot - {parkingInfo?.nom}</h4>
             {parkingInfo && (
-              <div className="small text-muted">
+              <div class="small text-muted">
                 Price: {parkingInfo.tarif_horaire}$ per hour • {parkingInfo.nbr_place} total spots
               </div>
             )}
           </div>
 
-          <div className="card border-0 shadow-lg">
-            <div className="card-body p-4">
-              <div className="parking-layout">
-                {generateParkingLayout()}
-              </div>
+          <div class="card border-0 shadow-lg">
+            <div class="card-body p-4">
+              {generateParkingLayout()}
             </div>
           </div>
         </div>
@@ -222,4 +198,3 @@ const ParkingVisualization = ({
 };
 
 export default ParkingVisualization;
-
