@@ -266,6 +266,7 @@ const AllService = () => {
     }
   };
 
+
   const addParking = async (e) => {
     e.preventDefault();
     const validationErrors = validateForm(newParking);
@@ -274,8 +275,10 @@ const AllService = () => {
       return;
     }
     try {
-      await axios.post("http://localhost:4000/api/parking", newParking);
+      const response = await axios.post("http://localhost:4000/api/parking", newParking);
       showToast('success', 'Success', 'Parking added successfully');
+      console.log(response.data.parking._id)
+      await createParkingSpots(response.data.parking._id);
       createModalRef.current?.hide();
       fetchServices();
       setNewParking({
@@ -291,6 +294,54 @@ const AllService = () => {
     } catch (error) {
       console.error("Error adding parking:", error);
       showToast('error', 'Error', 'Failed to add parking');
+    }
+  };
+  const createParkingSpots = async (parkingId: string) => {
+    const spotsToCreate = [
+      { numero: "A01" },
+      { numero: "A02" },
+      { numero: "A03" },
+      { numero: "A04" },
+      { numero: "A05" },
+      { numero: "A06" },
+      { numero: "A07" }
+    ];
+  
+    let createdCount = 0;
+    const maxRetries = 2;
+    console.log(parkingId)
+  
+    for (const spot of spotsToCreate) {
+      let retryCount = 0;
+      let success = false;
+  
+      while (retryCount <= maxRetries && !success) {
+        try {
+          await axios.post("http://localhost:4000/api/parking-spots", {
+            parkingId,
+            numero: spot.numero
+          });
+          createdCount++;
+          success = true;
+        } catch (error) {
+          retryCount++;
+          if (retryCount > maxRetries) {
+            console.error(`Failed to create spot ${spot.numero} after ${maxRetries} attempts`);
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // wait 1 second before retry
+          }
+        }
+      }
+    }
+  
+    if (createdCount === spotsToCreate.length) {
+      showToast('success', 'Success', 'All parking spots created successfully');
+    } else {
+      showToast(
+        'warn', 
+        'Partial Success', 
+        `Created ${createdCount} of ${spotsToCreate.length} parking spots`
+      );
     }
   };
 
