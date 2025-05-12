@@ -101,14 +101,42 @@ const HomeHeader: React.FC<props> = ({ type }) => {
     }
   };
 
-  const [user, setUser] = useState<{ email: string; role?: string } | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    // Retrieve user data from localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error("No token found in localStorage");
+          return;
+        }
+
+        const response = await fetch('http://localhost:4000/api/auth/profile', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          console.error("Failed to fetch user data");
+          return;
+        }
+
+        const userData = await response.json();
+        setUser(userData);
+
+        // Ensure the image URL is correctly formatted
+        if (userData.image) {
+          setImagePreview(userData.image.startsWith("//") ? `https:${userData.image}` : userData.image);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
   }, []);
 
   // Determine which header data to use based on user role
@@ -136,32 +164,53 @@ const HomeHeader: React.FC<props> = ({ type }) => {
   
   const renderButtons = (pathType: number) => {
     if (user && user.email) {
-      // User is logged in
       return (
         <ul className="nav header-navbar-rht">
           <li className="nav-item dropdown">
             <Link
-              className="nav-link dropdown-toggle"
+              className="nav-link dropdown-toggle d-flex align-items-center"
               to="#"
               id="userDropdown"
               role="button"
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              <i className="ti ti-user" /> {user.email}
+               <span className="user-email me-2">{user.email}</span> 
+              <span className="user-img">
+                <img
+                  src={imagePreview || 'assets/img/user.jpg'} // Use user image or default
+                  alt="User"
+                  className="rounded-circle"
+                  width={40}
+                  height={40}
+                  onError={(e) => (e.currentTarget.src = 'assets/img/user.jpg')} // Fallback to default image
+                />
+              </span>
             </Link>
-            <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-              <li>
+            <ul className="dropdown-menu dropdown-menu-end p-3 shadow" style={{ minWidth: '250px' }}>
+              <li className="text-center mb-3">
+                <img
+                  src={imagePreview || 'assets/img/user.jpg'} // Use user image or default
+                  alt="User"
+                  className="rounded-circle mb-2"
+                  style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                  onError={(e) => (e.currentTarget.src = 'assets/img/user.jpg')} // Fallback to default image
+                />
+                <h6 className="mb-0">{user.firstname || 'Guest'} {user.lastname || ''}</h6>
+                <small className="text-muted">{user.role || 'User'}</small>
+              </li>
+             <li>
                 <Link 
                   className="dropdown-item" 
                   to={user.role === 'admin' ? routes.dashboard : '/providers/dashboard'}
                 >
-                  <i className="fas fa-tachometer-alt me-2"></i>Dashboard
+                  <i className="ti ti-dashboard me-2"></i> Dashboard
                 </Link>
               </li>
+              
               <li>
-                <Link className="dropdown-item" to="/logout" onClick={handleLogout}>
-                  <i className="fas fa-sign-out-alt me-2"></i>Logout
+                <Link className="dropdown-item text-danger" to="#" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt me-2"></i> Log Out
                 </Link>
               </li>
             </ul>
@@ -169,7 +218,6 @@ const HomeHeader: React.FC<props> = ({ type }) => {
         </ul>
       );
     } else {
-      // User is not logged in
       return (
         <ul className="nav header-navbar-rht">
           <li className="nav-item pe-1">
@@ -179,7 +227,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
           </li>
           <li className="nav-item">
             <Link className="nav-link btn btn-linear-primary" to="#" data-bs-toggle="modal" data-bs-target="#register-modal">
-              <i className="ti ti-user-filled me-2" />Join Us
+              <i className="fas fa-user-plus me-2" />Join Us
             </Link>
           </li>
         </ul>

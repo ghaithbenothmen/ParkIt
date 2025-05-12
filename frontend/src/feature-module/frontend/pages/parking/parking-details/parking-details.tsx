@@ -546,15 +546,23 @@ const ParkingDetails = () => {
                               <div className="d-flex align-items-center justify-content-between flex-wrap">
                                 <div className="d-flex align-items-center mb-2">
                                   <span className="avatar avatar-lg me-2 flex-shrink-0">
-                                    <ImageWithBasePath
-                                      src="assets/img/profiles/avatar-01.jpg"
+                                    <img
+                                      src={
+                                        review.userId?.image
+                                          ? review.userId.image.startsWith("//")
+                                            ? `https:${review.userId.image}`
+                                            : review.userId.image
+                                          : "assets/img/user.jpg" // Default image
+                                      }
+                                      alt="User"
                                       className="rounded-circle"
-                                      alt="img"
+                                      style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                                      onError={(e) => (e.currentTarget.src = "assets/img/user.jpg")} // Fallback to default image
                                     />
                                   </span>
                                   <div>
                                     <h6 className="fs-16 fw-medium">
-                                      {review.userId?.firstname || 'Utilisateur'}
+                                      {review.userId?.firstname || "Utilisateur"}
                                     </h6>
                                     <div className="d-flex align-items-center flex-wrap date-info">
                                       <p className="fs-14 mb-0">
@@ -565,10 +573,10 @@ const ParkingDetails = () => {
                                 </div>
                                 <span
                                   className={`badge bg-${
-                                    review.rating >= 4 ? 'success' : 'danger'
+                                    review.rating >= 4 ? "success" : "danger"
                                   } d-inline-flex align-items-center mb-2`}
                                 >
-                                  <span style={{ marginRight: '5px' }}>★</span>
+                                  <span style={{ marginRight: "5px" }}>★</span>
                                   {review.rating}
                                 </span>
                               </div>

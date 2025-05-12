@@ -789,7 +789,7 @@ const Dashboard = () => {
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
                         <h2 className="text-xl font-semibold text-gray-800">Time of Reservation</h2>
-                        <Link to={routes.booking} className="btn btn-viewall bg-pink-600 text-white hover:bg-pink-700">
+                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-primary-dark">
                           View All
                           <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                         </Link>
@@ -829,7 +829,7 @@ const Dashboard = () => {
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
                         <h2 className="text-xl font-semibold text-gray-800">Reservation Statistics</h2>
-                        <Link to={routes.booking} className="btn btn-viewall bg-blue-600 text-white hover:bg-blue-700">
+                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-success-dark">
                           View All
                           <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                         </Link>
@@ -939,7 +939,7 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Top Parking</h2>
-                    <Link to={routes.allServices} className="btn btn-viewall bg-green-600 text-white hover:bg-green-700">
+                    <Link to={routes.allServices} className="btn btn-viewall bg-primary text-white hover:bg-danger-dark">
                       View All
                       <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
@@ -970,7 +970,7 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Top Users</h2>
-                    <Link to={routes.users} className="btn btn-viewall bg-purple-600 text-white hover:bg-purple-700">
+                    <Link to={routes.users} className="btn btn-viewall bg-primary text-white hover:bg-warning-dark">
                       View All
                       <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
@@ -1003,7 +1003,7 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Recent Booking</h2>
-                    <Link to={routes.booking} className="btn btn-viewall bg-indigo-600 text-white hover:bg-indigo-700">
+                    <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-indigo-700">
                       View All
                       <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>

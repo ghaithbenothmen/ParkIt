@@ -1,10 +1,8 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AboutUs from './about-us/about-us';
 
 import ContactUs from './contact-us/contact-us';
 import BookingDetails from '../providers/provider-booking/booking-details';
-import PaymentSetting from '../providers/settings/payment-setting';
 
 
 import Map from './map/Map';
@@ -14,12 +12,7 @@ import ParkingDetails from './parking/parking-details/parking-details';
 
 const PagesRoutes = () => {
   const all_pages_routes = [
-    {
-      path: '/about-us',
-      name: 'about-us',
-      element: <AboutUs />,
-      route: Route,
-    },
+ 
 
    
     {
@@ -38,12 +31,7 @@ const PagesRoutes = () => {
     },
 
 
-    {
-      path: '/payment-setting',
-      name: 'payment-setting',
-      element: <PaymentSetting />,
-      route: Route,
-    },
+ 
 
 
     {
