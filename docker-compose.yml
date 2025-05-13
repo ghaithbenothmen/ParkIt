@@ -34,7 +34,25 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: parkit
     volumes:
       - db-data:/data/db
+  
+  ia-reclamation:
+    build:
+      context: ./ia-reclamation
+      dockerfile: Dockerfile
+    container_name: ia-reclamation
+    ports:
+      - "8000:8000"
+    entrypoint: /bin/bash  # Override entrypoint to keep container running
+    tty: true
+    volumes:
+      - ./ia-reclamation:/app
+      - ./type:/app/type
+    environment:
+      - DOCKER_ENV=true
+    depends_on:
+      - mongo
 
+  
   lpr:
     build:
       context: ./lpr-python

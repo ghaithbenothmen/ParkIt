@@ -23,7 +23,7 @@ const ClaimSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['Valid', 'Pending', 'Resolved', 'Rejected'],
-    default: 'Valid',
+    default: 'Pending', // Default changed to Pending
   },
   submissionDate: {
     type: Date,
@@ -68,32 +68,21 @@ ClaimSchema.pre('save', async function (next) {
       claimType: this.claimType,
       status: { $in: ['Valid', 'Pending'] },
     });
-    if (similarClaims >= 3) {
-      score += 5;
-    }
+    if (similarClaims >= 3) score += 5;
 
     // Claims for the same parking
     const parkingClaims = await mongoose.model('Claim').countDocuments({
       parkingId: this.parkingId,
       status: { $in: ['Valid', 'Pending'] },
     });
-    if (parkingClaims >= 3) {
-      score += 3;
-    }
+    if (parkingClaims >= 3) score += 3;
 
     // User role
     const user = await mongoose.model('User').findById(this.userId);
-    if (user && user.role === 'admin') {
-      score += 3;
-    }
+    if (user && user.role === 'admin') score += 3;
 
-    // Presence of an image
-    if (this.image) {
-      score += 2;
-      this.status = 'Valid';
-    } else {
-      this.status = 'Pending';
-    }
+    // Presence of an image (optional bonus, but status is set by classification)
+    if (this.image) score += 2;
 
     this.priority = score;
   }

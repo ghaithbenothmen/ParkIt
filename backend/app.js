@@ -20,6 +20,8 @@ const reviewRoutes = require('./routes/review.route');
 const lprRoutes = require('./routes/lpr.route'); // Importer la route LPR
 const notificationRoutes = require('./routes/notification.route'); // Importer la route Notification
 const badgeRoutes = require('./routes/badge.route');
+const claimRoutes = require('./routes/claim.route');
+
 
 
 
@@ -92,6 +94,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/lpr', lprRoutes); // Utiliser la route LPR ici
 app.use('/api/notifications', notificationRoutes); // Utiliser la route Notification ici
 app.use('/api/badges', badgeRoutes);
+app.use('/api/claims', claimRoutes);
+
 
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
