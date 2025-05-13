@@ -65,92 +65,52 @@ const Booking = () => {
       try {
         const res = await axios.get(`http://localhost:4000/api/reservations`);
         console.log("Fetched reservations:", res.data);
-        setReservations(res.data.data);
+        const reservationsData = res.data.data;
+
+        // Fetch all additional data in parallel
+        const updatedReservations = await Promise.all(
+          reservationsData.map(async (reservation) => {
+            let parkingData = null;
+            let spotData = null;
+            let userData = null;
+
+            try {
+              if (reservation.parkingId) {
+                const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+                parkingData = parkingRes.data;
+              }
+              if (reservation.parkingSpot) {
+                const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+                spotData = spotRes.data.data;
+              }
+              if (reservation.userId) {
+                const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+                userData = {
+                  firstname: userRes.data.firstname,
+                  email: userRes.data.email,
+                };
+              }
+            } catch (error) {
+              console.error('Error fetching related data:', error);
+            }
+
+            return {
+              ...reservation,
+              parking: parkingData,
+              parkingS: spotData,
+              user: userData,
+            };
+          })
+        );
+
+        setReservations(updatedReservations);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
       }
     };
 
     fetchReservations();
-  }, []);
-
-  useEffect(() => {
-    const fetchParkings = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.parkingId && !reservation.parking) {
-          try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;
-          } catch (error) {
-            console.error('Error fetching parking details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchParkings();
-    }
-  }, [reservations]);
-
-  useEffect(() => {
-    const fetchParkingSpots = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-
-        if (reservation.parkingSpot && !reservation.parkingS) {
-          try {
-            console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
-            console.log("Parking spot fetched:", spotRes.data);
-            updatedReservations[i].parkingS = spotRes.data.data;
-          } catch (error) {
-            console.error('Error fetching parking spot for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchParkingSpots();
-    }
-  }, [reservations]);
-
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.userId && !reservation.user) {
-          try {
-            const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
-            updatedReservations[i].user = {
-              firstname: userRes.data.firstname,
-              email: userRes.data.email,
-            };
-          } catch (error) {
-            console.error('Error fetching user details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchUserDetails();
-    }
-  }, [reservations]);
+  }, []); // Empty dependency array as we only want to fetch once
 
   const statusButton = (rowData: BookingInterface) => {
     if (rowData.status === 'Completed') {
