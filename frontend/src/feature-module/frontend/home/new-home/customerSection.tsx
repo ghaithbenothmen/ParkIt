@@ -36,7 +36,7 @@ const CustomerSection = () => {
     try {
       const reviewsRes = await axios.get('http://localhost:4000/api/reviews');
       const sortedReviews = reviewsRes.data.sort((a: Review, b: Review) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        b.rating - a.rating  // Trier par rating en ordre décroissant
       );
       setReviews(sortedReviews);
 
