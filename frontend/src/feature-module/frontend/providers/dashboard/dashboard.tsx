@@ -19,7 +19,7 @@ interface Reservation {
   parkingSpot: string;
   parking: {
     nom: string;
-    image: string;
+    images?: string[];
     adresse: string;
   } | null;
   parkingS: {
@@ -39,13 +39,14 @@ interface Parking {
   averageRating: number;
   createdAt: string;
   updatedAt: string;
+  images?: string[];
 }
 
 interface Review {
   _id: string;
   parkingId: {
     nom: string;
-    image: string;
+    images?: string[];
   };
   rating: number;
   comment: string;
@@ -65,7 +66,7 @@ const getBadgeStyle = (badgeName: string) => {
     case 'Silver':
       return { background: 'linear-gradient(145deg, #c0c0c0, #a9a9a9)', color: 'black' };
     case 'Gold':
-      return { background: 'linear-gradient(145deg, #ffd700, #e6c200)', color: 11 };
+      return { background: 'linear-gradient(145deg, #ffd700, #e6c200)', color: 'black' };
     default:
       return { background: 'linear-gradient(145deg, #e0e0e0, #c7c7c7)', color: 'black' };
   }
@@ -636,11 +637,23 @@ const ProviderDashboard = () => {
                     >
                       <div className="d-flex">
                         <Link to={`/parkings/parking-details/${parking._id}`} className="avatar avatar-lg me-2">
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="rounded-circle"
-                            alt="Parking"
-                          />
+                          {parking.images && parking.images.length > 0 ? (
+                            <img
+                              src={parking.images[0]}
+                              className="rounded-circle"
+                              alt="Parking"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'assets/img/parking.jpg';
+                              }}
+                            />
+                          ) : (
+                            <ImageWithBasePath
+                              src="assets/img/parking.jpg"
+                              className="rounded-circle"
+                              alt="Parking"
+                            />
+                          )}
                         </Link>
                         <div>
                           <Link to={`/parkings/parking-details/${parking._id}`} className="fw-medium mb-0">
@@ -691,11 +704,23 @@ const ProviderDashboard = () => {
                                   to={routes.bookingDetails}
                                   className="avatar avatar-sm flex-shrink-0 me-1"
                                 >
-                                  <ImageWithBasePath
-                                    src="assets/img/parking.jpg"
-                                    className="rounded-circle"
-                                    alt="Img"
-                                  />
+                                  {reservation.parking?.images && reservation.parking.images.length > 0 ? (
+                                    <img
+                                      src={reservation.parking.images[0]}
+                                      className="rounded-circle"
+                                      alt="Img"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = 'assets/img/parking.jpg';
+                                      }}
+                                    />
+                                  ) : (
+                                    <ImageWithBasePath
+                                      src="assets/img/parking.jpg"
+                                      className="rounded-circle"
+                                      alt="Img"
+                                    />
+                                  )}
                                 </Link>
                                 <div>
                                   <Link to={routes.bookingDetails} className="fw-medium text-sm">
@@ -760,11 +785,23 @@ const ProviderDashboard = () => {
                         <div className="d-flex justify-content-between align-items-center">
                           <div className="d-flex">
                             <Link to="#" className="avatar avatar-sm flex-shrink-0 me-1">
-                              <ImageWithBasePath
-                                src="assets/img/parking.jpg"
-                                className="rounded-circle"
-                                alt="Parking"
-                              />
+                              {review.parkingId.images && review.parkingId.images.length > 0 ? (
+                                <img
+                                  src={review.parkingId.images[0]}
+                                  className="rounded-circle"
+                                  alt="Parking"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = 'assets/img/parking.jpg';
+                                  }}
+                                />
+                              ) : (
+                                <ImageWithBasePath
+                                  src="assets/img/parking.jpg"
+                                  className="rounded-circle"
+                                  alt="Parking"
+                                />
+                              )}
                             </Link>
                             <div>
                               <h6 className="fw-medium text-sm mb-0">{review.parkingId.nom}</h6>
@@ -806,11 +843,23 @@ const ProviderDashboard = () => {
                     >
                       <div className="d-flex">
                         <Link to={routes.map} className="avatar avatar-sm me-1">
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="rounded-circle"
-                            alt="Parking"
-                          />
+                          {parking.images && parking.images.length > 0 ? (
+                            <img
+                              src={parking.images[0]}
+                              className="rounded-circle"
+                              alt="Parking"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'assets/img/parking.jpg';
+                              }}
+                            />
+                          ) : (
+                            <ImageWithBasePath
+                              src="assets/img/parking.jpg"
+                              className="rounded-circle"
+                              alt="Parking"
+                            />
+                          )}
                         </Link>
                         <div>
                           <Link to={routes.map} className="fw-medium text-sm">

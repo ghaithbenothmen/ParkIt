@@ -38,9 +38,7 @@ const FeatureSection = () => {
       const response = await axios.get('http://localhost:4000/api/parking');
       const normalizedParkings = response.data.map(parking => ({
         ...parking,
-        images: parking.images ? parking.images.map(img => 
-          img.startsWith('/uploads/parkings/') ? img : `/uploads/parkings/${img}`
-        ) : []
+        images: parking.images || [] // Ensure images is always an array, even if empty
       }));
       setParkings(normalizedParkings);
     } catch (err) {
@@ -85,7 +83,7 @@ const FeatureSection = () => {
                 <div className="service-img" style={{ height: '200px', overflow: 'hidden' }}>
                   {parking.images && parking.images.length > 0 ? (
                     <img
-                      src={`http://localhost:4000${parking.images[0]}`}
+                      src={parking.images[0]} // Use the Cloudinary URL directly
                       className="img-fluid w-100 h-100"
                       alt={`Parking ${parking.nom}`}
                       style={{ 

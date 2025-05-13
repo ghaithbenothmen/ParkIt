@@ -32,9 +32,7 @@ const PopularSection = () => {
       const response = await axios.get('http://localhost:4000/api/parking');
       const normalizedParkings = response.data.map(parking => ({
         ...parking,
-        images: parking.images ? parking.images.map(img => 
-          img.startsWith('/uploads/parkings/') ? img : `/uploads/parkings/${img}`
-        ) : []
+        images: parking.images || [] // Ensure images is always an array, even if empty
       }));
       setParkings(normalizedParkings);
       setFilteredParkings(normalizedParkings);
@@ -146,7 +144,7 @@ const PopularSection = () => {
                         <Link to={`/parkings/parking-details/${parking._id}`}>
                           {parking.images && parking.images.length > 0 ? (
                             <img
-                              src={`http://localhost:4000${parking.images[0]}`}
+                              src={parking.images[0]} // Use the Cloudinary URL directly
                               className="img-fluid"
                               alt={parking.nom}
                               style={{

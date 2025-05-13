@@ -165,9 +165,7 @@ const ParkingDetails = () => {
       .then((response) => {
         const parkingData = {
           ...response.data,
-          images: response.data.images ? response.data.images.map(img => 
-            img.startsWith('/uploads/parkings/') ? img : `/uploads/parkings/${img}`
-          ) : []
+          images: response.data.images || [] // Ensure images is always an array, even if empty
         };
         setParking(parkingData);
         setLoading(false);
@@ -313,9 +311,7 @@ const ParkingDetails = () => {
                           {imagesToDisplay.map((image, index) => (
                             <div className="service-img" key={index}>
                               <img
-                                src={image.startsWith('/uploads/') 
-                                  ? `http://localhost:4000${image}`
-                                  : image}
+                                src={image} // Use the Cloudinary URL directly
                                 className="img-fluid"
                                 alt={`Parking ${parking?.nom} ${index + 1}`}
                                 style={{ 
@@ -341,9 +337,7 @@ const ParkingDetails = () => {
                         {imagesToDisplay.map((image, index) => (
                           <div key={index}>
                             <img
-                              src={image.startsWith('/uploads/') 
-                                ? `http://localhost:4000${image}`
-                                : image}
+                              src={image} // Use the Cloudinary URL directly
                               className="img-fluid"
                               alt={`Thumbnail ${index + 1}`}
                               style={{ 
@@ -618,7 +612,7 @@ const ParkingDetails = () => {
                       >
                         <TileLayer
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         />
                         <Marker
                           position={[parking.latitude, parking.longitude]}
@@ -642,9 +636,7 @@ const ParkingDetails = () => {
         open={lightboxOpen}
         close={() => setLightboxOpen(false)}
         slides={imagesToDisplay.map(image => ({
-          src: image.startsWith('/uploads/') 
-            ? `http://localhost:4000${image}`
-            : image,
+          src: image, // Use the Cloudinary URL directly
           alt: `Parking ${parking?.nom}`
         }))}
         index={currentImageIndex}
