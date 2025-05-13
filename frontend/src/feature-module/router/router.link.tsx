@@ -18,7 +18,6 @@ import GoogleCallback from '../admin/authentication/GoogleCallback';
 import EmailForgetPassword from '../frontend/pages/authentication/emailForgetPassword';
 import ActivationSuccess from '../frontend/home/new-home/ActivationSuccess';
 import Map from '../frontend/pages/map/Map';
-import Map2 from '../frontend/pages/map/Map2';
 import Parking from '../frontend/pages/parking/parking';
 import EmbeddedCheckoutForm from './EmbeddedCheckoutForm';
 import PaymentSuccess from '../frontend/home/new-home/PaymentSuccess';
@@ -63,13 +62,6 @@ const publicRoutes = [
     element: <Map />,
     route: Route,
   },
-  {
-    path: '/map2',
-    name: 'map2',
-    element: <Map2 />,
-    route: Route,
-  },
-  
   {
     path: routes.index,
     name: 'Home',
