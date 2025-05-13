@@ -12,6 +12,7 @@ import axios from "axios";
 import { Modal } from "bootstrap";
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import { FileUpload } from 'primereact/fileupload';
 
 // Configuration de l'icône Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -95,52 +96,83 @@ LocationMarker.propTypes = {
   }).isRequired
 };
 
-const ViewLocationMap = ({ position }) => {
-  const mapRef = useRef(null);
-  const mapContainerRef = useRef(null);
+const ImageGalleryModal = ({ images, onClose }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  useEffect(() => {
-    if (mapRef.current && position) {
-      mapRef.current.setView(position, 15);
-      setTimeout(() => {
-        mapRef.current.invalidateSize();
-      }, 0);
-    }
-  }, [position]);
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  };
 
   return (
-    <div 
-      ref={mapContainerRef}
-      style={{ 
-        height: '500px',  // Augmenté de 400px à 500px
-        width: '100%',
-        borderRadius: '8px', 
-        overflow: 'hidden' 
-      }}
-    >
-      <MapContainer 
-        center={position} 
-        zoom={15} 
-        style={{ height: '100%', width: '100%' }}
-        whenReady={(map) => {
-          mapRef.current = map.target;
-          map.target.invalidateSize();
-        }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        <Marker position={position}>
-          <Popup>Parking Location</Popup>
-        </Marker>
-      </MapContainer>
+    <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.8)' }}>
+      <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="modal-content border-0 bg-transparent">
+          <div className="modal-header border-0">
+            <button 
+              type="button" 
+              className="btn-close btn-close-white" 
+              onClick={onClose}
+              aria-label="Close"
+            ></button>
+          </div>
+          <div className="modal-body text-center">
+            <div className="position-relative">
+              <img 
+                src={`http://localhost:4000${images[currentImageIndex]}`}
+                alt={`Parking ${currentImageIndex + 1}`}
+                className="img-fluid rounded shadow-lg"
+                style={{ maxHeight: '70vh', maxWidth: '100%' }}
+              />
+              {images.length > 1 && (
+                <>
+                  <button 
+                    className="position-absolute top-50 start-0 translate-middle-y btn btn-dark rounded-circle p-2"
+                    onClick={prevImage}
+                    style={{ left: '10px' }}
+                  >
+                    <Icon.ChevronLeft size={24} />
+                  </button>
+                  <button 
+                    className="position-absolute top-50 end-0 translate-middle-y btn btn-dark rounded-circle p-2"
+                    onClick={nextImage}
+                    style={{ right: '10px' }}
+                  >
+                    <Icon.ChevronRight size={24} />
+                  </button>
+                </>
+              )}
+            </div>
+            {images.length > 1 && (
+              <div className="d-flex justify-content-center mt-3">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`btn btn-sm mx-1 ${index === currentImageIndex ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setCurrentImageIndex(index)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-ViewLocationMap.propTypes = {
-  position: PropTypes.arrayOf(PropTypes.number).isRequired
+ImageGalleryModal.propTypes = {
+  images: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onClose: PropTypes.func.isRequired
 };
 
 const AllService = () => {
@@ -155,6 +187,7 @@ const AllService = () => {
     disponibilite: true,
     latitude: "",
     longitude: "",
+    images: []
   });
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -164,6 +197,11 @@ const AllService = () => {
   const [updateMapPosition, setUpdateMapPosition] = useState([36.8065, 10.1815]);
   const [userPosition, setUserPosition] = useState(null);
   const [routingControl, setRoutingControl] = useState(null);
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [updateUploadedImages, setUpdateUploadedImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [currentGalleryImages, setCurrentGalleryImages] = useState([]);
   
   const toast = useRef(null);
   const createModalRef = useRef(null);
@@ -173,6 +211,8 @@ const AllService = () => {
   const createMapRef = useRef(null);
   const updateMapRef = useRef(null);
   const mainMapRef = useRef(null);
+  const fileUploadRef = useRef(null);
+  const updateFileUploadRef = useRef(null);
 
   const fetchServices = async () => {
     try {
@@ -193,7 +233,6 @@ const AllService = () => {
     deleteModalRef.current = new Modal(document.getElementById('delete-item'));
     viewModalRef.current = new Modal(document.getElementById('view-location'));
 
-    // Get user's current position
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -266,6 +305,45 @@ const AllService = () => {
     }
   };
 
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.files);
+    if (files.length > 3) {
+      showToast('warn', 'Warning', 'You can upload maximum 3 images');
+      return;
+    }
+    setUploadedImages(files);
+  };
+
+  const handleUpdateImageUpload = (e) => {
+    const files = Array.from(e.files);
+    if (files.length + (existingImages?.length || 0) > 3) {
+      showToast('warn', 'Warning', 'You can have maximum 3 images per parking');
+      return;
+    }
+    setUpdateUploadedImages(files);
+  };
+
+  const removeImage = (index) => {
+    const newImages = [...uploadedImages];
+    newImages.splice(index, 1);
+    setUploadedImages(newImages);
+  };
+
+  const removeUpdateImage = (index) => {
+    const newImages = [...updateUploadedImages];
+    newImages.splice(index, 1);
+    setUpdateUploadedImages(newImages);
+  };
+
+  const removeExistingImage = (index) => {
+    const newImages = [...existingImages];
+    newImages.splice(index, 1);
+    setExistingImages(newImages);
+    setParkingToUpdate({
+      ...parkingToUpdate,
+      images: newImages
+    });
+  };
 
   const addParking = async (e) => {
     e.preventDefault();
@@ -274,23 +352,34 @@ const AllService = () => {
       setErrors(validationErrors);
       return;
     }
+
     try {
-      const response = await axios.post("http://localhost:4000/api/parking", newParking);
+      const formData = new FormData();
+      
+      // Ajouter les données du formulaire
+      Object.keys(newParking).forEach(key => {
+        if (key !== 'images') {
+          formData.append(key, newParking[key]);
+        }
+      });
+      
+      // Ajouter les images
+      uploadedImages.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const response = await axios.post("http://localhost:4000/api/parking", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
       showToast('success', 'Success', 'Parking added successfully');
       console.log(response.data.parking._id)
       await createParkingSpots(response.data.parking._id);
       createModalRef.current?.hide();
       fetchServices();
-      setNewParking({
-        nom: "",
-        adresse: "",
-        nbr_place: "",
-        tarif_horaire: "",
-        disponibilite: true,
-        latitude: "",
-        longitude: "",
-      });
-      setErrors({});
+      resetCreateForm();
     } catch (error) {
       console.error("Error adding parking:", error);
       showToast('error', 'Error', 'Failed to add parking');
@@ -354,22 +443,73 @@ const AllService = () => {
       return;
     }
     try {
-      await axios.put(
+      const formData = new FormData();
+      
+      // Ajouter les données du formulaire
+      Object.keys(parkingToUpdate).forEach(key => {
+        if (key !== 'images') {
+          formData.append(key, parkingToUpdate[key]);
+        }
+      });
+      
+      // Ajouter les images existantes
+      existingImages.forEach(image => {
+        formData.append('existingImages', image);
+      });
+      
+      // Ajouter les nouvelles images
+      updateUploadedImages.forEach(file => {
+        formData.append('images', file);
+      });
+
+      const response = await axios.put(
         `http://localhost:4000/api/parking/${parkingToUpdate._id}`,
-        parkingToUpdate
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
       );
+
       showToast('success', 'Success', 'Parking updated successfully');
       updateModalRef.current?.hide();
       fetchServices();
+      resetUpdateForm();
     } catch (error) {
       console.error("Error updating parking:", error);
       showToast('error', 'Error', 'Failed to update parking');
     }
   };
 
+  const resetCreateForm = () => {
+    setNewParking({
+      nom: "",
+      adresse: "",
+      nbr_place: "",
+      tarif_horaire: "",
+      disponibilite: true,
+      latitude: "",
+      longitude: "",
+      images: []
+    });
+    setUploadedImages([]);
+    setErrors({});
+    setMapPosition([36.8065, 10.1815]);
+    if (fileUploadRef.current) {
+      fileUploadRef.current.clear();
+    }
+  };
+
+  const resetUpdateForm = () => {
+    setUpdateUploadedImages([]);
+    if (updateFileUploadRef.current) {
+      updateFileUploadRef.current.clear();
+    }
+  };
+
   const handleUpdateChange = (e) => {
     const { name, value } = e.target;
-    // Ne pas permettre la modification des champs de localisation via l'input
     if (name !== 'latitude' && name !== 'longitude' && name !== 'adresse') {
       setParkingToUpdate({
         ...parkingToUpdate,
@@ -383,7 +523,6 @@ const AllService = () => {
 
   const handleCreateChange = (e) => {
     const { name, value } = e.target;
-    // Ne pas permettre la modification des champs de localisation via l'input
     if (name !== 'latitude' && name !== 'longitude' && name !== 'adresse') {
       setNewParking({
         ...newParking,
@@ -397,6 +536,8 @@ const AllService = () => {
 
   const openUpdateModal = (parking) => {
     setParkingToUpdate({ ...parking });
+    setExistingImages(parking.images || []);
+    setUpdateUploadedImages([]);
     setUpdateMapPosition([
       parseFloat(parking.latitude) || 36.8065,
       parseFloat(parking.longitude) || 10.1815
@@ -404,7 +545,6 @@ const AllService = () => {
     setErrors({});
     updateModalRef.current?.show();
     
-    // Force map resize after modal is shown
     setTimeout(() => {
       if (updateMapRef.current) {
         updateMapRef.current.invalidateSize();
@@ -421,13 +561,17 @@ const AllService = () => {
     setParkingToView(parking);
     viewModalRef.current?.show();
     
-    // Force map resize after modal is shown
     setTimeout(() => {
       const mapContainer = document.querySelector('#view-location .leaflet-container');
       if (mapContainer && mapContainer._leaflet_map) {
         mapContainer._leaflet_map.invalidateSize();
       }
     }, 300);
+  };
+
+  const openImageGallery = (images) => {
+    setCurrentGalleryImages(images);
+    setShowImageGallery(true);
   };
 
   const filteredServices = services.filter(service => {
@@ -461,6 +605,21 @@ const AllService = () => {
     );
   };
 
+  const imageBodyTemplate = (rowData) => {
+    if (!rowData.images || rowData.images.length === 0) {
+      return <span className="text-muted">No images</span>;
+    }
+    return (
+      <button 
+        className="btn btn-sm btn-outline-primary"
+        onClick={() => openImageGallery(rowData.images)}
+      >
+        <i className="fa-solid fa-images me-1"></i>
+        View Images ({rowData.images.length})
+      </button>
+    );
+  };
+
   const actionButtonsTemplate = (rowData) => {
     return (
       <div className="btn-group">
@@ -470,13 +629,6 @@ const AllService = () => {
         >
           <i className="fa-solid fa-pen-to-square me-1"></i>
           Edit
-        </button>
-        <button
-          className="btn btn-sm btn-outline-info ms-2"
-          onClick={() => openViewModal(rowData)}
-        >
-          <i className="fa-solid fa-map-location-dot me-1"></i>
-          View
         </button>
         <button
           className="btn btn-sm btn-outline-danger ms-2"
@@ -504,19 +656,17 @@ const AllService = () => {
 
     const parkingPosition = [parseFloat(parking.latitude), parseFloat(parking.longitude)];
     
-    // Remove previous routing control if exists
     if (routingControl && mainMapRef.current.hasLayer(routingControl)) {
       mainMapRef.current.removeControl(routingControl);
     }
 
-    // Create new routing control
     const newRoutingControl = L.Routing.control({
       waypoints: [
         L.latLng(userPosition[0], userPosition[1]),
         L.latLng(parkingPosition[0], parkingPosition[1])
       ],
       routeWhileDragging: true,
-      show: false, // Hide the instructions panel initially
+      show: false,
       addWaypoints: false,
       draggableWaypoints: false,
       fitSelectedRoutes: true,
@@ -545,7 +695,6 @@ const AllService = () => {
 
     setRoutingControl(newRoutingControl);
 
-    // Show route instructions in a popup
     newRoutingControl.on('routesfound', function(e) {
       const routes = e.routes;
       const summary = routes[0].summary;
@@ -572,7 +721,6 @@ const AllService = () => {
         .openOn(mainMapRef.current);
     });
 
-    // Fly to the route
     mainMapRef.current.flyToBounds([
       [userPosition[0], userPosition[1]],
       [parkingPosition[0], parkingPosition[1]]
@@ -582,6 +730,12 @@ const AllService = () => {
   return (
     <>
       <Toast ref={toast} />
+      {showImageGallery && (
+        <ImageGalleryModal 
+          images={currentGalleryImages} 
+          onClose={() => setShowImageGallery(false)} 
+        />
+      )}
       <div className="page-wrapper page-settings" style={{ height: '100vh', overflow: 'hidden' }}>
         <div className="content" style={{ height: 'calc(100% - 60px)', overflowY: 'auto' }}>
           <div className="content-page-header content-page-headersplit">
@@ -606,20 +760,8 @@ const AllService = () => {
                   <button
                     className="btn btn-primary"
                     onClick={() => {
-                      setNewParking({
-                        nom: "",
-                        adresse: "",
-                        nbr_place: "",
-                        tarif_horaire: "",
-                        disponibilite: true,
-                        latitude: "",
-                        longitude: "",
-                      });
-                      setMapPosition([36.8065, 10.1815]);
-                      setErrors({});
+                      resetCreateForm();
                       createModalRef.current?.show();
-                      
-                      // Force map resize after modal is shown
                       setTimeout(() => {
                         if (createMapRef.current) {
                           createMapRef.current.invalidateSize();
@@ -635,7 +777,6 @@ const AllService = () => {
             </div>
           </div>
 
-          {/* Carte principale des parkings */}
           <Card title="Parkings Map" className="mb-4">
             <div style={{ height: '400px', borderRadius: '8px', overflow: 'hidden' }}>
               <MapContainer 
@@ -714,6 +855,11 @@ const AllService = () => {
                       body={addressBodyTemplate}
                       style={{ width: '150px' }}
                     />
+                    <Column 
+                      header="Images" 
+                      body={imageBodyTemplate}
+                      style={{ width: '150px' }}
+                    />
                     <Column field="nbr_place" header="Places" sortable style={{ width: '100px' }} />
                     <Column 
                       field="tarif_horaire" 
@@ -746,104 +892,361 @@ const AllService = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Delete Confirmation Modal */}
-      <div className="modal fade" id="delete-item" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header border-0">
-              <h5 className="modal-title">Confirm Deletion</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
-                data-bs-dismiss="modal" 
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body py-4">
-              <p>Are you sure you want to delete the parking <strong>{parkingToDelete?.nom}</strong>?</p>
-              <p className="text-muted">This action cannot be undone.</p>
-            </div>
-            <div className="modal-footer border-0">
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                data-bs-dismiss="modal"
-              >
-                Cancel
-              </button>
-              <button 
-                type="button" 
-                className="btn btn-danger" 
-                onClick={deleteParking}
-              >
-                Delete Parking
-              </button>
+        {/* Delete Confirmation Modal */}
+        <div className="modal fade" id="delete-item" tabIndex={-1} aria-hidden="true">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header border-0">
+                <h5 className="modal-title">Confirm Deletion</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  data-bs-dismiss="modal" 
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body py-4">
+                <p>Are you sure you want to delete the parking <strong>{parkingToDelete?.nom}</strong>?</p>
+                <p className="text-muted">This action cannot be undone.</p>
+              </div>
+              <div className="modal-footer border-0">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  data-bs-dismiss="modal"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-danger" 
+                  onClick={deleteParking}
+                >
+                  Delete Parking
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* View Location Modal */}
-      <div className="modal fade" id="view-location" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered modal-lg">
-          <div className="modal-content">
-            <div className="modal-header border-0">
-              <h5 className="modal-title">Parking Location - {parkingToView?.nom}</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
-                data-bs-dismiss="modal" 
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body py-4">
-              {parkingToView && (
-                <>
-                  <div className="mb-3">
-                    <p><strong>Address:</strong> {parkingToView.adresse}</p>
-                    <p><strong>Coordinates:</strong> {parkingToView.latitude}, {parkingToView.longitude}</p>
-                  </div>
-                  <ViewLocationMap 
-                    position={[
-                      parseFloat(parkingToView.latitude) || 36.8065,
-                      parseFloat(parkingToView.longitude) || 10.1815
-                    ]} 
-                  />
-                </>
-              )}
-            </div>
-            <div className="modal-footer border-0">
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
+        {/* View Location Modal */}
+        <div className="modal fade" id="view-location" tabIndex={-1} aria-hidden="true">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header border-0">
+                <h5 className="modal-title">Parking Location - {parkingToView?.nom}</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  data-bs-dismiss="modal" 
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body py-4">
+                {parkingToView && (
+                  <>
+                    <div className="mb-3">
+                      <p><strong>Address:</strong> {parkingToView.adresse}</p>
+                      <p><strong>Coordinates:</strong> {parkingToView.latitude}, {parkingToView.longitude}</p>
+                    </div>
+                    <ViewLocationMap 
+                      position={[
+                        parseFloat(parkingToView.latitude) || 36.8065,
+                        parseFloat(parkingToView.longitude) || 10.1815
+                      ]} 
+                    />
+                  </>
+                )}
+              </div>
+              <div className="modal-footer border-0">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  data-bs-dismiss="modal"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Update Parking Modal */}
-      <div className="modal fade" id="update-item" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered modal-lg">
-          <div className="modal-content">
-            <div className="modal-header border-0">
-              <h5 className="modal-title">Update Parking</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
-                data-bs-dismiss="modal" 
-                aria-label="Close"
-                onClick={() => setErrors({})}
-              ></button>
+        {/* Update Parking Modal */}
+        <div className="modal fade" id="update-item" tabIndex={-1} aria-hidden="true">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header border-0">
+                <h5 className="modal-title">Update Parking</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  data-bs-dismiss="modal" 
+                  aria-label="Close"
+                  onClick={() => setErrors({})}
+                ></button>
+              </div>
+              <div className="modal-body py-4">
+                {parkingToUpdate && (
+                  <form onSubmit={updateParking}>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <div className="form-group">
+                          <label className="form-label">Name*</label>
+                          <input
+                            type="text"
+                            name="nom"
+                            value={parkingToUpdate.nom || ""}
+                            onChange={handleUpdateChange}
+                            className={`form-control ${errors.nom ? "is-invalid" : ""}`}
+                            maxLength="50"
+                          />
+                          {errors.nom && (
+                            <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
+                              {errors.nom}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="form-group">
+                          <label className="form-label">Address*</label>
+                          <input
+                            type="text"
+                            name="adresse"
+                            value={parkingToUpdate.adresse || ""}
+                            onChange={handleUpdateChange}
+                            className={`form-control ${errors.adresse ? "is-invalid" : ""}`}
+                            maxLength="300"
+                            readOnly
+                          />
+                          {errors.adresse && (
+                            <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
+                              {errors.adresse}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="form-group">
+                          <label className="form-label">Number of Places*</label>
+                          <input
+                            type="number"
+                            name="nbr_place"
+                            value={parkingToUpdate.nbr_place || ""}
+                            onChange={handleUpdateChange}
+                            className={`form-control ${errors.nbr_place ? "is-invalid" : ""}`}
+                            min="1"
+                            max="1000"
+                          />
+                          {errors.nbr_place && (
+                            <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
+                              {errors.nbr_place}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="form-group">
+                          <label className="form-label">Hourly Rate (DT)*</label>
+                          <input
+                            type="number"
+                            name="tarif_horaire"
+                            value={parkingToUpdate.tarif_horaire || ""}
+                            onChange={handleUpdateChange}
+                            className={`form-control ${errors.tarif_horaire ? "is-invalid" : ""}`}
+                            min="0.01"
+                            max="100"
+                            step="0.01"
+                          />
+                          {errors.tarif_horaire && (
+                            <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
+                              {errors.tarif_horaire}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="form-group">
+                          <label className="form-label">Status</label>
+                          <select
+                            name="disponibilite"
+                            value={parkingToUpdate.disponibilite ? "true" : "false"}
+                            onChange={handleUpdateChange}
+                            className="form-select"
+                          >
+                            <option value="true">Available</option>
+                            <option value="false">Unavailable</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="col-12">
+                        <label className="form-label">Parking Images</label>
+                        <div className="d-flex flex-wrap gap-3 mb-3">
+                          {existingImages.map((image, index) => (
+                            <div key={`existing-${index}`} className="position-relative">
+                              <img 
+                                src={`http://localhost:4000${image}`}
+                                alt={`Existing ${index}`}
+                                className="img-thumbnail"
+                                style={{ width: '100px', height: '80px', objectFit: 'cover' }}
+                              />
+                              <button
+                                type="button"
+                                className="position-absolute top-0 end-0 bg-danger text-white rounded-circle border-0"
+                                style={{ width: '24px', height: '24px', transform: 'translate(50%, -50%)' }}
+                                onClick={() => removeExistingImage(index)}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <label className="form-label">Add More Images (Max 3 total)</label>
+                        <FileUpload
+                          ref={updateFileUploadRef}
+                          name="images"
+                          accept="image/*"
+                          maxFileSize={1000000}
+                          multiple
+                          customUpload
+                          uploadHandler={handleUpdateImageUpload}
+                          chooseLabel="Select Images"
+                          uploadLabel="Upload"
+                          cancelLabel="Cancel"
+                          emptyTemplate={<p className="m-0">Drag and drop images here</p>}
+                        />
+                        <div className="d-flex flex-wrap gap-3 mt-3">
+                          {updateUploadedImages.map((file, index) => (
+                            <div key={`new-${index}`} className="position-relative">
+                              <img 
+                                src={URL.createObjectURL(file)} 
+                                alt={`Preview ${index}`}
+                                className="img-thumbnail"
+                                style={{ width: '100px', height: '80px', objectFit: 'cover' }}
+                              />
+                              <button
+                                type="button"
+                                className="position-absolute top-0 end-0 bg-danger text-white rounded-circle border-0"
+                                style={{ width: '24px', height: '24px', transform: 'translate(50%, -50%)' }}
+                                onClick={() => removeUpdateImage(index)}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="col-12">
+                        <label className="form-label">Select Location on Map*</label>
+                        <div style={{ height: '300px', borderRadius: '8px', overflow: 'hidden', marginBottom: '1rem' }}>
+                          <MapContainer 
+                            center={updateMapPosition} 
+                            zoom={13} 
+                            style={{ height: '100%', width: '100%' }}
+                            whenReady={(map) => {
+                              updateMapRef.current = map.target;
+                              map.target.invalidateSize();
+                            }}
+                            ref={updateMapRef}
+                          >
+                            <TileLayer
+                              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            />
+                            <LocationMarker 
+                              position={updateMapPosition} 
+                              setPosition={setUpdateMapPosition}
+                              setFormValues={setParkingToUpdate}
+                              formFieldNames={{ latitude: 'latitude', longitude: 'longitude' }}
+                            />
+                          </MapContainer>
+                        </div>
+                        <div className="row">
+                          <div className="col-md-6">
+                            <div className="form-group">
+                              <label className="form-label">Latitude*</label>
+                              <input
+                                type="number"
+                                name="latitude"
+                                value={parkingToUpdate.latitude || ""}
+                                onChange={handleUpdateChange}
+                                className={`form-control ${errors.latitude ? "is-invalid" : ""}`}
+                                step="any"
+                                min="-90"
+                                max="90"
+                                readOnly
+                              />
+                              {errors.latitude && (
+                                <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
+                                  {errors.latitude}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="col-md-6">
+                            <div className="form-group">
+                              <label className="form-label">Longitude*</label>
+                              <input
+                                type="number"
+                                name="longitude"
+                                value={parkingToUpdate.longitude || ""}
+                                onChange={handleUpdateChange}
+                                className={`form-control ${errors.longitude ? "is-invalid" : ""}`}
+                                step="any"
+                                min="-180"
+                                max="180"
+                                readOnly
+                              />
+                              {errors.longitude && (
+                                <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
+                                  {errors.longitude}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="modal-footer border-0 pt-4">
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary" 
+                        data-bs-dismiss="modal"
+                        onClick={() => setErrors({})}
+                      >
+                        Cancel
+                      </button>
+                      <button type="submit" className="btn btn-primary">
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
-            <div className="modal-body py-4">
-              {parkingToUpdate && (
-                <form onSubmit={updateParking}>
+          </div>
+        </div>
+
+        {/* Create Parking Modal */}
+        <div className="modal fade" id="create-item" tabIndex={-1} aria-hidden="true">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content">
+              <div className="modal-header border-0">
+                <h5 className="modal-title">Add New Parking</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  data-bs-dismiss="modal" 
+                  aria-label="Close"
+                  onClick={resetCreateForm}
+                ></button>
+              </div>
+              <div className="modal-body py-4">
+                <form onSubmit={addParking}>
                   <div className="row g-3">
                     <div className="col-md-6">
                       <div className="form-group">
@@ -851,8 +1254,8 @@ const AllService = () => {
                         <input
                           type="text"
                           name="nom"
-                          value={parkingToUpdate.nom || ""}
-                          onChange={handleUpdateChange}
+                          value={newParking.nom}
+                          onChange={handleCreateChange}
                           className={`form-control ${errors.nom ? "is-invalid" : ""}`}
                           maxLength="50"
                         />
@@ -869,8 +1272,8 @@ const AllService = () => {
                         <input
                           type="text"
                           name="adresse"
-                          value={parkingToUpdate.adresse || ""}
-                          onChange={handleUpdateChange}
+                          value={newParking.adresse}
+                          onChange={handleCreateChange}
                           className={`form-control ${errors.adresse ? "is-invalid" : ""}`}
                           maxLength="300"
                           readOnly
@@ -888,8 +1291,8 @@ const AllService = () => {
                         <input
                           type="number"
                           name="nbr_place"
-                          value={parkingToUpdate.nbr_place || ""}
-                          onChange={handleUpdateChange}
+                          value={newParking.nbr_place}
+                          onChange={handleCreateChange}
                           className={`form-control ${errors.nbr_place ? "is-invalid" : ""}`}
                           min="1"
                           max="1000"
@@ -907,8 +1310,8 @@ const AllService = () => {
                         <input
                           type="number"
                           name="tarif_horaire"
-                          value={parkingToUpdate.tarif_horaire || ""}
-                          onChange={handleUpdateChange}
+                          value={newParking.tarif_horaire}
+                          onChange={handleCreateChange}
                           className={`form-control ${errors.tarif_horaire ? "is-invalid" : ""}`}
                           min="0.01"
                           max="100"
@@ -926,8 +1329,8 @@ const AllService = () => {
                         <label className="form-label">Status</label>
                         <select
                           name="disponibilite"
-                          value={parkingToUpdate.disponibilite ? "true" : "false"}
-                          onChange={handleUpdateChange}
+                          value={newParking.disponibilite ? "true" : "false"}
+                          onChange={handleCreateChange}
                           className="form-select"
                         >
                           <option value="true">Available</option>
@@ -937,26 +1340,63 @@ const AllService = () => {
                     </div>
                     
                     <div className="col-12">
+                      <label className="form-label">Upload Images (Max 3)</label>
+                      <FileUpload
+                        ref={fileUploadRef}
+                        name="images"
+                        accept="image/*"
+                        maxFileSize={1000000}
+                        multiple
+                        customUpload
+                        uploadHandler={handleImageUpload}
+                        chooseLabel="Select Images"
+                        uploadLabel="Upload"
+                        cancelLabel="Cancel"
+                        emptyTemplate={<p className="m-0">Drag and drop images here</p>}
+                      />
+                      <div className="d-flex flex-wrap gap-3 mt-3">
+                        {uploadedImages.map((file, index) => (
+                          <div key={index} className="position-relative">
+                            <img 
+                              src={URL.createObjectURL(file)} 
+                              alt={`Preview ${index}`}
+                              className="img-thumbnail"
+                              style={{ width: '100px', height: '80px', objectFit: 'cover' }}
+                            />
+                            <button
+                              type="button"
+                              className="position-absolute top-0 end-0 bg-danger text-white rounded-circle border-0"
+                              style={{ width: '24px', height: '24px', transform: 'translate(50%, -50%)' }}
+                              onClick={() => removeImage(index)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="col-12">
                       <label className="form-label">Select Location on Map*</label>
                       <div style={{ height: '300px', borderRadius: '8px', overflow: 'hidden', marginBottom: '1rem' }}>
                         <MapContainer 
-                          center={updateMapPosition} 
+                          center={mapPosition} 
                           zoom={13} 
                           style={{ height: '100%', width: '100%' }}
                           whenReady={(map) => {
-                            updateMapRef.current = map.target;
+                            createMapRef.current = map.target;
                             map.target.invalidateSize();
                           }}
-                          ref={updateMapRef}
+                          ref={createMapRef}
                         >
                           <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                           />
                           <LocationMarker 
-                            position={updateMapPosition} 
-                            setPosition={setUpdateMapPosition}
-                            setFormValues={setParkingToUpdate}
+                            position={mapPosition} 
+                            setPosition={setMapPosition}
+                            setFormValues={setNewParking}
                             formFieldNames={{ latitude: 'latitude', longitude: 'longitude' }}
                           />
                         </MapContainer>
@@ -968,8 +1408,8 @@ const AllService = () => {
                             <input
                               type="number"
                               name="latitude"
-                              value={parkingToUpdate.latitude || ""}
-                              onChange={handleUpdateChange}
+                              value={newParking.latitude}
+                              onChange={handleCreateChange}
                               className={`form-control ${errors.latitude ? "is-invalid" : ""}`}
                               step="any"
                               min="-90"
@@ -989,8 +1429,8 @@ const AllService = () => {
                             <input
                               type="number"
                               name="longitude"
-                              value={parkingToUpdate.longitude || ""}
-                              onChange={handleUpdateChange}
+                              value={newParking.longitude}
+                              onChange={handleCreateChange}
                               className={`form-control ${errors.longitude ? "is-invalid" : ""}`}
                               step="any"
                               min="-180"
@@ -1012,238 +1452,16 @@ const AllService = () => {
                       type="button" 
                       className="btn btn-secondary" 
                       data-bs-dismiss="modal"
-                      onClick={() => setErrors({})}
+                      onClick={resetCreateForm}
                     >
                       Cancel
                     </button>
                     <button type="submit" className="btn btn-primary">
-                      Save Changes
+                      Create Parking
                     </button>
                   </div>
                 </form>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Create Parking Modal */}
-      <div className="modal fade" id="create-item" tabIndex={-1} aria-hidden="true">
-        <div className="modal-dialog modal-dialog-centered modal-lg">
-          <div className="modal-content">
-            <div className="modal-header border-0">
-              <h5 className="modal-title">Add New Parking</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
-                data-bs-dismiss="modal" 
-                aria-label="Close"
-                onClick={() => {
-                  setNewParking({
-                    nom: "",
-                    adresse: "",
-                    nbr_place: "",
-                    tarif_horaire: "",
-                    disponibilite: true,
-                    latitude: "",
-                    longitude: "",
-                  });
-                  setMapPosition([36.8065, 10.1815]);
-                  setErrors({});
-                }}
-              ></button>
-            </div>
-            <div className="modal-body py-4">
-              <form onSubmit={addParking}>
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label className="form-label">Name*</label>
-                      <input
-                        type="text"
-                        name="nom"
-                        value={newParking.nom}
-                        onChange={handleCreateChange}
-                        className={`form-control ${errors.nom ? "is-invalid" : ""}`}
-                        maxLength="50"
-                      />
-                      {errors.nom && (
-                        <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                          {errors.nom}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label className="form-label">Address*</label>
-                      <input
-                        type="text"
-                        name="adresse"
-                        value={newParking.adresse}
-                        onChange={handleCreateChange}
-                        className={`form-control ${errors.adresse ? "is-invalid" : ""}`}
-                        maxLength="300"
-                        readOnly
-                      />
-                      {errors.adresse && (
-                        <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                          {errors.adresse}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label className="form-label">Number of Places*</label>
-                      <input
-                        type="number"
-                        name="nbr_place"
-                        value={newParking.nbr_place}
-                        onChange={handleCreateChange}
-                        className={`form-control ${errors.nbr_place ? "is-invalid" : ""}`}
-                        min="1"
-                        max="1000"
-                      />
-                      {errors.nbr_place && (
-                        <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                          {errors.nbr_place}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label className="form-label">Hourly Rate (DT)*</label>
-                      <input
-                        type="number"
-                        name="tarif_horaire"
-                        value={newParking.tarif_horaire}
-                        onChange={handleCreateChange}
-                        className={`form-control ${errors.tarif_horaire ? "is-invalid" : ""}`}
-                        min="0.01"
-                        max="100"
-                        step="0.01"
-                      />
-                      {errors.tarif_horaire && (
-                        <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                          {errors.tarif_horaire}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <div className="form-group">
-                      <label className="form-label">Status</label>
-                      <select
-                        name="disponibilite"
-                        value={newParking.disponibilite ? "true" : "false"}
-                        onChange={handleCreateChange}
-                        className="form-select"
-                      >
-                        <option value="true">Available</option>
-                        <option value="false">Unavailable</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="col-12">
-                    <label className="form-label">Select Location on Map*</label>
-                    <div style={{ height: '300px', borderRadius: '8px', overflow: 'hidden', marginBottom: '1rem' }}>
-                      <MapContainer 
-                        center={mapPosition} 
-                        zoom={13} 
-                        style={{ height: '100%', width: '100%' }}
-                        whenReady={(map) => {
-                          createMapRef.current = map.target;
-                          map.target.invalidateSize();
-                        }}
-                        ref={createMapRef}
-                      >
-                        <TileLayer
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
-                        <LocationMarker 
-                          position={mapPosition} 
-                          setPosition={setMapPosition}
-                          setFormValues={setNewParking}
-                          formFieldNames={{ latitude: 'latitude', longitude: 'longitude' }}
-                        />
-                      </MapContainer>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="form-group">
-                          <label className="form-label">Latitude*</label>
-                          <input
-                            type="number"
-                            name="latitude"
-                            value={newParking.latitude}
-                            onChange={handleCreateChange}
-                            className={`form-control ${errors.latitude ? "is-invalid" : ""}`}
-                            step="any"
-                            min="-90"
-                            max="90"
-                            readOnly
-                          />
-                          {errors.latitude && (
-                            <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                              {errors.latitude}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="form-group">
-                          <label className="form-label">Longitude*</label>
-                          <input
-                            type="number"
-                            name="longitude"
-                            value={newParking.longitude}
-                            onChange={handleCreateChange}
-                            className={`form-control ${errors.longitude ? "is-invalid" : ""}`}
-                            step="any"
-                            min="-180"
-                            max="180"
-                            readOnly
-                          />
-                          {errors.longitude && (
-                            <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                              {errors.longitude}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-footer border-0 pt-4">
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
-                    data-bs-dismiss="modal"
-                    onClick={() => {
-                      setNewParking({
-                        nom: "",
-                        adresse: "",
-                        nbr_place: "",
-                        tarif_horaire: "",
-                        disponibilite: true,
-                        latitude: "",
-                        longitude: "",
-                      });
-                      setMapPosition([36.8065, 10.1815]);
-                      setErrors({});
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">
-                    Create Parking
-                  </button>
-                </div>
-              </form>
+              </div>
             </div>
           </div>
         </div>

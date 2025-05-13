@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { all_routes } from '../../../../core/data/routes/all_routes';
 import { Link } from 'react-router-dom';
 import Slider from 'react-slick';
 import axios from 'axios';
@@ -31,8 +30,14 @@ const PopularSection = () => {
   const fetchParkings = async () => {
     try {
       const response = await axios.get('http://localhost:4000/api/parking');
-      setParkings(response.data);
-      setFilteredParkings(response.data);
+      const normalizedParkings = response.data.map(parking => ({
+        ...parking,
+        images: parking.images ? parking.images.map(img => 
+          img.startsWith('/uploads/parkings/') ? img : `/uploads/parkings/${img}`
+        ) : []
+      }));
+      setParkings(normalizedParkings);
+      setFilteredParkings(normalizedParkings);
     } catch (error) {
       console.error('Error fetching parkings:', error);
     }
@@ -50,14 +55,24 @@ const PopularSection = () => {
     }
   };
 
+  const renderStars = (rating: number) => {
+    return [...Array(5)].map((_, index) => (
+      <i
+        key={index}
+        className={`fas fa-star ${index < rating ? 'text-warning' : 'text-muted'}`}
+        style={{ fontSize: '12px' }}
+      />
+    ));
+  };
+
   const imgslideroption = {
     dots: false,
-    arrows: true, // Ajout des flèches de navigation
-    infinite: false, // Changé à false pour éviter la duplication
+    arrows: true,
+    infinite: false,
     speed: 500,
     swipe: true,
     slidesToShow: 4,
-    slidesToScroll: 4, // Modifié pour défiler par groupe de 4
+    slidesToScroll: 4,
     responsive: [
       {
         breakpoint: 1000,
@@ -83,17 +98,6 @@ const PopularSection = () => {
     ],
   };
 
-  // Ajouter cette fonction pour le rendu des étoiles
-  const renderStars = (rating: number) => {
-    return [...Array(5)].map((_, index) => (
-      <i
-        key={index}
-        className={`fas fa-star ${index < rating ? 'text-warning' : 'text-muted'}`}
-        style={{ fontSize: '12px' }}
-      />
-    ));
-  };
-
   return (
     <section className="section popular-section">
       <div className="container">
@@ -110,7 +114,6 @@ const PopularSection = () => {
           </div>
         </div>
 
-        {/* Rating Filter Tabs */}
         <div className="filter-buttons-container mb-4">
           <button
             className={`filter-button ${activeRating === 0 ? 'active' : ''}`}
@@ -132,21 +135,44 @@ const PopularSection = () => {
           ))}
         </div>
 
-        {/* Parkings Display */}
         <div className="tab-content">
           <div className="tab-pane fade active show">
             {filteredParkings.length > 0 ? (
               <Slider {...imgslideroption} className="main-slider">
                 {filteredParkings.map((parking) => (
                   <div key={parking._id} className="p-2">
-                    <div className="service-item wow fadeInUp" data-wow-delay="0.2s">
-                      <div className="service-img">
-                        <Link to={`/parkings/parking-details/${parking._id}`}> {/* Modifié ici */}
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="img-fluid"
-                            alt={parking.nom}
-                          />
+                    <div className="service-item wow fadeInUp" data-wow-delay="0.2s" style={{ height: '100%' }}>
+                      <div className="service-img" style={{ height: '200px', overflow: 'hidden' }}>
+                        <Link to={`/parkings/parking-details/${parking._id}`}>
+                          {parking.images && parking.images.length > 0 ? (
+                            <img
+                              src={`http://localhost:4000${parking.images[0]}`}
+                              className="img-fluid"
+                              alt={parking.nom}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '8px 8px 0 0'
+                              }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'http://localhost:4000/uploads/parkings/default.jpg';
+                              }}
+                            />
+                          ) : (
+                            <ImageWithBasePath
+                              src="assets/img/parking.jpg"
+                              className="img-fluid"
+                              alt={parking.nom}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '8px 8px 0 0'
+                              }}
+                            />
+                          )}
                         </Link>
                         <div className="fav-item d-flex align-items-center justify-content-between w-100">
                           <span className="fs-14 text-white bg-dark px-2 py-1 rounded">
@@ -157,18 +183,21 @@ const PopularSection = () => {
                           </Link>
                         </div>
                       </div>
-                      <div className="service-content">
-                        <h6 className="mb-1 text-truncate">
-                          <Link to={`/parkings/parking-details/${parking._id}`}> {/* Modifié ici aussi */}
-                            {parking.nom}
-                          </Link>
-                        </h6>
-                        <div className="d-flex align-items-center justify-content-between">
+                      <div className="service-content p-3" style={{ height: 'calc(100% - 200px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <div>
+                          <h6 className="mb-1 text-truncate">
+                            <Link to={`/parkings/parking-details/${parking._id}`}>
+                              {parking.nom}
+                            </Link>
+                          </h6>
+                          <p className="text-muted mb-2">{parking.adresse}</p>
+                        </div>
+                        <div className="d-flex align-items-center justify-content-between mt-2">
                           <p className="fs-14 mb-0">
                             <i className="ti ti-star-filled text-warning me-1" />
                             {parking.averageRating.toFixed(1)} ({parking.reviewCount} reviews)
                           </p>
-                          <small>{parking.tarif_horaire}DT/hour</small>
+                          <small className="text-primary fw-bold">{parking.tarif_horaire}DT/hour</small>
                         </div>
                       </div>
                     </div>
