@@ -12,6 +12,7 @@ const { getAccessToken } = require('../utils/googleAuth.js');
 
 exports.dialogflow = async (req, res) => {
     try {
+        console.log("sssssssssssssssssssssssssssssssssss", req.body.query);
         // Get the access token
         const accessToken = await getAccessToken();
         console.log('Access token retrieved:', accessToken);
