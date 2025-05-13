@@ -16,6 +16,23 @@ interface Review {
   createdAt: string;
 }
 
+const RatingStars: React.FC<{ rating: number }> = ({ rating }) => {
+  const stars = Array(5).fill(0).map((_, index) => index + 1);
+  return (
+    <div className="d-flex">
+      {stars.map((star) => (
+        <Icon.Star
+          key={star}
+          size={18}
+          fill={star <= rating ? '#007bff' : 'none'}
+          stroke="#007bff"
+          style={{ fontWeight: star <= rating ? 'bold' : 'normal', marginRight: '2px' }}
+        />
+      ))}
+    </div>
+  );
+};
+
 const Reviews = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [filteredReviews, setFilteredReviews] = useState<Review[]>([]);
@@ -26,9 +43,11 @@ const Reviews = () => {
   const [formData, setFormData] = useState({ rating: 5, comment: '' });
   const [errors, setErrors] = useState<any>({});
   const [reviewId, setReviewId] = useState<string | null>(null);
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const toast = useRef<Toast>(null);
   const deleteModalRef = useRef<any>(null);
   const editModalRef = useRef<any>(null);
+  const viewModalRef = useRef<any>(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -55,6 +74,7 @@ const Reviews = () => {
     fetchReviews();
     deleteModalRef.current = new Modal(document.getElementById('delete-review-modal')!);
     editModalRef.current = new Modal(document.getElementById('edit-review')!);
+    viewModalRef.current = new Modal(document.getElementById('view-review')!);
   }, []);
 
   useEffect(() => {
@@ -211,9 +231,39 @@ const Reviews = () => {
     return new Date(rowData.createdAt).toLocaleDateString();
   };
 
+  const handleRowClick = (e: any) => {
+    setSelectedReview(e.data);
+    viewModalRef.current?.show();
+  };
+
   return (
     <>
       <Toast ref={toast} />
+      <style>
+        {`
+          #view-review .btn-close {
+            background: none;
+            position: relative;
+            width: 24px;
+            height: 24px;
+            opacity: 1;
+          }
+          #view-review .btn-close::before,
+          #view-review .btn-close::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 2px;
+            background-color: #007bff;
+            transform: translate(-50%, -50%) rotate(45deg);
+          }
+          #view-review .btn-close::after {
+            transform: translate(-50%, -50%) rotate(-45deg);
+          }
+        `}
+      </style>
       <div className="page-wrapper page-settings" style={{ height: '100vh', overflow: 'hidden' }}>
         <div className="content" style={{ height: 'calc(100% - 60px)', overflowY: 'auto' }}>
           <div className="content-page-header content-page-headersplit">
@@ -263,6 +313,9 @@ const Reviews = () => {
                   loading={loading}
                   emptyMessage="No reviews found"
                   className="mt-3"
+                  onRowClick={handleRowClick}
+                  rowHover
+                  style={{ cursor: 'pointer' }}
                 >
                   <Column sortable field="parkingId.nom" header="Parking" />
                   <Column
@@ -273,8 +326,12 @@ const Reviews = () => {
                       `${rowData.userId?.firstname || 'Unknown'} ${rowData.userId?.lastname || ''}`
                     }
                   />
-                  <Column sortable field="rating" header="Rating" />
-                  <Column sortable field="comment" header="Comment" />
+                  <Column
+                    sortable
+                    field="rating"
+                    header="Rating"
+                    body={(rowData) => <RatingStars rating={rowData.rating} />}
+                  />
                   <Column sortable field="createdAt" header="Created At" body={formatDate} />
                   <Column header="Actions" body={actionButton} />
                 </DataTable>
@@ -375,6 +432,43 @@ const Reviews = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="modal fade" id="view-review" tabIndex={-1} aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Review Details</h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              {selectedReview ? (
+                <>
+                  <div className="mb-3">
+                    <h6>Rating</h6>
+                    <RatingStars rating={selectedReview.rating} />
+                  </div>
+                  <div className="mb-3">
+                    <h6>Comment</h6>
+                    <p>{selectedReview.comment || 'No comment provided'}</p>
+                  </div>
+                </>
+              ) : (
+                <p>No review selected</p>
+              )}
+            </div>
+            <div className="modal-footer border-0">
+              <button type="button" className="btn btn-primary" data-bs-dismiss="modal">
+                Close
+              </button>
             </div>
           </div>
         </div>

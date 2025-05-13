@@ -50,13 +50,15 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
     user_id = body.session.rsplit("/", 1)[-1]
 
     # Build payload and fulfillment
-    payload = {"userId": "681e0311194a61f3427ddec8"}
+    payload = {"userId": "67c73ea3191de590b7f141ad"}
     fulfillment_text = ""
     redirect = ""
 
     # Handle each intent's parameters
     if intent == "BookParking":
-        parking_name = params.get("parkingName")
+        parking_name = params.get("parkingName") or "mourouj"
+        if parking_name.lower().startswith("m"):
+            parking_name = "mourouj"
         start_str = params.get("startDate")
         end_str = params.get("endDate")
         duration = params.get("duration")
