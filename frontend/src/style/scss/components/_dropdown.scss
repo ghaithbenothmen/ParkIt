@@ -1,3 +1,4 @@
+//@import 'path/to/bootstrap/scss/variables';  // Import the Bootstrap variables
 .dropdown-auto {
 	overflow: auto;
 }
@@ -300,6 +301,10 @@
   position: static;
   display: block;
 }
+/*.p-dropdown-item:hover {
+  background-color: $primary !important;
+  color: white !important;
+}*/
 .card-dropdown {
   & > a {
       background: $white;

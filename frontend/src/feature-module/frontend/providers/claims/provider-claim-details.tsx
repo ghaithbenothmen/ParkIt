@@ -289,7 +289,7 @@ const ClaimDetails = () => {
                     <div className="row booking">
                       {/* Booking History */}
                       <div className="col-md-6">
-                        <h6 className="order-title">Resrvation History</h6>
+                        <h6 className="order-title">Claim History</h6>
                         <div className="book-history">
                           
                         </div>

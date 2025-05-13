@@ -69,6 +69,21 @@ exports.ajouterParking = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+exports.getParkingByName = async (req, res) => {
+    try {
+      const name = req.params.name.toLowerCase();
+      const parking = await Parking.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+  
+      if (!parking) {
+        return res.status(404).json({ message: "Parking not found" });
+      }
+  
+      res.status(200).json(parking);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
+  
 
 exports.modifierParking = async (req, res) => {
   try {
