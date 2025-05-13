@@ -267,27 +267,6 @@ useEffect(() => {
                         className="shape-06 round-animate"
                       />
                     </div>
-                    <div className="d-flex align-items-center flex-wrap">
-                      <h6 className="mb-2 me-2 fw-medium">Popular Searches</h6>
-                      <Link
-                        to={routes.search}
-                        className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
-                      >
-                        Malls
-                      </Link>
-                      <Link
-                        to={routes.search}
-                        className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
-                      >
-                        Hospitals
-                      </Link>
-                      <Link
-                        to={routes.search}
-                        className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
-                      >
-                        Airports
-                      </Link>
-                    </div>
                     <div className="d-flex align-items-center flex-wrap banner-info">
                     <div className="d-flex align-items-center me-4 mt-4">
                       <ImageWithBasePath src="assets/img/icons/success-01.svg" alt="icon" />

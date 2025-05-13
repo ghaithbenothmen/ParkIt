@@ -236,7 +236,12 @@ const PendingBooking = () => {
                                         body={(rowData) => formatDate(rowData.endDate)}
                                         sortable
                                     />
-                                    <Column field="totalPrice" header="Total Price" sortable />
+                                    <Column 
+                                        field="totalPrice" 
+                                        header="Total Price" 
+                                        sortable
+                                        body={(rowData) => `${rowData.totalPrice} DT`}
+                                    />
                                     <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
                                     <Column
                                         header="Address"

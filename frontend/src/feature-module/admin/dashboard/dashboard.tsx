@@ -605,15 +605,6 @@ const Dashboard = () => {
                       </span>
                       <h6>Total User</h6>
                     </div>
-                    <div className="home-useraction">
-                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
-                        <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                      </Link>
-                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
-                        <li><Link to="#" className="dropdown-item">View</Link></li>
-                        <li><Link to="#" className="dropdown-item">Edit</Link></li>
-                      </ul>
-                    </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
@@ -637,15 +628,6 @@ const Dashboard = () => {
                     <div className="home-usercount">
                       <span><i className="fas fa-parking"></i></span>
                       <h6>Parking</h6>
-                    </div>
-                    <div className="home-useraction">
-                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
-                        <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                      </Link>
-                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
-                        <li><Link to={routes.allServices} className="dropdown-item">View</Link></li>
-                        <li><Link to={routes.editService} className="dropdown-item">Edit</Link></li>
-                      </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
@@ -671,22 +653,13 @@ const Dashboard = () => {
                       <span><ImageWithBasePath src="assets/admin/img/icons/money.svg" alt="img" /></span>
                       <h6>Income</h6>
                     </div>
-                    <div className="home-useraction">
-                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
-                        <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                      </Link>
-                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
-                        <li><Link to={routes.membership} className="dropdown-item">View</Link></li>
-                        <li><Link to="#" className="dropdown-item">Edit</Link></li>
-                      </ul>
-                    </div>
                   </div>
                   <div className="home-usercontent">
                     <div className="home-usercontents">
                       <div className="home-usercontentcount">
                         <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={650}>
-                          ${resCountTot !== null ? resCountTot : 'Loading...'}
+                          {resCountTot !== null ? resCountTot : 'Loading...'} DT
                         </span>
                       </div>
                     </div>
@@ -703,15 +676,6 @@ const Dashboard = () => {
                     <div className="home-usercount">
                       <span><i className="fas fa-parking"></i></span>
                       <h6>Total Reservations</h6>
-                    </div>
-                    <div className="home-useraction">
-                      <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
-                        <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                      </Link>
-                      <ul className="dropdown-menu" data-popper-placement="bottom-end">
-                        <li><Link to={routes.booking} className="dropdown-item">View</Link></li>
-                        <li><Link to={routes.editService} className="dropdown-item">Edit</Link></li>
-                      </ul>
                     </div>
                   </div>
                   <div className="home-usercontent">
@@ -818,15 +782,6 @@ const Dashboard = () => {
                   <div className="home-head-user">
                     <h2 className="text-xl font-semibold text-gray-800">Reservations Summary</h2>
                     <div className="home-select">
-                      <div className="dropdown">
-                        <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
-                          <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                        </Link>
-                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
-                          <li><Link to="#" className="dropdown-item">View</Link></li>
-                          <li><Link to="#" className="dropdown-item">Edit</Link></li>
-                        </ul>
-                      </div>
                     </div>
                   </div>
                   <div className="chartgraph">
@@ -853,16 +808,6 @@ const Dashboard = () => {
                           <li><Link to="#" className="dropdown-item">Weekly</Link></li>
                           <li><Link to="#" className="dropdown-item">Monthly</Link></li>
                           <li><Link to="#" className="dropdown-item">Yearly</Link></li>
-                        </ul>
-                      </div>
-                      <div className="dropdown">
-                        <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
-                          <i className="fa fa-ellipsis-v" aria-hidden="true" />
-                          inhibitory
-                        </Link>
-                        <ul className="dropdown-menu" data-popper-placement="bottom-end">
-                          <li><Link to="#" className="dropdown-item">View</Link></li>
-                          <li><Link to="#" className="dropdown-item">Edit</Link></li>
                         </ul>
                       </div>
                     </div>
@@ -982,7 +927,12 @@ const Dashboard = () => {
                           body={(rowData) => formatDate(rowData.endDate)}
                           sortable
                         />
-                        <Column field="totalPrice" header="Total Price" sortable />
+                        <Column 
+                          field="totalPrice" 
+                          header="Total Price" 
+                          sortable
+                          body={(rowData) => `${rowData.totalPrice} DT`}
+                        />
                         <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
                         <Column
                           header="Address"

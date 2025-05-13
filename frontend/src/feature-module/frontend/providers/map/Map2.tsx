@@ -469,7 +469,7 @@ const MapPage2 = () => {
                           </span>
                         </p>
                         <p className="fw-bold text-end text-xs" style={{ color: "#9b0e16" }}>
-                          {parking.tarif_horaire} TND / hour
+                          {parking.tarif_horaire} DT / hour
                         </p>
                         <button
                           className="btn btn-sm btn-danger w-100 mb-2"

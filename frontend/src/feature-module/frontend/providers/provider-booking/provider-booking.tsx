@@ -453,7 +453,7 @@ const ProviderBooking = () => {
                             </li>
                             <li className="d-flex align-items-center mb-2">
                               <span className="book-item">Amount</span>
-                              <small className="me-2">:</small> ${reservation.totalPrice.toFixed(2)}
+                              <small className="me-2">:</small>{reservation.totalPrice.toFixed(2)} DT
                               <span
                                 className={`badge ms-2 ${
                                   reservation.status === 'pending' ||

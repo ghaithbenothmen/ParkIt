@@ -2,12 +2,18 @@ import React from 'react';
 import * as Icon from 'react-feather';
 import { all_routes } from '../routes/all_routes';
 const routes = all_routes;
+
 const handleLogout = () => {
-  // Ajoute ici la logique pour déconnecter l'utilisateur
-  console.log("User logged out");
-  // Exemple : localStorage.clear(); ou appel API de déconnexion
-  window.location.href = "/login"; // Redirige vers la page de connexion
+  // Nettoyer complètement le localStorage
+  localStorage.clear();
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('role');
+  
+  // Rediriger vers la page de login
+  window.location.href = '/home';
 };
+
 export const adminSidebar = [
   {
     tittle: 'Home',

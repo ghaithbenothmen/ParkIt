@@ -913,7 +913,7 @@ const AllService = () => {
                       field="tarif_horaire" 
                       header="Hourly Rate" 
                       sortable 
-                      body={(rowData) => `DT${rowData.tarif_horaire}`}
+                      body={(rowData) => `${rowData.tarif_horaire}DT`}
                       style={{ width: '120px' }}
                     />
                     <Column 

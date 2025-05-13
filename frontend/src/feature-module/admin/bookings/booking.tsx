@@ -207,7 +207,7 @@ const Booking = () => {
   };
 
   return (
-    <>
+    <div>
       <div className="page-wrapper page-settings">
         <div className="content">
           <div className="content-page-header content-page-headersplit">
@@ -216,8 +216,7 @@ const Booking = () => {
               <ul>
                 <li>
                   <div className="filter-sorting">
-                    <ul>
-                    </ul>
+                    <ul></ul>
                   </div>
                 </li>
               </ul>
@@ -234,7 +233,7 @@ const Booking = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link to={routes.pendingBooking}>Pending </Link>
+                      <Link to={routes.pendingBooking}>Pending</Link>
                     </li>
                     <li>
                       <Link to={routes.completedBooking}>Completed</Link>
@@ -248,7 +247,7 @@ const Booking = () => {
             </div>
           </div>
           <div className="row">
-            <div className="col-12 ">
+            <div className="col-12">
               <div className="table-resposnive table-div">
                 <table className="table datatable">
                   <DataTable
@@ -271,7 +270,12 @@ const Booking = () => {
                       body={(rowData) => formatDate(rowData.endDate)}
                       sortable
                     />
-                    <Column field="totalPrice" header="Total Price" sortable />
+                    <Column 
+                      field="totalPrice" 
+                      header="Total Price" 
+                      sortable
+                      body={(rowData) => `${rowData.totalPrice} DT`}
+                    />
                     <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
                     <Column
                       header="Address"
@@ -286,7 +290,7 @@ const Booking = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
