@@ -13,6 +13,8 @@ const { getAccessToken } = require('../utils/googleAuth.js');
 exports.dialogflow = async (req, res) => {
     try {
         console.log("sssssssssssssssssssssssssssssssssss", req.body.query);
+        console.log("Received userId:", req.body.userId); // ✅ Added log
+
         // Get the access token
         const accessToken = await getAccessToken();
         console.log('Access token retrieved:', accessToken);
@@ -25,13 +27,21 @@ exports.dialogflow = async (req, res) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                queryInput: {
-                    text: {
-                        text: req.body.query,
-                        languageCode: 'en-US'
-                    }
-                }
-            }),
+        queryInput: {
+            text: {
+            text: req.body.query,
+            languageCode: 'en-US'
+            }
+        },
+        queryParams: {
+            payload: {
+              fields: {
+                userId: { stringValue: req.body.userId, kind: 'stringValue' }
+              }
+            }
+          }
+        }),
+
         });
 
         // Check if the response is OK
