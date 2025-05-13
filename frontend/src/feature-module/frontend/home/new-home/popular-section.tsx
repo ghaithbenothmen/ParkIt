@@ -30,10 +30,13 @@ const PopularSection = () => {
   const fetchParkings = async () => {
     try {
       const response = await axios.get('http://localhost:4000/api/parking');
-      const normalizedParkings = response.data.map(parking => ({
-        ...parking,
-        images: parking.images || [] // Ensure images is always an array, even if empty
-      }));
+      const normalizedParkings = response.data
+        .map(parking => ({
+          ...parking,
+          images: parking.images || [] // Ensure images is always an array, even if empty
+        }))
+        .sort((a, b) => b.averageRating - a.averageRating); // Tri par note décroissante
+      
       setParkings(normalizedParkings);
       setFilteredParkings(normalizedParkings);
     } catch (error) {
