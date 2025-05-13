@@ -14,6 +14,7 @@ interface Reservation {
   status: string;
   parkingSpot: string;
   parking: {
+    _id:string;
     nom: string;
     images?: string[]; // Updated to array of Cloudinary URLs
     adresse: string;
@@ -391,7 +392,8 @@ const ProviderBooking = () => {
                     <div className="card-body d-md-flex align-items-center">
                       <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
                         <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                          <Link to={routes.map2} className="avatar">
+                          <Link to={`/providers/map2/${reservation.parking?._id}`} className="avatar">
+                          
                             {reservation.parking?.images && reservation.parking.images.length > 0 ? (
                               <img
                                 src={reservation.parking.images[0]}

@@ -13,7 +13,8 @@ import {
   AdminDashboardOne,
   AdminDashboardTwo,
 } from '../../../core/models/interface';
-import { AdminDashboardThree } from '../../../core/data/json/admin-dashboard3';
+import { format } from 'date-fns';
+import TruncatedAddress from './TruncatedAddress';
 
 interface Reservation {
   _id: string;
@@ -129,7 +130,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchParkings = async () => {
       const updatedReservations = [...reservations];
-      let hasChanges = false; // Track if any changes are made
+      let hasChanges = false;
 
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
@@ -137,14 +138,13 @@ const Dashboard = () => {
           try {
             const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
             updatedReservations[i].parking = parkingRes.data;
-            hasChanges = true; // Mark that changes were made
+            hasChanges = true;
           } catch (error) {
             console.error('Error fetching parking details for reservation:', reservation._id, error);
           }
         }
       }
 
-      // Only update state if changes were made
       if (hasChanges) {
         setReservations(updatedReservations);
       }
@@ -172,7 +172,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchParkingSpots = async () => {
       const updatedReservations = [...reservations];
-      let hasChanges = false; // Track if any changes are made
+      let hasChanges = false;
 
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
@@ -182,14 +182,13 @@ const Dashboard = () => {
             const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
             console.log("Parking spot fetched:", spotRes.data);
             updatedReservations[i].parkingS = spotRes.data.data;
-            hasChanges = true; // Mark that changes were made
+            hasChanges = true;
           } catch (error) {
             console.error('Error fetching parking spot for reservation:', reservation._id, error);
           }
         }
       }
 
-      // Only update state if changes were made
       if (hasChanges) {
         setReservations(updatedReservations);
       }
@@ -233,13 +232,11 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserDetails = async () => {
       const updatedReservations = [...reservations];
-      const fetchedUserIds = new Set(); // Track already fetched user IDs
-      let hasChanges = false; // Track if any changes are made
+      const fetchedUserIds = new Set();
+      let hasChanges = false;
 
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
-
-        // Only fetch user details if not already fetched
         if (reservation.userId && !reservation.user && !fetchedUserIds.has(reservation.userId)) {
           try {
             const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
@@ -247,15 +244,14 @@ const Dashboard = () => {
               firstname: userRes.data.firstname,
               email: userRes.data.email,
             };
-            fetchedUserIds.add(reservation.userId); // Mark user as fetched
-            hasChanges = true; // Mark that changes were made
+            fetchedUserIds.add(reservation.userId);
+            hasChanges = true;
           } catch (error) {
             console.error('Error fetching user details for reservation:', reservation._id, error);
           }
         }
       }
 
-      // Only update state if changes were made
       if (hasChanges) {
         setReservations(updatedReservations);
       }
@@ -264,76 +260,7 @@ const Dashboard = () => {
     if (reservations.length > 0) {
       fetchUserDetails();
     }
-  }, [reservations]); // Only run when reservations change
-
-  useEffect(() => {
-    const fetchParkings = async () => {
-      const updatedReservations = [...reservations];
-      let hasChanges = false; // Track if any changes are made
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.parkingId && !reservation.parking) {
-          try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;
-            hasChanges = true; // Mark that changes were made
-          } catch (error) {
-            console.error('Error fetching parking details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      // Only update state if changes were made
-      if (hasChanges) {
-        setReservations(updatedReservations);
-      }
-    };
-
-    if (reservations.length > 0) {
-      fetchParkings();
-    }
-  }, [reservations]); // Only run when reservations change
-
-  useEffect(() => {
-    const fetchParkingSpots = async () => {
-      const updatedReservations = [...reservations];
-      let hasChanges = false; // Track if any changes are made
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.parkingSpot && !reservation.parkingS) {
-          try {
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
-            updatedReservations[i].parkingS = spotRes.data.data;
-            hasChanges = true; // Mark that changes were made
-          } catch (error) {
-            console.error('Error fetching parking spot for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      // Only update state if changes were made
-      if (hasChanges) {
-        setReservations(updatedReservations);
-      }
-    };
-
-    if (reservations.length > 0) {
-      fetchParkingSpots();
-    }
-  }, [reservations]); // Only run when reservations change
-
-  const renderUserDetails = (rowData: Reservation) => {
-    return rowData.user ? (
-      <div>
-        <div>{rowData.user.firstname}</div>
-        <div>{rowData.user.email}</div>
-      </div>
-    ) : (
-      '—'
-    );
-  };
+  }, [reservations]);
 
   const fetchUserCount = async () => {
     try {
@@ -481,7 +408,6 @@ const Dashboard = () => {
 
   const data1 = useSelector((state: AdminDashboardOne) => state.admin_dashboard_1);
   const data2 = useSelector((state: AdminDashboardTwo) => state.admin_dashboard_2);
-  const data3 = useSelector((state: AdminDashboardThree) => state.admin_dashboard_3);
 
   const Revenue = {
     series: [
@@ -643,6 +569,27 @@ const Dashboard = () => {
     },
   ];
 
+  const renderUserDetails = (rowData: Reservation) => {
+    return rowData.user ? (
+      <div>
+        <div>{rowData.user.firstname}</div>
+        <div>{rowData.user.email}</div>
+      </div>
+    ) : (
+      '—'
+    );
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return format(date, 'yyyy-MM-dd hha');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  };
+
   return (
     <div className="page-wrapper">
       <div className="content">
@@ -789,7 +736,7 @@ const Dashboard = () => {
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
                         <h2 className="text-xl font-semibold text-gray-800">Time of Reservation</h2>
-                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-primary-dark">
+                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white">
                           View All
                           <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                         </Link>
@@ -829,7 +776,7 @@ const Dashboard = () => {
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
                         <h2 className="text-xl font-semibold text-gray-800">Reservation Statistics</h2>
-                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-success-dark">
+                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white ">
                           View All
                           <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                         </Link>
@@ -911,6 +858,7 @@ const Dashboard = () => {
                       <div className="dropdown">
                         <Link className="delete-table bg-white" to="#" data-bs-toggle="dropdown" aria-expanded="true">
                           <i className="fa fa-ellipsis-v" aria-hidden="true" />
+                          inhibitory
                         </Link>
                         <ul className="dropdown-menu" data-popper-placement="bottom-end">
                           <li><Link to="#" className="dropdown-item">View</Link></li>
@@ -939,7 +887,7 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Top Parking</h2>
-                    <Link to={routes.allServices} className="btn btn-viewall bg-primary text-white hover:bg-danger-dark">
+                    <Link to={routes.allServices} className="btn btn-viewall bg-primary text-white ">
                       View All
                       <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
@@ -950,12 +898,16 @@ const Dashboard = () => {
                         value={topParkings}
                         paginator
                         rows={5}
-                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
+                        paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink Instantiating"
                         currentPageReportTemplate="{first} to {last} of {totalRecords}"
                       >
                         <Column header="#" body={(rowData, { rowIndex }) => rowIndex + 1} style={{ width: '50px' }} />
                         <Column field="name" header="Name" sortable />
-                        <Column field="adresse" header="Adress" sortable />
+                        <Column
+                          header="Address"
+                          body={(rowData) => <TruncatedAddress address={rowData.adresse} />}
+                          sortable
+                        />
                         <Column field="totalReservations" header="Reservations" sortable />
                       </DataTable>
                     </table>
@@ -970,7 +922,7 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Top Users</h2>
-                    <Link to={routes.users} className="btn btn-viewall bg-primary text-white hover:bg-warning-dark">
+                    <Link to={routes.users} className="btn btn-viewall bg-primary text-white ">
                       View All
                       <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
@@ -1003,7 +955,7 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Recent Booking</h2>
-                    <Link to={routes.booking} className="btn btn-viewall bg-primary text-white hover:bg-indigo-700">
+                    <Link to={routes.booking} className="btn btn-viewall bg-primary text-white ">
                       View All
                       <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
                     </Link>
@@ -1020,11 +972,22 @@ const Dashboard = () => {
                         tableStyle={{ minWidth: '50rem' }}
                       >
                         <Column header="User" body={renderUserDetails} />
-                        <Column field="startDate" header="Start Date" sortable />
-                        <Column field="endDate" header="End Date" sortable />
+                        <Column
+                          header="Start Date"
+                          body={(rowData) => formatDate(rowData.startDate)}
+                          sortable
+                        />
+                        <Column
+                          header="End Date"
+                          body={(rowData) => formatDate(rowData.endDate)}
+                          sortable
+                        />
                         <Column field="totalPrice" header="Total Price" sortable />
                         <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
-                        <Column header="Address" body={(rowData) => rowData.parking?.adresse || '—'} />
+                        <Column
+                          header="Address"
+                          body={(rowData) => <TruncatedAddress address={rowData.parking?.adresse} />}
+                        />
                         <Column header="Spot" body={(rowData) => rowData.parkingS?.numero || '—'} />
                         <Column field="status" header="Status" body={renderStatusBadge} sortable />
                       </DataTable>
