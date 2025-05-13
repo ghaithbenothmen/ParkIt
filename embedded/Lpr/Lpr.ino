@@ -5,30 +5,13 @@
 #include "esp_camera.h"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
-#include <WiFiClientSecure.h>
+#include <PubSubClient.h>
+#include <ESP32Servo.h>
 
-// ====== WiFi Configuration ======
-const char* ssid = "Galaxy";
-const char* password = "00000000";
-
-// ====== Plate Recognition Service Configuration ======
-const char* plateRecognitionServer = "www.circuitdigest.cloud";
-const String plateRecognitionPath = "/readnumberplate";
-const int plateRecognitionPort = 443;
-const String plateRecognitionApiKey = "ORAc4MSX9TOw";
-
-// ====== Your Local Backend Configuration ======
-const char* backendServer = "192.168.34.25"; // Your PC's IP
-const int backendPort = 4000;
-const String checkPlateEndpoint = "/api/lpr/check-vehicle";
-
-// ====== LED Pin Configuration ======
-const int ledPin = 4; // GPIO pin for the LED
-
-// ====== Camera Pin Configuration ======
+// === Camera Pins ===
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
-#define XCLK_GPIO_NUM     0
+#define XCLK_GPIO_NUM      0
 #define SIOD_GPIO_NUM     26
 #define SIOC_GPIO_NUM     27
 #define Y9_GPIO_NUM       35
@@ -38,33 +21,47 @@ const int ledPin = 4; // GPIO pin for the LED
 #define Y5_GPIO_NUM       21
 #define Y4_GPIO_NUM       19
 #define Y3_GPIO_NUM       18
-#define Y2_GPIO_NUM       5
+#define Y2_GPIO_NUM        5
 #define VSYNC_GPIO_NUM    25
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-WiFiClientSecure client;
+// === Servo Configuration ===
+Servo myservo;
+const int servoPin = 14;
 
-void setup() {
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);  // Disable brownout detector
-  Serial.begin(115200);
-  delay(1000);
+// === Button Config ===
+const int buttonPin = 12;
+bool buttonPressed = false;
 
-  // Initialize LED pin
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, LOW);
+// === WiFi Config ===
+const char* ssid = "Galaxy";
+const char* password = "00000000";
 
-  Serial.println("Connecting to WiFi...");
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
+// === MQTT Config ===
+const char* mqtt_server = "192.168.155.25";
+WiFiClient wifiClient;
+PubSubClient mqttClient(wifiClient);
+
+// === Flask Server Config ===
+const char* flaskServer = "http://192.168.155.25:5000/api/lpr";
+
+// === Backend Config ===
+const char* backendServer = "192.168.155.25";
+const int backendPort = 4000;
+const String checkPlateEndpoint = "/api/lpr/check-vehicle";
+
+// === LED Config ===
+const int ledPin = 4; // Flash disabled, kept for potential future use
+
+void publishLog(String message) {
+  if (mqttClient.connected()) {
+    mqttClient.publish("lpr/logs", message.c_str());
   }
-  Serial.println("\nWiFi connected!");
-  Serial.print("IP: ");
-  Serial.println(WiFi.localIP());
+  Serial.println("MQTT Log: " + message);
+}
 
-  // ====== Camera Configuration ======
+void setupCamera() {
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -88,190 +85,273 @@ void setup() {
   config.pixel_format = PIXFORMAT_JPEG;
 
   if (psramFound()) {
-    config.frame_size = FRAMESIZE_SVGA;
-    config.jpeg_quality = 10;
+    config.frame_size = FRAMESIZE_XGA; // 1024x768 for higher detail
+    config.jpeg_quality = 6; // Minimal compression
     config.fb_count = 2;
+    config.grab_mode = CAMERA_GRAB_LATEST;
   } else {
-    config.frame_size = FRAMESIZE_CIF;
-    config.jpeg_quality = 12;
+    config.frame_size = FRAMESIZE_SVGA; // 800x600 fallback
+    config.jpeg_quality = 8;
     config.fb_count = 1;
   }
 
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
-    Serial.printf("Camera init failed: 0x%x\n", err);
+    publishLog("Camera init failed with error 0x" + String(err, HEX));
     ESP.restart();
   }
-  // Add network diagnostics
-  Serial.println("\nNetwork Information:");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("Subnet Mask: ");
-  Serial.println(WiFi.subnetMask());
-  Serial.print("Gateway: ");
-  Serial.println(WiFi.gatewayIP());
-  Serial.print("DNS: ");
-  Serial.println(WiFi.dnsIP());
-  
-  Serial.println("Setup complete!");
+
+  sensor_t *s = esp_camera_sensor_get();
+  s->set_vflip(s, 1); // Vertical flip
+  s->set_hmirror(s, 1); // Horizontal mirror
+  s->set_framesize(s, FRAMESIZE_XGA); // Match config
+  s->set_brightness(s, 1); // Moderate brightness (+1) to reduce glare
+  s->set_contrast(s, 1); // Moderate contrast (+1) for clarity
+  s->set_saturation(s, 0); // Normal saturation
+  s->set_sharpness(s, 3); // Maximum sharpness for plate text
+  s->set_whitebal(s, 1); // Enable auto white balance
+  s->set_awb_gain(s, 1); // Enable auto white balance gain
+  s->set_exposure_ctrl(s, 1); // Enable auto exposure for adaptability
+  s->set_aec_value(s, 150); // Moderate exposure to reduce phone screen glare
+  s->set_special_effect(s, 0); // No special effects
+  s->set_wb_mode(s, 0); // Auto white balance for varying lighting
+
+  publishLog("Camera setup complete. Resolution: XGA, Quality: 6");
 }
 
-// Helper function to extract JSON values
-String extractJsonStringValue(const String& jsonString, const String& key) {
-  int keyIndex = jsonString.indexOf(key);
-  if (keyIndex == -1) return "";
-  int startIndex = jsonString.indexOf(':', keyIndex) + 2;
-  int endIndex = jsonString.indexOf('"', startIndex);
-  if (startIndex == -1 || endIndex == -1) return "";
-  return jsonString.substring(startIndex, endIndex);
+void resetCamera() {
+  esp_camera_deinit();
+  delay(200); // Increased for stability
+  setupCamera();
+  publishLog("Camera reinitialized");
 }
 
-// Function to recognize license plate from image
+void setup() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable brownout detector
+  Serial.begin(115200);
+  Serial.setDebugOutput(true);
+  Serial.println();
+
+  // Setup servo with stable initialization
+  ESP32PWM::allocateTimer(0);
+  myservo.setPeriodHertz(50);
+  myservo.attach(servoPin, 600, 2400); // Adjusted min pulse to 600µs for SG90
+  delay(100); // Wait for PWM to stabilize
+  myservo.write(0); // Set initial position
+  delay(500); // Allow servo to settle
+  myservo.write(0); // Reinforce initial position
+  publishLog("Servo initialized to 0 degrees");
+
+  // Setup LED (no flash)
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+
+  // Setup button
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  // Connect to WiFi
+  WiFi.begin(ssid, password);
+  WiFi.setSleep(false);
+  Serial.print("WiFi connecting");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi connected");
+  Serial.println("IP Address: " + WiFi.localIP().toString());
+
+  // MQTT Setup
+  mqttClient.setServer(mqtt_server, 1883);
+  while (!mqttClient.connected()) {
+    if (mqttClient.connect("ESP32Client")) {
+      publishLog("MQTT connected.");
+    } else {
+      Serial.print("MQTT connection failed. Retry...");
+      delay(1000);
+    }
+  }
+
+  // Camera setup
+  setupCamera();
+  publishLog("Setup complete. Waiting for button press...");
+}
+
 String recognizeLicensePlate(camera_fb_t* fb) {
-  WiFiClientSecure client;
-  client.setInsecure(); // Skip SSL verification for simplicity
-  
-  if (!client.connect(plateRecognitionServer, plateRecognitionPort)) {
-    Serial.println("Connection to plate recognition server failed");
+  if (WiFi.status() != WL_CONNECTED) {
+    publishLog("WiFi not connected. Attempting to reconnect...");
+    WiFi.reconnect();
+    delay(2000);
+    if (WiFi.status() != WL_CONNECTED) {
+      publishLog("WiFi reconnection failed.");
+      return "";
+    }
+  }
+
+  HTTPClient http;
+  WiFiClient client;
+
+  if (!http.begin(client, flaskServer)) {
+    publishLog("Failed to connect to Flask server: " + String(flaskServer));
     return "";
   }
 
-  String filename = plateRecognitionApiKey + ".jpeg";
-  String head = "--CircuitDigest\r\nContent-Disposition: form-data; name=\"imageFile\"; filename=\"" + filename + "\"\r\nContent-Type: image/jpeg\r\n\r\n";
-  String tail = "\r\n--CircuitDigest--\r\n";
-  uint32_t imageLen = fb->len;
-  uint32_t totalLen = imageLen + head.length() + tail.length();
+  String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+  String head = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"image\"; filename=\"cam.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n";
+  String tail = "\r\n--" + boundary + "--\r\n";
 
-  client.println("POST " + plateRecognitionPath + " HTTP/1.1");
-  client.println("Host: " + String(plateRecognitionServer));
-  client.println("Content-Length: " + String(totalLen));
-  client.println("Content-Type: multipart/form-data; boundary=CircuitDigest");
-  client.println("Authorization: " + plateRecognitionApiKey);
-  client.println();
-  client.print(head);
+  http.addHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
 
-  uint8_t* fbBuf = fb->buf;
-  size_t fbLen = fb->len;
-  for (size_t n = 0; n < fbLen; n += 1024) {
-    size_t chunkSize = (n + 1024 < fbLen) ? 1024 : fbLen - n;
-    client.write(fbBuf + n, chunkSize);
-  }
-  client.print(tail);
+  String body = head;
+  body += String((char*)fb->buf, fb->len);
+  body += tail;
 
-  Serial.println("Image sent for plate recognition...");
-  String response;
-  long startTime = millis();
-  while (client.connected() && millis() - startTime < 10000) {
-    while (client.available()) {
-      response += char(client.read());
+  publishLog("Sending image to Flask server...");
+  int httpCode = http.POST(body);
+
+  String plateNumber = "";
+  if (httpCode > 0) {
+    String response = http.getString();
+    publishLog("HTTP Response Code: " + String(httpCode));
+    publishLog("Full Server Response: " + response);
+
+    int jsonStart = response.indexOf("{");
+    if (jsonStart != -1) {
+      String jsonResponse = response.substring(jsonStart);
+      DynamicJsonDocument doc(512);
+      DeserializationError error = deserializeJson(doc, jsonResponse);
+      if (error) {
+        publishLog("JSON parsing failed: " + String(error.c_str()));
+      } else {
+        if (doc.containsKey("plate_number")) {
+          plateNumber = doc["plate_number"].as<String>();
+          publishLog("Detected License Plate: " + plateNumber);
+        } else if (doc.containsKey("error")) {
+          publishLog("Server Error: " + doc["error"].as<String>());
+        } else {
+          publishLog("Unknown JSON structure received");
+        }
+      }
+    } else {
+      publishLog("No JSON response received");
     }
+  } else {
+    publishLog("HTTP POST failed: " + http.errorToString(httpCode));
   }
-  client.stop();
 
-  String plate = extractJsonStringValue(response, "\"number_plate\"");
-  Serial.println("Detected Plate: " + plate);
-  return plate;
+  http.end();
+  client.stop();
+  return plateNumber;
 }
 
-// Function to check plate with your backend
 bool checkReservation(String plateNumber) {
-  if (plateNumber.length() == 0) return false;
-
-  // Use separate client instance
-  WiFiClient client;
-  HTTPClient http;
-  
-  String url = "http://" + String(backendServer) + ":" + String(backendPort) + checkPlateEndpoint;
-  
-  Serial.println("Attempting connection to: " + url);
-  
-  // Test basic connection first
-  if (!client.connect(backendServer, backendPort)) {
-    Serial.println("Direct TCP connection failed");
+  if (plateNumber.isEmpty()) {
+    publishLog("No plate number to check.");
     return false;
   }
-  client.stop();
 
-  // Initialize HTTP client
+  WiFiClient client;
+  HTTPClient http;
+  String url = "http://" + String(backendServer) + ":" + backendPort + checkPlateEndpoint;
+
   if (!http.begin(client, url)) {
-    Serial.println("HTTP begin failed");
+    publishLog("HTTP begin failed for reservation check.");
     return false;
   }
 
   http.addHeader("Content-Type", "application/json");
-  
-  // Create payload
   DynamicJsonDocument doc(200);
   doc["immatriculation"] = plateNumber;
   String payload;
   serializeJson(doc, payload);
-  
-  Serial.println("Sending: " + payload);
-  
+
+  publishLog("Checking reservation for plate: " + plateNumber);
   int httpCode = http.POST(payload);
-  
   if (httpCode > 0) {
-    Serial.printf("HTTP code: %d\n", httpCode);
     String response = http.getString();
-    Serial.println("Response: " + response);
-    
     DynamicJsonDocument resDoc(1024);
-    DeserializationError err = deserializeJson(resDoc, response);
-    if (err) {
-      Serial.print("JSON error: ");
-      Serial.println(err.c_str());
+    DeserializationError error = deserializeJson(resDoc, response);
+    if (error) {
+      publishLog("Reservation response JSON parsing failed: " + String(error.c_str()));
       http.end();
       return false;
     }
-    
     bool authorized = resDoc["authorized"];
+    publishLog("Backend response: " + String(authorized ? "Authorized" : "Denied"));
     http.end();
     return authorized;
   } else {
-    Serial.printf("HTTP error: %s\n", http.errorToString(httpCode).c_str());
+    publishLog("HTTP error for reservation check: " + http.errorToString(httpCode));
     http.end();
     return false;
   }
 }
 
-
 void loop() {
-  delay(10000); // Wait 10 seconds between captures
+  mqttClient.loop();
 
-  Serial.println("Capturing photo...");
-  camera_fb_t* fb = esp_camera_fb_get();
+  if (digitalRead(buttonPin) == LOW) {
+    if (!buttonPressed) {
+      buttonPressed = true;
+      publishLog("Button pressed - Activating camera");
 
-  if (!fb) {
-    Serial.println("Camera capture failed");
-    return;
-  }
+      // Check available heap memory
+      uint32_t freeHeap = ESP.getFreeHeap();
+      publishLog("Free heap before capture: " + String(freeHeap) + " bytes");
 
-  // Step 1: Recognize license plate
-  String plateNumber = recognizeLicensePlate(fb);
-  
-  if (plateNumber.length() > 0) {
-    // Step 2: Check reservation with backend
-    bool hasReservation = checkReservation(plateNumber);
-    
-    if (hasReservation) {
-      Serial.println("Vehicle has a reservation - access granted");
-      digitalWrite(ledPin, HIGH); // Turn on LED
-      delay(5000); // Keep LED on for 5 seconds
-      digitalWrite(ledPin, LOW); // Turn off LED
-    } else {
-      Serial.println("No reservation found - access denied");
-      // Optional: Different LED pattern for denied access
-      for (int i = 0; i < 3; i++) {
-        digitalWrite(ledPin, HIGH);
-        delay(200);
-        digitalWrite(ledPin, LOW);
-        delay(200);
+      camera_fb_t* fb = esp_camera_fb_get();
+      if (!fb) {
+        publishLog("Camera capture failed. Error: " + String(esp_err_to_name(ESP_FAIL)));
+        sensor_t *s = esp_camera_sensor_get();
+        if (s) {
+          s->set_framesize(s, FRAMESIZE_QVGA);
+          publishLog("Retrying with FRAMESIZE_QVGA");
+          fb = esp_camera_fb_get();
+          if (!fb) {
+            publishLog("Retry failed. Resetting camera...");
+            resetCamera();
+          } else {
+            publishLog("Retry succeeded. Image captured. Size: " + String(fb->len) + " bytes");
+          }
+        }
+      } else {
+        publishLog("Image captured. Size: " + String(fb->len) + " bytes");
       }
+
+      if (fb) {
+        String plateNumber = recognizeLicensePlate(fb);
+
+        if (plateNumber.length() > 0) {
+          bool hasReservation = checkReservation(plateNumber);
+          if (hasReservation) {
+            publishLog("Access granted for: " + plateNumber);
+            myservo.write(90); // Open gate
+            delay(3000);
+            myservo.write(0); // Close gate
+            delay(500); // Allow servo to settle
+            myservo.detach(); // Detach to prevent jitter
+            myservo.attach(servoPin, 600, 2400); // Reattach for next use
+            myservo.write(0); // Reinforce position
+            publishLog("Gate closed");
+          } else {
+            publishLog("Access denied for: " + plateNumber);
+            for (int i = 0; i < 3; i++) {
+              digitalWrite(ledPin, HIGH); delay(200);
+              digitalWrite(ledPin, LOW); delay(200);
+            }
+          }
+        } else {
+          publishLog("No plate detected.");
+        }
+
+        esp_camera_fb_return(fb);
+      }
+
+      resetCamera();
+      buttonPressed = false;
     }
   } else {
-    Serial.println("No plate detected");
-    digitalWrite(ledPin, LOW);
+    buttonPressed = false;
   }
 
-  esp_camera_fb_return(fb);
+  delay(100);
 }
