@@ -95,6 +95,54 @@ LocationMarker.propTypes = {
     longitude: PropTypes.string.isRequired
   }).isRequired
 };
+const ViewLocationMap = ({ position }) => {
+  const mapRef = useRef(null);
+  const mapContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (mapRef.current && position) {
+      mapRef.current.setView(position, 15);
+      setTimeout(() => {
+        mapRef.current.invalidateSize();
+      }, 0);
+    }
+  }, [position]);
+
+  return (
+    <div 
+      ref={mapContainerRef}
+      style={{ 
+        height: '500px',  // Augmenté de 400px à 500px
+        width: '100%',
+        borderRadius: '8px', 
+        overflow: 'hidden' 
+      }}
+    >
+      <MapContainer 
+        center={position} 
+        zoom={15} 
+        style={{ height: '100%', width: '100%' }}
+        whenReady={(map) => {
+          mapRef.current = map.target;
+          map.target.invalidateSize();
+        }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <Marker position={position}>
+          <Popup>Parking Location</Popup>
+        </Marker>
+      </MapContainer>
+    </div>
+  );
+};
+
+ViewLocationMap.propTypes = {
+  position: PropTypes.arrayOf(PropTypes.number).isRequired
+};
+
 
 const ImageGalleryModal = ({ images, onClose }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
