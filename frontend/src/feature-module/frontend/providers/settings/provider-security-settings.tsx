@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import PhoneInput from 'react-phone-input-2';
@@ -7,6 +7,7 @@ import SuccessModal from '../../../../modals/SuccessModal';
 import { Modal } from 'bootstrap';
 import { jwtDecode } from 'jwt-decode';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
+import { Toast } from "primereact/toast";
 
 const ProviderSecuritySettings = () => {
   const routes = all_routes;
@@ -85,6 +86,12 @@ const ProviderSecuritySettings = () => {
 
     fetch2FAStatus();
   }, []);
+  const toast = useRef<Toast>(null);
+  
+  const showToast = (severity: string, detail: string) => {
+    toast.current?.show({ severity, detail, life: 3000 });
+  };
+
   const handleFaceRegistration = async () => {
     try {
       const userId = id;
@@ -100,13 +107,13 @@ const ProviderSecuritySettings = () => {
       );
   
       if (response.data.message) {
-        alert('Face registration successful!');
+        showToast('success', 'Face registration successful!');
       } else {
-        alert('Face registration failed!');
+        showToast('error', 'Face registration failed!');
       }
     } catch (error) {
       console.error('Error registering face data:', error);
-      alert('An error occurred during face registration.');
+      showToast('error', 'An error occurred during face registration.');
     }
   };
   
@@ -132,7 +139,7 @@ const ProviderSecuritySettings = () => {
       }
     } catch (error) {
       console.error('Error toggling 2FA:', error);
-      alert('Failed to toggle 2FA. Please try again.');
+      showToast('error', 'Failed to toggle 2FA. Please try again.');
     }
   };
 
@@ -150,7 +157,7 @@ const ProviderSecuritySettings = () => {
       setShowSuccessModal(true);
     } catch (error) {
       console.error('2FA verification error:', error);
-      alert('Invalid 2FA code. Please try again.');
+      showToast('error', 'Invalid 2FA code. Please try again.');
     }
   };
 
@@ -218,6 +225,7 @@ const ProviderSecuritySettings = () => {
   
   return (
     <>
+      <Toast ref={toast} />
       {/* Page Wrapper */}
       <div className="page-wrapper">
         <div className="content container-fluid">
