@@ -700,9 +700,9 @@ const Dashboard = () => {
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
                         <h2 className="text-xl font-semibold text-gray-800">Time of Reservation</h2>
-                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white">
+                        <Link to={routes.booking} className="btn btn-viewall text-white" style={{ backgroundColor: '#4169E1' }}>
                           View All
-                          <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
+                          <i className="fas fa-arrow-right ms-2"></i>
                         </Link>
                       </div>
                       <div className="chartgraph">
@@ -740,9 +740,9 @@ const Dashboard = () => {
                     <div className="home-user">
                       <div className="home-head-user home-graph-header">
                         <h2 className="text-xl font-semibold text-gray-800">Reservation Statistics</h2>
-                        <Link to={routes.booking} className="btn btn-viewall bg-primary text-white ">
+                        <Link to={routes.booking} className="btn btn-viewall text-white" style={{ backgroundColor: '#4169E1' }}>
                           View All
-                          <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
+                          <i className="fas fa-arrow-right ms-2"></i>
                         </Link>
                       </div>
                       <div className="chartgraph">
@@ -832,9 +832,9 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Top Parking</h2>
-                    <Link to={routes.allServices} className="btn btn-viewall bg-primary text-white ">
+                    <Link to={routes.allServices} className="btn btn-viewall text-white" style={{ backgroundColor: '#4169E1' }}>
                       View All
-                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
+                      <i className="fas fa-arrow-right ms-2"></i>
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
@@ -867,9 +867,9 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Top Users</h2>
-                    <Link to={routes.users} className="btn btn-viewall bg-primary text-white ">
+                    <Link to={routes.users} className="btn btn-viewall text-white" style={{ backgroundColor: '#4169E1' }}>
                       View All
-                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
+                      <i className="fas fa-arrow-right ms-2"></i>
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
@@ -900,9 +900,9 @@ const Dashboard = () => {
                 <div className="home-user">
                   <div className="home-head-user home-graph-header">
                     <h2 className="text-xl font-semibold text-gray-800">Recent Booking</h2>
-                    <Link to={routes.booking} className="btn btn-viewall bg-primary text-white ">
+                    <Link to={routes.booking} className="btn btn-viewall text-white" style={{ backgroundColor: '#4169E1' }}>
                       View All
-                      <ImageWithBasePath src="assets/admin/img/icons/arrow-right.svg" className="ms-2" alt="img" />
+                      <i className="fas fa-arrow-right ms-2"></i>
                     </Link>
                   </div>
                   <div className="table-responsive datatable-nofooter">
