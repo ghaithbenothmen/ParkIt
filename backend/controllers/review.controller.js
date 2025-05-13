@@ -37,7 +37,7 @@ exports.getAllReviews = async (req, res) => {
     console.log('Récupération de tous les avis');
     const reviews = await Review.find()
       .populate('parkingId', 'nom')
-      .populate('userId', 'firstname lastname')
+      .populate('userId', 'firstname lastname image') // Include the image field
       .sort({ createdAt: -1 });
     console.log('Avis récupérés:', reviews.length);
     res.status(200).json(reviews);
@@ -53,7 +53,7 @@ exports.getReviewsByParking = async (req, res) => {
   try {
     console.log('Récupération des avis pour parkingId:', req.params.parkingId);
     const reviews = await Review.find({ parkingId: req.params.parkingId })
-      .populate('userId', 'firstname lastname')
+      .populate('userId', 'firstname lastname image') // Include the image field
       .sort({ createdAt: -1 });
     console.log('Avis récupérés:', reviews.length);
     res.status(200).json(reviews);

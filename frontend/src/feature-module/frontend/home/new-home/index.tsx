@@ -6,7 +6,6 @@ import FeatureSection from './feature-section'
 import PopularSection from './popular-section'
 import WorkSection from './workSection'
 import CustomerSection from './customerSection'
-import BlogAndJoinus from './blogAndJoinus'
 import BussinessWithUs from './bussinessWithUs'
 import HomeHeader from '../header/home-header'
 import NewFooter from '../footer/newFooter'
@@ -210,13 +209,16 @@ useEffect(() => {
                            
                           </div>
                           <button 
-                            
-                            onClick={handleSearch} 
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSearch();
+                            }} 
                             className="btn btn-linear-primary"
-                            style={{ zIndex: 5 }}
+                            style={{ zIndex: 5, marginLeft: '-50px' }}
                           >
-                            
-                            <Search style={{ fontSize: '15px', marginRight: '5px' }} /> Search
+                            <Search style={{ fontSize: '15px', marginRight: '0px' }} /> Search
                           </button>
 
                           {/* Display suggestions below input */}
@@ -264,27 +266,6 @@ useEffect(() => {
                         alt="img"
                         className="shape-06 round-animate"
                       />
-                    </div>
-                    <div className="d-flex align-items-center flex-wrap">
-                      <h6 className="mb-2 me-2 fw-medium">Popular Searches</h6>
-                      <Link
-                        to={routes.search}
-                        className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
-                      >
-                        Malls
-                      </Link>
-                      <Link
-                        to={routes.search}
-                        className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
-                      >
-                        Hospitals
-                      </Link>
-                      <Link
-                        to={routes.search}
-                        className="badge badge-dark-transparent fs-14 fw-normal mb-2 me-2"
-                      >
-                        Airports
-                      </Link>
                     </div>
                     <div className="d-flex align-items-center flex-wrap banner-info">
                     <div className="d-flex align-items-center me-4 mt-4">
@@ -350,168 +331,11 @@ useEffect(() => {
           </div>
         </section>
         {/* /Hero Section */}
-        {/* Category Section */}
-        <section className="section category-section">
-          <div className="container">
-            <div className="row justify-content-center">
-              <div
-                className="col-lg-6 text-center wow fadeInUp"
-                data-wow-delay="0.2s"
-              >
-                <div className="section-header text-center">
-                  <h2 className="mb-1">
-                    Explore our{" "}
-                    <span className="text-linear-primary">Parkings</span>
-                  </h2>
-                  <p className="sub-title">
-                    Parking categories help organize and structure the available parking options on the app,
-                    making it easier for users to find a spot that suits their needs.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="row g-4 row-cols-xxl-6 row-cols-xl-6 row-cols-md-4 row-cols-sm-2 row-cols-1 justify-content-center">
-              <div className="col d-flex">
-                <div
-                  className="category-item text-center flex-fill wow fadeInUp"
-                  data-wow-delay="0.2s"
-                >
-                  <div className="mx-auto mb-3">
-                    <ImageWithBasePath
-                      src="assets/img/icons/category-01.svg"
-                      className="img-fluid"
-                      alt="img"
-                    />
-                  </div>
-                  <h6 className="fs-14 mb-1">Street Parking</h6>
-                  <p className="fs-14 mb-0">900+</p>
-                  <Link
-                    to={routes.categories}
-                    className="link-primary text-decoration-underline fs-14"
-                  >
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="col d-flex">
-                <div
-                  className="category-item text-center flex-fill wow fadeInUp"
-                  data-wow-delay="0.2s"
-                >
-                  <div className="mx-auto mb-3">
-                    <ImageWithBasePath
-                      src="assets/img/icons/category-02.svg"
-                      className="img-fluid"
-                      alt="img"
-                    />
-                  </div>
-                  <h6 className="fs-14 mb-1">Covered Parking</h6>
-                  <p className="fs-14 mb-0">787+</p>
-                  <Link
-                    to={routes.categories}
-                    className="link-primary text-decoration-underline fs-14"
-                  >
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="col d-flex">
-                <div
-                  className="category-item text-center flex-fill wow fadeInUp"
-                  data-wow-delay="0.2s"
-                >
-                  <div className="mx-auto mb-3">
-                    <ImageWithBasePath
-                      src="assets/img/icons/category-13.svg"
-                      className="img-fluid"
-                      alt="img"
-                    />
-                  </div>
-                  <h6 className="fs-14 mb-1">VIP Parking</h6>
-                  <p className="fs-14 mb-0">235</p>
-                  <Link
-                    to={routes.categories}
-                    className="link-primary text-decoration-underline fs-14"
-                  >
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="col d-flex">
-                <div
-                  className="category-item text-center flex-fill wow fadeInUp"
-                  data-wow-delay="0.2s"
-                >
-                  <div className="mx-auto mb-3">
-                    <ImageWithBasePath
-                      src="assets/img/icons/category-04.svg"
-                      className="img-fluid"
-                      alt="img"
-                    />
-                  </div>
-                  <h6 className="fs-14 mb-1">Handicap Accessible Parking</h6>
-                  <p className="fs-14 mb-0">1260</p>
-                  <Link
-                    to={routes.categories}
-                    className="link-primary text-decoration-underline fs-14"
-                  >
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="col d-flex">
-                <div
-                  className="category-item text-center flex-fill wow fadeInUp"
-                  data-wow-delay="0.2s"
-                >
-                  <div className="mx-auto mb-3">
-                    <ImageWithBasePath
-                      src="assets/img/icons/category-06.svg"
-                      className="img-fluid"
-                      alt="img"
-                    />
-                  </div>
-                  <h6 className="fs-14 mb-1">Monthly Parking</h6>
-                  <p className="fs-14 mb-0">2546</p>
-                  <Link
-                    to={routes.categories}
-                    className="link-primary text-decoration-underline fs-14"
-                  >
-                    View All
-                  </Link>
-                </div>
-              </div>
-              <div className="col d-flex">
-                <div
-                  className="category-item text-center flex-fill wow fadeInUp"
-                  data-wow-delay="0.2s"
-                >
-                  <div className="mx-auto mb-3">
-                    <ImageWithBasePath
-                      src="assets/img/icons/category-07.svg"
-                      className="img-fluid"
-                      alt="img"
-                    />
-                  </div>
-                  <h6 className="fs-14 mb-1">Hourly Parking</h6>
-                  <p className="fs-14 mb-0">4547</p>
-                  <Link
-                    to={routes.categories}
-                    className="link-primary text-decoration-underline fs-14"
-                  >
-                    View All
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* /Category Section */}
+        
         <FeatureSection />
         <PopularSection />
         <WorkSection />
         <CustomerSection />
-        <BlogAndJoinus />
         <BussinessWithUs />
         <NewFooter />
       </>

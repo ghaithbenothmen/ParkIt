@@ -29,7 +29,7 @@ const BussinessWithUs = () => {
         >
           <div className="business-img">
             <ImageWithBasePath
-              src="assets/img/full-parkit.png"
+              src="assets/img/parkit-bg-dark.png"
               className="img-fluid"
               alt="img"
             />

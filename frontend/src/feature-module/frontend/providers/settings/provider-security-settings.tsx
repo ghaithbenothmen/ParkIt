@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { all_routes } from '../../../../core/data/routes/all_routes';
 import PhoneInput from 'react-phone-input-2';
@@ -7,6 +7,7 @@ import SuccessModal from '../../../../modals/SuccessModal';
 import { Modal } from 'bootstrap';
 import { jwtDecode } from 'jwt-decode';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
+import { Toast } from "primereact/toast";
 
 const ProviderSecuritySettings = () => {
   const routes = all_routes;
@@ -85,6 +86,12 @@ const ProviderSecuritySettings = () => {
 
     fetch2FAStatus();
   }, []);
+  const toast = useRef<Toast>(null);
+  
+  const showToast = (severity: string, detail: string) => {
+    toast.current?.show({ severity, detail, life: 3000 });
+  };
+
   const handleFaceRegistration = async () => {
     try {
       const userId = id;
@@ -100,13 +107,13 @@ const ProviderSecuritySettings = () => {
       );
   
       if (response.data.message) {
-        alert('Face registration successful!');
+        showToast('success', 'Face registration successful!');
       } else {
-        alert('Face registration failed!');
+        showToast('error', 'Face registration failed!');
       }
     } catch (error) {
       console.error('Error registering face data:', error);
-      alert('An error occurred during face registration.');
+      showToast('error', 'An error occurred during face registration.');
     }
   };
   
@@ -132,7 +139,7 @@ const ProviderSecuritySettings = () => {
       }
     } catch (error) {
       console.error('Error toggling 2FA:', error);
-      alert('Failed to toggle 2FA. Please try again.');
+      showToast('error', 'Failed to toggle 2FA. Please try again.');
     }
   };
 
@@ -150,7 +157,7 @@ const ProviderSecuritySettings = () => {
       setShowSuccessModal(true);
     } catch (error) {
       console.error('2FA verification error:', error);
-      alert('Invalid 2FA code. Please try again.');
+      showToast('error', 'Invalid 2FA code. Please try again.');
     }
   };
 
@@ -218,6 +225,7 @@ const ProviderSecuritySettings = () => {
   
   return (
     <>
+      <Toast ref={toast} />
       {/* Page Wrapper */}
       <div className="page-wrapper">
         <div className="content container-fluid">
@@ -287,7 +295,7 @@ const ProviderSecuritySettings = () => {
                 <div className="linked-wrap">
                   <div className="linked-acc">
                     <span className="link-icon rounded-circle">
-                      <i className="ti ti-fingerprint-scan" />
+                      <i className="ti ti-lock" />
                     </span>
                     <div className="linked-info row align-items-center">
                       <div className="col-md-9">
@@ -371,45 +379,7 @@ const ProviderSecuritySettings = () => {
               </div>
             )}
 
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-device-mobile" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">
-                          Phone Number Verification{" "}
-                        </h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Verified Mobile Number :{" "}
-                          <span className="text-dark fs-12"> +99264710583</span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <button
-                      className="btn btn-dark btn-sm"
-                      data-bs-toggle="modal"
-                      data-bs-target="#change-phone-number"
-                    >
-                      Change
-                    </button>
-                    <button className="btn btn-light btn-sm">Remove</button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      
             <div className="col-xl-4 col-md-4 d-flex mb-3">
               <div className="linked-item flex-fill">
                 <div className="linked-wrap">
@@ -447,82 +417,7 @@ const ProviderSecuritySettings = () => {
                 </div>
               </div>
             </div>
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-device-imac" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">Device Management</h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Last Changed :
-                          <span className="text-dark fs-12">
-                            {" "}
-                            22 Jul 2024, 10:30:55 AM
-                          </span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <Link
-                      to={routes.providerDeviceManagement}
-                      className="btn btn-dark btn-sm"
-                    >
-                      Manage
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-xl-4 col-md-4 d-flex mb-3">
-              <div className="linked-item flex-fill">
-                <div className="linked-wrap">
-                  <div className="linked-acc">
-                    <span className="link-icon rounded-circle">
-                      <i className="ti ti-user-edit" />
-                    </span>
-                    <div className="linked-info row align-items-center">
-                      <div className="col-md-9">
-                        <h6 className="fs-16 text-truncate">Account Activity</h6>
-                        <p className="text-gray fs-12 text-truncate">
-                          Last Changed :
-                          <span className="text-dark fs-12">
-                            {" "}
-                            22 Jul 2024, 10:30:55 AM
-                          </span>
-                        </p>
-                      </div>
-                      <div className="col-md-3">
-                        <div className="d-flex justify-content-end">
-                          <span>
-                            <i className="ti ti-circle-check-filled text-success" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="linked-action">
-                    <Link
-                      to={routes.providerLoginActivity}
-                      className="btn btn-dark btn-sm"
-                    >
-                      Manage
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
           </div>
           {/* /Security Settings */}
         </div>

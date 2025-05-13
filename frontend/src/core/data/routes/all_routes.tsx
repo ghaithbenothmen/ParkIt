@@ -27,86 +27,42 @@ export const all_routes = {
 
   // services module path
   services: '/services/*',
-  serviceGrid: '/services/service-grid',
-  serviceList: '/services/service-list',
+
   createCar: '/services/create-car',
   createClaim: '/services/create-claim',
-  providerDetails: '/services/providers/provider-details',
+ 
   map: '/map',
   map2: '/map2',
-  serviceRequest: '/services/service-request',
+ 
   searchList: '/services/search-list',
-  provider: '/services/providers/provider-list',
+  
   serviceDetails1: '/services/service-details/service-details1',
-  serviceDetails2: '/services/service-details/service-details2',
+
   providerCars: '/providers/cars',
   providerClaims:'/providers/claims',
+  voice:'/voice',
 
-  // customers module path
-  customers: '/customers/*',
-  customerDashboard: '/customers/customer-dashboard',
-  customerBooking: '/customers/customer-booking',
-  customerFavourite: '/customers/customer-favourite',
-  customerNotifications: '/customers/customer-notifications',
-  customerProfile: '/customers/settings/customer-profile',
-  customerSecurity: '/customers/settings/customer-security',
-  customerNotification: '/customers/settings/notification',
-  customerConnectedApps: '/customers/settings/connected-apps',
-  customerBookingCalendar: '/customers/customer-booking-calendar',
-  customerChat: '/customers/customer-chat',
-  customerReviews: '/customers/customer-reviews',
-  customerWallet: '/customers/customer-wallet',
-  deviceManagement: '/customers/settings/device-management',
-  customerLoginActivity: '/customers/settings/login-activity',
 
   commonNotification: '/customers/notification',
 
   // providers module path
   providers: '/providers/*',
-  providerAddon: '/providers/provider-addon',
-  verfication: '/providers/settings/verification',
-  providerPlan: '/providers/settings/provider-plan',
+
   providerProfileSettings: '/providers/settings/provider-profile-settings',
-  paymentSetting: '/providers/settings/payment-setting',
-  connectedApp: '/providers/settings/connected-app',
-  providerEditService: '/providers/provider-edit-service',
-  providerHoliday: '/providers/provider-holiday',
-  providerNotification: '/providers/settings/provider-notification',
-  providerOffer: '/providers/provider-offer',
-  providerDeviceManagement: '/providers/settings/provider-device-management',
-  providerLoginActivity: '/providers/settings/provider-login-activity',
-  providerEarnings: '/providers/provider-earnings',
-  providerAppointmentSettings:
-    '/providers/settings/provider-appointment-settings',
-  providerConnectedApps: '/providers/settings/provider-connected-apps',
-  providerAvailability: '/providers/provider-availability',
+  
+ 
   providerBooking: '/providers/booking',
   overdueDetailsBooking: '/providers/bookingdetails',
 
-  providerChat: '/providers/provider-chat',
-  providerCoupons: '/providers/provider-coupons',
   providerDashboard: '/providers/dashboard',
   providerSignup: '/authentication/provider-signup',
-  providerSignupPayment: '/providers/authentication/provider-signup-payment',
-  providerSignupSubscription:
-    '/providers/authentication/provider-signup-subscription',
-  providerSocialProfile: '/providers/settings/provider-social-profile',
-  providerSubscription: '/providers/provider-subscription',
-  providerPayout: '/providers/provider-payout',
-  providerReview: '/providers/provider-review',
+ 
+
   providerService: '/providers/provider-service',
-  providerServiceList: '/providers/provider-service-list',
+
   ProviderSecuritySettings: '/providers/settings/provider-security-settings',
-  ProviderEarnings: '/providers/provider-earnings',
-  addSubscription: '/providers/add-subscription',
-  staffList: '/providers/staff/staff-list',
-  staffGrid: '/providers/staff/staff-grid',
-  staffDetails: '/providers/staff/staff-details',
-  customerDetails: '/providers/customer/customer-details',
-  customerList: '/providers/customer/customer-list',
-  customerGrid: '/providers/customer/customer-grid',
-  providerTransaction: '/providers/provider-transaction',
-  providerLeaveHistory: '/providers/leave-history',
+  
+
   providerEnquiry: '/providers/provider-enquiry',
 
   // pages module path
@@ -114,34 +70,27 @@ export const all_routes = {
   aboutUs: '/pages/about-us',
   error404: '/authentication/error-404',
   error500: '/authentication/error-500',
-  faq: '/pages/faq',
-  howItWorks: '/pages/how-it-works',
-  termsCondition: '/pages/terms-condition',
+
   booking1: '/pages/booking/booking-1',
   bookings: '/pages/booking',
   booking2: '/customers/user-bookings',
   invoice: '/pages/invoice',
   bookingDone: '/customers/booking-done',
   bookingPayment: '/customers/booking-payment',
-  contactUs: '/pages/contact-us',
-  comingSoon: '/pages/coming-soon',
+  
   categories: '/pages/categories',
-  categories2: '/pages/categories-2',
-  chooseSignUp: '/authentication/choose-signup',
+ 
+
   emailOtp: '/authentication/email-otp',
   userSignup: '/authentication/user-signup',
   login: '/authentication/login',
-  loginemail: '/authentication/login-email',
-  loginphone: '/authentication/login-phone',
-  loginphone1: '/authentication/login-phone1',
-  freeTrail: '/authentication/free-trail',
+ 
+ 
   passwordRecovery: '/authentication/forgot-password',
   phoneOtp: '/authentication/phone-otp',
   privacyPolicy: '/pages/privacy-policy',
-  pricingPlan: '/pages/pricing-plan',
-  sessionExpired: '/pages/session-expired',
-  maintenance: '/pages/maintenance',
-  installer: '/pages/installer',
+
+ 
   success: '/authentication/success',
   resetPassword: '/authentication/reset-password',
   forgotPassword: '/authentication/forgot-password',
@@ -151,102 +100,44 @@ export const all_routes = {
   // Admin Module Path
 
   admin: '/admin/*',
-  abuseReport: '/admin/support/abuse-reports',
-  contactMessages: '/admin/support/contact-messages',
-  contactMessagesView: '/admin/support/contact-messages-view',
-  countries: '/admin/location/countries',
-  cities: '/admin/location/cities',
-  state: '/admin/location/state',
-  connectedApps: '/admin/setting/connected-apps',
-  
-  chat: '/admin/chat',
+
+
   completedBooking: '/admin/booking/completed-booking',
   pendingBooking: '/admin/pending-booking',
-  banIpAddress: '/admin/setting/ban-ip-address',
+ 
 
   calendarSetting: '/admin/setting/calendar-settings',
   blogCategories: '/blog-categories',
-  coupons: '/admin/marketing/coupons',
+  
   cronJob: '/admin/setting/cronjob',
-  curriencies: '/admin/setting/currencies',
-  createMenu: '/admin/management/create-menu',
-  userCustomer: '/admin/user/customers',
+
   adminEarnings: '/admin/reports/admin-earnings',
   allBlog: '/admin/blog/all-blog',
- 
-  appearance: '/admin/setting/appearance',
-  accountSettings: '/admin/setting/account-settings',
-  emailSettings: '/admin/setting/email-settings',
-  appointmentSettings: '/admin/setting/appointment-settings',
+
+
   authenticationSettings: '/admin/setting/authentication-settings',
-  announcements: '/admin/support/announcements',
-  currencySettings: '/admin/setting/currency-settings',
- 
-  availablePlugins: '/admin/plugin/available-plugins',
- 
+  
   paymentSettings: '/admin/setting/payment-settings',
   paymentGateway: '/admin/setting/payment-gateways',
-  headerSettings: '/admin/setting/header-settings',
-  inActiveBlog: '/admin/blog/inactive-blog',
+  
   inActiveServices: '/admin/services/inactive-services',
   addServices: '/admin/services/add-service',
   allServices: '/admin/services/all-services',
   editService: '/admin/services/edit-services',
   inProgressBooking: '/admin/booking/inprogress-booking',
-  pendingServices: '/admin/services/pending-services',
   dashboard: '/admin/dashboard',
-  websiteSettings: '/admin/management/website-settings',
-  emailNewsletter: '/admin/marketing/email-newsletter',
-  language: '/admin/setting/language',
-  loginActivity: '/admin/setting/login-activity',
-  localization: '/admin/setting/localization',
-  seoSettings: '/admin/setting/seo-settings',
-  serviceSettings: '/admin/setting/service-settings',
-  siteInformation: '/admin/setting/site-information',
-  smsSettings: '/admin/setting/sms-settings',
-  menuManagement: '/admin/management/menu-management',
-  salesReport: '/admin/reports/service-sales',
-  socialAuthentication: '/admin/setting/social-authentication',
-  socialProfile: '/admin/setting/social-profile',
-  subCategories: '/admin/sub-categories',
-  taxRates: '/admin/setting/tax-rates',
-  typographytSettings: '/admin/setting/typography-settings',
-  testimonials: '/admin/content/testimonials',
-
-  verificationRequest: '/admin/verification-request',
-  systemInformation: '/admin/setting/system-information',
-  smsTemplate: '/admin/management/sms-template',
-  storageSetting: '/admin/setting/storage-settings',
-  pluginManager: '/admin/management/plugin-manager',
-  preferenceSettings: '/admin/setting/preference-settings',
-  providerEarning: '/admin/reports/provider-earnings',
-  userProviders: '/admin/users/providers',
-  providerSales: '/admin/reports/provider-sales',
-  providerSettings: '/admin/setting/provider-settings',
-  providerWallet: '/admin/reports/provider-wallet',
-  faqadmin: '/admin/content/faq',
-  featureServices: '/admin/marketing/featured-services',
-  systemBackup: '/admin/setting/system-backup',
-  gdpr: '/admin/setting/gdbr',
-  emailTemplates: '/admin/management/email-templates',
+  
   review: '/admin/review',
   reviews: '/admin/reviews',
   reviewType: '/admin/review-type',
   roles: '/admin/roles',
   claims: '/admin/claims',
  
-  walletHistory: '/admin/wallet-history',
-  membershipTransaction: '/admin/reports/membership-transaction',
-  addHome: '/admin/pages/add-home',
-  addMembership: '/admin/membership/add-membership',
-  activeServices: '/admin/services/active-services',
-  deletedServices: '/admin/services/deleted-services',
   security: '/admin/setting/security',
   registerreport: '/admin/reports/register-report',
 
-  footerSettings: '/admin/setting/footer-settings',
   membership: '/admin/membership',
-  membershipaddons: '/admin/memberships/membership-addon',
+
   users: '/admin/users',
   usersCustomer: '/admin/customers',
   deleteAccountReqest: '/admin/delete-account-requests',
@@ -256,27 +147,8 @@ export const all_routes = {
   cancelledBooking: '/admin/bookings/cancelled-booking',
   editblog: '/admin/edit-blog',
  
-  databasebackup: '/admin/setting/database-backup',
-  adminDevicemanagement: '/admin/management/device-management',
-  refundReport: '/admin/reports/refund-report',
-  providersList: '/services/providers/provider-list',
 
-  cacheSystem:'/admin/management/cachesystem',
   signin:'/admin/signin',
-  userCustomers:'/admin/users/customers',
-  categoriesList:'/admin/categories/categories-list',
-  addPages:'/admin/pages/add-page',
-  EditPages:'/admin/edit-page',
-  viewService:'/admin/view-service',
-  permissions:'/admin/permissions',
-  offer:'/admin/marketing/offer',
-  adminNotification:'/admin/setting/notification',
-  pagesList: '/admin/pages-list',
-  pageList: '/admin/page-list',
-  addBlog: '/admin/blog/add-blog',
-  blogsCategories: '/admin/blog/blog-categories',
-  blogComments: '/admin/blog/blog-comments',
-  adminCustomerWallet: '/admin/reports/customer-wallet',
-  addPage: '/admin/pages/add-pages',
+
 
 };

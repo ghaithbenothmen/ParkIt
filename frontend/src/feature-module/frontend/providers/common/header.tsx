@@ -11,6 +11,8 @@ import { all_routes } from '../../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { AppState } from '../../../../core/models/interface';
 import io from 'socket.io-client';
+import AiAssistantProvider from '../../common/voice-assistant/AiAssistantProvider';
+import { AiAssistantButton } from '../../common/voice-assistant/AiAssistantButton';
 
 interface NotificationType {
   _id: string;
@@ -272,6 +274,8 @@ const ProviderHeader = () => {
   }, []);
 
   return (
+        <AiAssistantProvider>
+
     <div className="header provider-header">
       {/* Logo */}
       <div className="header-left active" 
@@ -508,6 +512,8 @@ const ProviderHeader = () => {
           </div>
         </div>
       </div>
+                          <AiAssistantButton currentState="STATE_IDLE" />
+
       {/* Mobile Menu */}
       <div className="dropdown mobile-user-menu">
         <Link
@@ -527,6 +533,8 @@ const ProviderHeader = () => {
       </div>
       {/* /Mobile Menu */}
     </div>
+        </AiAssistantProvider>
+
   );
 };
 

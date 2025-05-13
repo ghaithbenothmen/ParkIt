@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo} from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
@@ -49,6 +49,54 @@ const ProviderClaims = () => {
     email: '',
     phone: ''
   });
+   const CLAIMS_PER_PAGE = 5;
+    const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'week'>('all');
+    const [currentPage, setCurrentPage] = useState(1);
+  
+    // Calculate total pages
+  
+  
+    // Get paginated CLAIMSs
+    const filteredClaims = useMemo(() => {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+  
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+  
+      return claims.filter(claim => {
+        const resDate = new Date(claim.submissionDate);
+        const matchesStatus = filterStatus === 'all' || claim.status === filterStatus;
+        const matchesDate =
+          dateFilter === 'all' ||
+          (dateFilter === 'today' && resDate.toDateString() === today.toDateString()) ||
+          (dateFilter === 'tomorrow' && resDate.toDateString() === tomorrow.toDateString()) ||
+          (dateFilter === 'week' && resDate >= startOfWeek && resDate <= endOfWeek);
+  
+        return matchesStatus && matchesDate;
+      });
+    }, [claims, filterStatus, dateFilter]);
+  
+  
+    const paginatedClaims = useMemo(() => {
+      const startIndex = (currentPage - 1) * CLAIMS_PER_PAGE;
+      return filteredClaims.slice(startIndex, startIndex + CLAIMS_PER_PAGE);
+    }, [currentPage, filteredClaims]);
+  
+    const totalPages = Math.ceil(filteredClaims.length / CLAIMS_PER_PAGE);
+  
+  
+    // Pagination click handler
+    const handlePageChange = (pageNumber: number) => {
+      if (pageNumber >= 1 && pageNumber <= totalPages) {
+        setCurrentPage(pageNumber);
+      }
+    };
+  
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -211,7 +259,7 @@ const ProviderClaims = () => {
                   <div className="card-body">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="mb-2">
-                        <p className="mb-1">Expired claims</p>
+                        <p className="mb-1">Rejected claims</p>
                         <h5>
                           <span className="counter">{claimCount.Rejected}</span>+
                         </h5>
@@ -233,34 +281,66 @@ const ProviderClaims = () => {
         <div className="d-flex align-items-center justify-content-between flex-wrap row-gap-3 mb-4">
           <h4>Claim List</h4>
           <div className="d-flex align-items-center flex-wrap row-gap-3">
-            <span className="fs-14 me-2">Sort With Status</span>
-            <div className="dropdown me-2">
-              <Link to="#" className="dropdown-toggle" data-bs-toggle="dropdown">
-                All
-              </Link>
-              <div className="dropdown-menu">
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('all')}>
-                  All
-                </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Resolved')}>
-                  Resolved
-                </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Pending')}>
-                  Pending
-                </Link>
-                <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Rejected')}>
-                  Expired
-                </Link>
+                <div className="btn-group me-2">
+                  <button
+                    className={`btn ${dateFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'all' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'all' ? '#ff6f61' : '', color: dateFilter === 'all' ? 'white' : '' }}
+                    onClick={() => setDateFilter('all')}
+                  >
+                    All Dates
+                  </button>
+                  <button
+                    className={`btn ${dateFilter === 'today' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'today' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'today' ? '#ff6f61' : '', color: dateFilter === 'today' ? 'white' : '' }}
+                    onClick={() => setDateFilter('today')}
+                  >
+                    Today
+                  </button>
+                  <button
+                    className={`btn ${dateFilter === 'tomorrow' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'tomorrow' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'tomorrow' ? '#ff6f61' : '', color: dateFilter === 'tomorrow' ? 'white' : '' }}
+                    onClick={() => setDateFilter('tomorrow')}
+                  >
+                    Tomorrow
+                  </button>
+                  <button
+                    className={`btn ${dateFilter === 'week' ? 'btn-primary' : 'btn-outline-primary'} ${dateFilter === 'week' ? 'active' : ''}`}
+                    style={{ backgroundColor: dateFilter === 'week' ? '#ff6f61' : '', color: dateFilter === 'week' ? 'white' : '' }}
+                    onClick={() => setDateFilter('week')}
+                  >
+                    This Week
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
+              <div className="d-flex align-items-center flex-wrap row-gap-3">
+                <span className="fs-14 me-2">Sort With Status</span>
+                <div className="dropdown me-2">
+                  <Link to="#" className="dropdown-toggle" data-bs-toggle="dropdown">
+                    {filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+                  </Link>
+                  <div className="dropdown-menu">
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('all')}>
+                      All
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Resolved')}>
+                      Resolved
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Rejected')}>
+                      Rejected
+                    </Link>
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Valid')}>
+                      Valid
+                    </Link>
+                  </div>
+                </div>
+              </div>
         </div>
       </div>
         </div>
         <div className="row justify-content-center">
           <div className="col-xxl-12 col-lg-12">
-            {claims.length > 0 ? (
-              claims.map((claim) => (
+            {paginatedClaims.length > 0 ? (
+              paginatedClaims.map((claim) => (
                 <div key={claim._id} className="card shadow-none booking-list">
                   <div className="card-body d-md-flex align-items-center">
                     <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
@@ -316,47 +396,37 @@ const ProviderClaims = () => {
           </div>
         </div>
 
-        <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3">
+        <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3 mt-4">
           <div className="value d-flex align-items-center">
             <span>Show</span>
-            <select>
-              <option>7</option>
+            <select value={CLAIMS_PER_PAGE} disabled>
+              <option>{CLAIMS_PER_PAGE}</option>
             </select>
             <span>entries</span>
           </div>
+
           <div className="d-flex align-items-center justify-content-center">
-            <span className="me-2 text-gray-9">1 - 07 of 10</span>
+            <span className="me-2 text-gray-9">
+              {((currentPage - 1) * CLAIMS_PER_PAGE) + 1} -{" "}
+              {Math.min(currentPage * CLAIMS_PER_PAGE, claims.length)} of {claims.length}
+            </span>
             <nav aria-label="Page navigation">
               <ul className="paginations d-flex justify-content-center align-items-center">
-                <li className="page-item me-2">
-                  <Link
-                    className="page-link-1 active d-flex justify-content-center align-items-center "
-                    to="#"
-                  >
-                    1
-                  </Link>
-                </li>
-                <li className="page-item me-2">
-                  <Link
-                    className="page-link-1 d-flex justify-content-center align-items-center "
-                    to="#"
-                  >
-                    2
-                  </Link>
-                </li>
-                <li className="page-item">
-                  <Link
-                    className="page-link-1 d-flex justify-content-center align-items-center "
-                    to="#"
-                  >
-                    3
-                  </Link>
-                </li>
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                  <li className="page-item me-2" key={pageNum}>
+                    <button
+                      className={`page-link-1 d-flex justify-content-center align-items-center ${pageNum === currentPage ? "active" : ""}`}
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  </li>
+                ))}
               </ul>
             </nav>
           </div>
         </div>
-      </div>
+        </div>
     </>
   );
 };

@@ -53,9 +53,6 @@ __pycache__/
 *.pyo
 
 # Images générées
-*.jpg
-*.png
-*.jpeg
 
 # Fichiers de détection ou résultats
 output.jpg
@@ -70,7 +67,6 @@ uploads/
 
 # VSCode
 .vscode/
-
 
 
 

@@ -15,18 +15,23 @@ interface Reservation {
   startDate: string;
   endDate: string;
   totalPrice: number;
-  parkingId: string;
+  parkingId: {
+    _id: string;
+    nom?: string;
+    images?: string[];
+    adresse?: string;
+    tarif_horaire?: number;
+  }; // Parking details directly under parkingId
   status: string;
-  parkingSpot: string;
-  parking: {
-    nom: string;
-    image: string;
-    adresse: string;
-    tarif_horaire: number;
-  } | null;
-  parkingS: {
+  parkingSpot: {
+    _id: string;
     numero: string;
-  } | null;
+    parkingId: string;
+    disponibilite: boolean;
+    __v?: number;
+  }; // Parking spot details directly under parkingSpot
+  additionalFee: number;
+  extendedEndDate: string | null;
 }
 
 const BookingDetails = () => {
@@ -92,25 +97,19 @@ const BookingDetails = () => {
       try {
         const reservationRes = await axios.get(`http://localhost:4000/api/reservations/${id}`);
         const reservationData = reservationRes.data.data;
+        console.log('Reservation Data:', reservationData);
 
-        const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservationData.parkingId}`);
-        const parkingData = parkingRes.data;
-
-        const parkingSpotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservationData.parkingSpot}`);
-        const parkingSpotData = parkingSpotRes.data.data;
-
+        // No need to fetch parking or parking spot details separately since they're in parkingId and parkingSpot
         const userRes = await axios.get(`http://localhost:4000/api/users/${reservationData.userId}`);
         const userData = userRes.data;
 
         const enrichedReservation = {
           ...reservationData,
-          parking: parkingData,
-          parkingS: parkingSpotData,
         };
 
         setReservation(enrichedReservation);
         setUserInfo(userData);
-        setReviewForm({ ...reviewForm, parkingId: reservationData.parkingId });
+        setReviewForm({ ...reviewForm, parkingId: reservationData.parkingId._id }); // Use parkingId._id
       } catch (error) {
         console.error('Failed to fetch reservation or related data:', error);
       }
@@ -129,16 +128,13 @@ const BookingDetails = () => {
           const enrichedReservations = await Promise.all(
             data.slice(0, 3).map(async (reservation: any) => {
               try {
-                const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
                 return {
                   ...reservation,
-                  parking: parkingRes.data,
                 };
               } catch (parkingErr) {
                 console.error(`Failed to fetch parking for reservation ${reservation._id}:`, parkingErr);
                 return {
                   ...reservation,
-                  parking: null,
                 };
               }
             })
@@ -157,7 +153,7 @@ const BookingDetails = () => {
   useEffect(() => {
     if (reservation?.parkingId) {
       axios
-        .get(`http://localhost:4000/api/reviews/parking/${reservation.parkingId}`)
+        .get(`http://localhost:4000/api/reviews/parking/${reservation.parkingId._id}`)
         .then((response) => {
           setReviews(response.data);
           const existingReview = response.data.find(
@@ -166,7 +162,7 @@ const BookingDetails = () => {
           if (existingReview) {
             setUserReview(existingReview);
             setReviewForm({
-              parkingId: reservation.parkingId,
+              parkingId: reservation.parkingId._id,
               rating: existingReview.rating,
               comment: existingReview.comment,
             });
@@ -191,13 +187,13 @@ const BookingDetails = () => {
     if (userReview) {
       setIsEditing(true);
       setReviewForm({
-        parkingId: reservation?.parkingId || '',
+        parkingId: reservation?.parkingId._id || '',
         rating: userReview.rating,
         comment: userReview.comment,
       });
     } else {
       setIsEditing(false);
-      setReviewForm({ parkingId: reservation?.parkingId || '', rating: 5, comment: '' });
+      setReviewForm({ parkingId: reservation?.parkingId._id || '', rating: 5, comment: '' });
     }
   };
 
@@ -238,7 +234,7 @@ const BookingDetails = () => {
         setReviews([...reviews, response.data]);
       }
 
-      setReviewForm({ parkingId: reservation?.parkingId || '', rating: 5, comment: '' });
+      setReviewForm({ parkingId: reservation?.parkingId._id || '', rating: 5, comment: '' });
       setIsEditing(false);
 
       setTimeout(() => {
@@ -289,7 +285,7 @@ const BookingDetails = () => {
                         Reservations
                       </li>
                       <li className="breadcrumb-item" aria-current="page">
-                        {reservation?.parking?.nom}
+                        {reservation?.parkingId?.nom}
                       </li>
                     </ol>
                   </nav>
@@ -297,7 +293,7 @@ const BookingDetails = () => {
                 <div className="row booking-details">
                   <div className="col-md-4">
                     <div>
-                      <h4 className="mb-2">Reservation: {reservation?.parking?.nom}</h4>
+                      <h4 className="mb-2">Reservation: {reservation?.parkingId?.nom}</h4>
                       <p className="fs-12">
                         <i className="feather icon-calendar me-1" />
                         {new Date(reservation?.startDate ?? '').toLocaleDateString()}{' '}
@@ -335,7 +331,7 @@ const BookingDetails = () => {
                             })}
                           </li>
                           <li className="fs-12 d-flex align-items-center">
-                            <i className="feather icon-clock me-1" /> {reservation?.parkingS?.numero}
+                            <i className="feather icon-clock me-1" /> {reservation?.parkingSpot?.numero}
                           </li>
                         </ul>
                       </div>
@@ -346,8 +342,8 @@ const BookingDetails = () => {
                         <div className="slot-chat">
                           <div className="slot-user-img d-flex align-items-center">
                             <div className="slot-user-info">
-                              <p className="mb-1 fs-12">{reservation?.parking?.nom}</p>
-                              <p className="mb-0 fs-12">{reservation?.parking?.adresse}</p>
+                              <p className="mb-1 fs-12">{reservation?.parkingId?.nom}</p>
+                              <p className="mb-0 fs-12">{reservation?.parkingId?.adresse}</p>
                             </div>
                           </div>
                           <div className="chat-item d-flex align-items-center">
@@ -383,10 +379,19 @@ const BookingDetails = () => {
                         <div className="order-amt">
                           <div className="order-info">
                             <div className="order-img">
-                              <ImageWithBasePath
-                                src={reservation?.parking?.image || 'assets/img/parking.jpg'}
-                                alt="Parking Image"
-                              />
+                              {reservation?.parkingId?.images && reservation.parkingId.images.length > 0 ? (
+                                <img
+                                  src={reservation.parkingId.images[0]}
+                                  alt="Parking Image"
+                                  className="img-fluid"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = 'assets/img/parking.jpg';
+                                  }}
+                                />
+                              ) : (
+                                <ImageWithBasePath src="assets/img/parking.jpg" alt="Parking Image" />
+                              )}
                             </div>
                           </div>
                         </div>
@@ -409,10 +414,10 @@ const BookingDetails = () => {
                             <span className="ord-amt">
                               {reservation?.startDate && reservation?.endDate
                                 ? `${Math.round(
-                                  (new Date(reservation.endDate).getTime() -
-                                    new Date(reservation.startDate).getTime()) /
-                                  (1000 * 60 * 60)
-                                )} hour(s)`
+                                    (new Date(reservation.endDate).getTime() -
+                                      new Date(reservation.startDate).getTime()) /
+                                      (1000 * 60 * 60)
+                                  )} hour(s)`
                                 : 'N/A'}
                             </span>
                           </li>
@@ -480,7 +485,7 @@ const BookingDetails = () => {
                           <ul>
                             {reservations.map((reservation) => (
                               <li key={reservation._id}>
-                                <h6>{reservation.parking?.nom}</h6>
+                                <h6>{reservation.parkingId?.nom}</h6>
                                 <p>
                                   <i className="ti ti-calendar me-1" />
                                   {new Date(reservation?.startDate ?? '').toLocaleDateString()}{' '}
@@ -502,13 +507,13 @@ const BookingDetails = () => {
                           <div className="row align-items-center mb-4">
                             <div className="col-5">
                               <h6 className="order-title">Parking Reviews</h6>
-                              <p className="mb-1 fs-12">{reservation?.parking?.nom}</p>
+                              <p className="mb-1 fs-12">{reservation?.parkingId?.nom}</p>
                               <div className="rating">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                   <span
                                     key={star}
                                     style={{
-                                      fontSize: '16px', // Adjust size to match popup
+                                      fontSize: '16px',
                                       marginRight: '5px',
                                       color: star <= Math.round(averageRating) ? '#f5c518' : '#d3d3d3',
                                     }}
@@ -516,7 +521,7 @@ const BookingDetails = () => {
                                     ★
                                   </span>
                                 ))}
-                                <span className="ms-2">({averageRating} / 5.0)</span> {/* Optional: Keep the numeric display if desired */}
+                                <span className="ms-2">({averageRating} / 5.0)</span>
                               </div>
                             </div>
                             <div className="col-7 text-end d-flex justify-content-end">
@@ -669,7 +674,6 @@ const BookingDetails = () => {
           </div>
         </div>
       </div>
-      
     </>
   );
 };
