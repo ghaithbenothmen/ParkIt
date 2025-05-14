@@ -413,35 +413,6 @@ const ProviderDashboard = () => {
     ],
   });
 
-  useEffect(() => {
-    const fetchTopLocationsData = async () => {
-      if (!userInfo._id) return;
-      try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/reservation/parkuser/${userInfo._id}`);
-        const data = res.data.data;
-
-        const transformedData = Object.entries(data).map(([parkingName, count]: any) => ({
-          x: parkingName,
-          y: count,
-        }));
-
-        setTopLocationChart({
-          ...topLocationChart,
-          series: [
-            {
-              name: 'Reservations',
-              data: transformedData,
-            },
-          ],
-        });
-      } catch (error) {
-        console.error('Error fetching top location chart data:', error);
-      }
-    };
-
-    fetchTopLocationsData();
-  }, [userInfo._id]);
-
   const [topLocationChart, setTopLocationChart] = useState<any>({
     series: [],
     options: {
@@ -466,6 +437,35 @@ const ProviderDashboard = () => {
       },
     },
   });
+
+  useEffect(() => {
+    const fetchTopLocationsData = async () => {
+      if (!userInfo._id) return;
+      try {
+        const res = await axios.get(`http://localhost:4000/api/reservations/reservation/parkuser/${userInfo._id}`);
+        const data = res.data.data;
+
+        const transformedData = Object.entries(data).map(([parkingName, count]: any) => ({
+          x: parkingName,
+          y: count,
+        }));
+
+        setTopLocationChart(prevState => ({
+          ...prevState,
+          series: [
+            {
+              name: 'Reservations',
+              data: transformedData,
+            },
+          ],
+        }));
+      } catch (error) {
+        console.error('Error fetching top location chart data:', error);
+      }
+    };
+
+    fetchTopLocationsData();
+  }, [userInfo._id]);
 
   const badgeImages = [
     { name: 'Bronze', src: 'assets/img/medal.png', discount: 5 },

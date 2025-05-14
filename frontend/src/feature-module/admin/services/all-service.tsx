@@ -659,8 +659,12 @@ const AllService = () => {
     }
     return (
       <button 
-        className="btn btn-sm btn-outline-primary"
+        className="btn btn-sm"
         onClick={() => openImageGallery(rowData.images)}
+        style={{ 
+          borderColor: '#4169E1',
+          color: '#4169E1' 
+        }}
       >
         <i className="fa-solid fa-images me-1"></i>
         View Images ({rowData.images.length})
@@ -672,8 +676,12 @@ const AllService = () => {
     return (
       <div className="btn-group">
         <button
-          className="btn btn-sm btn-outline-primary"
+          className="btn btn-sm"
           onClick={() => openUpdateModal(rowData)}
+          style={{ 
+            borderColor: '#4169E1',
+            color: '#4169E1'
+          }}
         >
           <i className="fa-solid fa-pen-to-square me-1"></i>
           Edit
@@ -806,7 +814,7 @@ const AllService = () => {
                 </li>
                 <li>
                   <button
-                    className="btn btn-primary"
+                    className="btn text-white"
                     onClick={() => {
                       resetCreateForm();
                       createModalRef.current?.show();
@@ -816,6 +824,7 @@ const AllService = () => {
                         }
                       }, 300);
                     }}
+                    style={{ backgroundColor: '#4169E1' }}
                   >
                     <i className="fa fa-plus me-2" />
                     Add Parking
@@ -1262,13 +1271,18 @@ const AllService = () => {
                     <div className="modal-footer border-0 pt-4">
                       <button 
                         type="button" 
-                        className="btn btn-secondary" 
+                        className="btn text-white" 
                         data-bs-dismiss="modal"
                         onClick={() => setErrors({})}
+                        style={{ backgroundColor: '#DC3545' }}
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
+                      <button 
+                        type="submit" 
+                        className="btn text-white"
+                        style={{ backgroundColor: '#4169E1' }}
+                      >
                         Save Changes
                       </button>
                     </div>
@@ -1498,13 +1512,18 @@ const AllService = () => {
                   <div className="modal-footer border-0 pt-4">
                     <button 
                       type="button" 
-                      className="btn btn-secondary" 
+                      className="btn text-white" 
                       data-bs-dismiss="modal"
                       onClick={resetCreateForm}
+                      style={{ backgroundColor: '#DC3545' }}
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-primary">
+                    <button 
+                      type="submit" 
+                      className="btn text-white"
+                      style={{ backgroundColor: '#4169E1' }}
+                    >
                       Create Parking
                     </button>
                   </div>

@@ -262,6 +262,12 @@ const Reviews = () => {
           #view-review .btn-close::after {
             transform: translate(-50%, -50%) rotate(-45deg);
           }
+          .react-feather-custom {
+            transition: color 0.3s ease;
+          }
+          .delete-table:hover .react-feather-custom {
+            color: #DC3545;
+          }
         `}
       </style>
       <div className="page-wrapper page-settings" style={{ height: '100vh', overflow: 'hidden' }}>
@@ -290,7 +296,25 @@ const Reviews = () => {
                       <button
                         key={rating}
                         type="button"
-                        className={`btn ${ratingFilter === rating ? 'btn-primary' : 'btn-outline-primary'}`}
+                        className="btn"
+                        style={{ 
+                          backgroundColor: ratingFilter === rating ? '#4169E1' : 'white',
+                          borderColor: '#4169E1',
+                          color: ratingFilter === rating ? 'white' : '#4169E1',
+                          transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (ratingFilter !== rating) {
+                            e.currentTarget.style.backgroundColor = '#4169E1';
+                            e.currentTarget.style.color = 'white';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (ratingFilter !== rating) {
+                            e.currentTarget.style.backgroundColor = 'white';
+                            e.currentTarget.style.color = '#4169E1';
+                          }
+                        }}
                         onClick={() => filterByRating(rating)}
                       >
                         {rating} Star{rating > 1 ? 's' : ''}
