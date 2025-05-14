@@ -13,6 +13,7 @@ import ProviderClaims from './claims/provider-claims';
 import ClaimDetails from './claims/provider-claim-details';
 import BookingDetails from './provider-booking/booking-details';
 import OverdueDetails from './provider-booking/OverdueDetails';
+import MapPage2 from './map/Map2';
 
 
 
@@ -75,6 +76,12 @@ const ProvidersRoutes = () => {
       path: '/provider-service/edit-vehicule/:id',
       name: 'edit-vehicule',
       element: <CreateCar />, // Même composant pour l'édition
+      route: Route,
+    },
+    {
+      path: '/map2/:parkingId',
+      name: 'map2',
+      element: <MapPage2 />, // Même composant pour l'édition
       route: Route,
     },
     {

@@ -146,221 +146,132 @@ claimData.forEach((value, key) => {
     }
   };
 
-  return (
-    <>
-     <BreadCrumb title='Claim' item1='customers' item2='customer-claim'/>
-     <div className="page-wrapper">
+ return (
+  <>
+    <BreadCrumb title="Submit a Claim" item1="Service" item2="Submit a Claim" />
+    <div className="page-wrapper">
       <div className="content">
         <div className="container">
-          <div className="contacts">
-            <div className="contacts-overlay-img d-none d-lg-block">
-              <ImageWithBasePath src="assets/img/bg/bg-07.png" alt="img" className="img-fluid" />
-            </div>
-            <div className="contacts-overlay-sm d-none d-lg-block">
-              <ImageWithBasePath src="assets/img/bg/bg-08.png" alt="img" className="img-fluid" />
-            </div>
+          <div className="fieldset-wizard request-wizard">
+                      <div className="row">
+            <form onSubmit={handleSubmit}>
+              <fieldset style={{ display: 'flex' }}>
+                <div className="card flex-fill mb-0">
+                  <div className="card-body">
+                    <h5 className="mb-3">Report an issue</h5>
 
-            {/* Contact Details */}
-            <div className="contact-details">
-              <div className="row justify-content-center">
-                <div className="col-md-6 col-lg-4 d-flex">
-                  <div className="card flex-fill">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center">
-                        <span className="rounded-circle">
-                          <i className="ti ti-phone text-primary" />
-                        </span>
-                        <div>
-                          <h6 className="fs-18 mb-1">Phone Number</h6>
-                          <p className="fs-14">(888) 888-8888</p>
-                          <p className="fs-14">(123) 456-7890</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6 col-lg-4 d-flex">
-                  <div className="card flex-fill">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center">
-                        <span className="rounded-circle">
-                          <i className="ti ti-mail text-primary" />
-                        </span>
-                        <div>
-                          <h6 className="fs-18 mb-1">Email Address</h6>
-                          <p className="fs-14">truelysell@example.com</p>
-                          <p className="fs-14">johnsmith@example.com</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6 col-lg-4 d-flex">
-                  <div className="card flex-fill">
-                    <div className="card-body">
-                      <div className="d-flex align-items-center">
-                        <span className="rounded-circle">
-                          <i className="ti ti-map-pin text-primary" />
-                        </span>
-                        <div>
-                          <h6 className="fs-18 mb-1">Address</h6>
-                          <p className="fs-14">
-                            367 Hillcrest Lane, Irvine, California, United States
+                    {/* Image Upload */}
+                    <div className="mb-3">
+                      <label className="form-label d-block">Please add Pictures or Videos</label>
+                      <div className="d-flex align-items-center justify-content-center upload-field flex-column">
+                        <span className="d-block text-center mb-2">
+                            <ImageWithBasePath
+                              src="assets/img/icons/icon-upload.svg"
+                              alt=""
+                            />
+                          </span>
+                          <p className="fs-14 text-center mb-2">
+                            Drag and drop your files here to upload{" "}
+                            <span className="d-block mt-2">Or</span>
                           </p>
+                        {imagePreview && <img src={imagePreview} alt="Preview" style={{ width: 200 }} />}
+                        <div className="file-upload btn btn-linear-primary h-auto mb-2">
+                          Browse Files
+                          <input
+                            type="file"
+                            accept="image/*,video/*"
+                            onChange={handleImageChange}
+                          />
                         </div>
+                        <p className="text-center fs-14">
+                          Only .jpg .png file types allowed and file <br />
+                          size must be less than 100 MB
+                        </p>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* /Contact Details */}
 
-            {/* Get In Touch */}
-            <div className="row">
-              <div className="col-md-6 d-flex align-items-center">
-                <div className="contact-img flex-fill">
-                                <img
-                  src={imagePreview || ''}
-                  alt="Image"
-                  style={{ maxHeight: '700px', width: 'auto', objectFit: 'contain' }}
-                />
-
-                </div>
-              </div>
-              <div className="col-md-6 d-flex align-items-center justify-content-center">
-                <div className="contact-queries flex-fill">
-                  <h2>Report an Issue</h2>
-                  <form onSubmit={handleSubmit}>
-                    <div className="row">
                       <div className="col-md-12">
-                        <div className="mb-3">
-                          <div className="form-group">
-                          <Dropdown
-                                value={claimType}
+                            <div className="mb-4 border-top pt-4">
+                              <div className="position-relative">
+                                <label className="fs-12 select-floating-label">
+                                  Claim Type{" "}
+                                  <span className="text-danger">*</span>
+                                </label>
+                               
+                                <Dropdown
+                                    value={claimType}
                                 onChange={(e) => setclaimType(e.value)}  // Update claimType on change
                                 options={claimTypes}  // Dropdown options
-                                placeholder="Select Claim Type"
-                                className="w-100"  // Full width, if needed, adjust the width here
-                              />
-                            {errors.claimType && <small className="text-danger">{errors.claimType}</small>}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-md-12">
-                          <div className="mb-3">
-                            <div className="form-group">
-                              <Dropdown
-                                value={parkingId}
-                                onChange={(e) => setParkingId(e.value)}
-                                options={parkings}
-                                optionLabel="nom"
-                                optionValue="_id"
-                                placeholder="Select Parking"
-                                className="w-100" // Full width, if needed, adjust the width here
-                              />
+                                    placeholder="Select"
+                                    className="w-100 select"
+                                    />
+                              </div>
                             </div>
-                            {errors.parkingId && (
-                              <div className="invalid-feedback">{errors.parkingId}</div>
-                            )}
                           </div>
-                        </div>
-                      <div className="col-md-12">
-                      <div className="card-body">
-          <h6 className="user-title">Proof Picture</h6>
-          <div className="pro-picture">
-            <div className="pro-info">
-              <div className="d-flex mb-2">
-                <label
-                  htmlFor="image-upload"
-                  className="btn btn-dark btn-sm d-flex align-items-center me-3"
-                >
-                  <i className="ti ti-cloud-upload me-1" />
-                  Upload
-                </label>
-                <input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={handleImageChange}
-                />
-                <button
-                  className="btn btn-light btn-sm d-flex align-items-center"
-                  onClick={() => {
-                    setImage(null);
-                    setImagePreview(null);
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-              <p className="fs-14">
-                *image size should be at least 320px big, and less than 500kb. Allowed files .png and .jpg.
-              </p>
-            </div>
-          </div>
-        </div>
-                        <div className="mb-3">
-                          <div className="form-group">
-                          <textarea
-                                className="form-control"
-                                placeholder="Type Message"
-                                value={message}  // Bind message state
-                                onChange={(e) => setMessage(e.target.value)}  // Update message state
-                                id="floatingTextarea"
-                              />
+                    
+<div className="col-md-12">
+                            <div className="mb-4 border-top pt-4">
+                              <div className="position-relative">
+                                <label className="fs-12 select-floating-label">
+                                  Parking Lot{" "}
+                                  <span className="text-danger">*</span>
+                                </label>
+                               
+                                <Dropdown
+                                    value={parkingId}
+      options={parkings.map((p: any) => ({
+        label: p.name || p.address || `Parking ${p.nom}`,
+        value: p._id,
+      }))}
+      onChange={(e) => setParkingId(e.value)}
+                                    placeholder="Select"
+                                    className="w-100 select"
+                                    />
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      <div className="col-md-12 submit-btn">
-                        <button
-                          className="btn btn-dark d-flex align-items-center"
-                          type="submit"
-                        >
-                          Send Message
-                          <i className="feather icon-arrow-right-circle ms-2" />
-                        </button>
-                      </div>
+
+                    
+
+                    {/* Message */}
+                    <div className="mb-3">
+                      <label className="form-label">Additional Notes/Special Requirements</label>
+                      <textarea
+                        rows={3}
+                        className="form-control"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                      />
                     </div>
-                  </form>
+
+                    {/* Submit Button */}
+                    <button type="submit" className="file-upload btn btn-linear-primary h-auto mb-2">
+                      {isEditMode ? 'Update Claim' : 'Submit Claim'}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </fieldset>
+            </form>
             </div>
-            {/* /Get In Touch */}
           </div>
         </div>
       </div>
-
     </div>
-    <Modal
-            centered
-            show={showModal}
-            onHide={() => setShowModal(false)}
-            backdrop="static"
-            keyboard={false}
-          >
-            <div className="modal-body">
-              <div className="text-center py-4">
-                <span className="success-check mb-3 mx-auto">
-                  <i className="ti ti-check" />
-                </span>
-                <h4 className="mb-2"> Report Sent Successfully</h4>
-                <p>Your issue has been reported for evaluation.</p>
-                <div className="d-flex align-items-center justify-content-center mt-3">
-                  <button className="btn btn-light me-3" onClick={() => setShowModal(false)}>
-                    Close
-                  </button>
-                  <Link to={routes.providerClaims} className="btn btn-linear-primary">
-                    View List
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </Modal>
-        </>
-    
-  );
+
+    {/* Modal */}
+    <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Success</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>Your claim has been {isEditMode ? 'updated' : 'submitted'} successfully.</Modal.Body>
+      <Modal.Footer>
+        <button className="btn btn-secondary" onClick={() => navigate(routes.providerClaims)}>
+          Go to Claims
+        </button>
+      </Modal.Footer>
+    </Modal>
+  </>
+);
 };
 
 export default CreateClaim;

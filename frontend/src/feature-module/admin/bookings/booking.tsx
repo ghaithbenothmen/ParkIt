@@ -10,29 +10,32 @@ import { all_routes } from '../../../core/data/routes/all_routes';
 import * as Icon from 'react-feather';
 import { BookingInterface } from '../../../core/models/interface';
 import axios from "axios";
+import { format } from 'date-fns';
+import TruncatedAddress from '../dashboard/TruncatedAddress';
 
 interface Reservation {
   _id: string;
   startDate: string;
   endDate: string;
   totalPrice: number;
-  parkingId: string;  // Parking ID
+  parkingId: string;
   status: string;
   parkingSpot: string;
   parking: {
     nom: string;
     image: string;
     adresse: string;
-  } | null; // parking details will be populated later
+  } | null;
   parkingS: {
     numero: string;
   } | null;
-  userId: string;  // User ID field added
+  userId: string;
   user?: {
     firstname: string;
     email: string;
-  }; // User details will be added here // parking details will be populated later
+  };
 }
+
 const Booking = () => {
   const routes = all_routes;
   const data = useSelector((state: any) => state.all_booking);
@@ -44,7 +47,6 @@ const Booking = () => {
     { name: 'Completed' },
     { name: 'Cancelled' },
   ];
-
 
   const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -63,122 +65,85 @@ const Booking = () => {
       try {
         const res = await axios.get(`http://localhost:4000/api/reservations`);
         console.log("Fetched reservations:", res.data);
+        const reservationsData = res.data.data;
 
-        setReservations(res.data.data);  // Access the array inside 'data'
+        // Fetch all additional data in parallel
+        const updatedReservations = await Promise.all(
+          reservationsData.map(async (reservation) => {
+            let parkingData = null;
+            let spotData = null;
+            let userData = null;
+
+            try {
+              if (reservation.parkingId) {
+                const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+                parkingData = parkingRes.data;
+              }
+              if (reservation.parkingSpot) {
+                const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+                spotData = spotRes.data.data;
+              }
+              if (reservation.userId) {
+                const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+                userData = {
+                  firstname: userRes.data.firstname,
+                  email: userRes.data.email,
+                };
+              }
+            } catch (error) {
+              console.error('Error fetching related data:', error);
+            }
+
+            return {
+              ...reservation,
+              parking: parkingData,
+              parkingS: spotData,
+              user: userData,
+            };
+          })
+        );
+
+        setReservations(updatedReservations);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
       }
     };
 
     fetchReservations();
-  }, []);
-  useEffect(() => {
-    const fetchParkings = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
+  }, []); // Empty dependency array as we only want to fetch once
 
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.parkingId && !reservation.parking) {
-          try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;  // Assuming parking details come with nom, image, adresse
-          } catch (error) {
-            console.error('Error fetching parking details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations); // Update the state with parking details
-    };
-
-    if (reservations.length > 0) {
-      fetchParkings();
-    }
-  }, [reservations]);
-  useEffect(() => {
-    const fetchParkingSpots = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-
-        if (reservation.parkingSpot && !reservation.parkingS) {
-          try {
-            console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
-            console.log("Parking spot fetched:", spotRes.data);
-            updatedReservations[i].parkingS = spotRes.data.data;
-          } catch (error) {
-            console.error('Error fetching parking spot for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchParkingSpots();
-    }
-  }, [reservations]);
   const statusButton = (rowData: BookingInterface) => {
     if (rowData.status === 'Completed') {
       return <span className="badge-delete">{rowData.status}</span>;
     } else if (rowData.status === 'Canceleld') {
       return <span className="badge-inactive">{rowData.status}</span>;
-    }
-    else if (rowData.status === 'Pending') {
+    } else if (rowData.status === 'Pending') {
       return <span className="badge-pending">{rowData.status}</span>;
     } else {
       return rowData.status;
     }
   };
+
   const renderStatusBadge = (rowData: Reservation) => {
     let badgeClass = '';
     const label = rowData.status;
-  
+
     switch (rowData.status.toLowerCase()) {
       case 'confirmed':
-        badgeClass = 'badge bg-success'; // Green
+        badgeClass = 'badge bg-success';
         break;
       case 'pending':
-        badgeClass = 'badge bg-primary'; // Blue
+        badgeClass = 'badge bg-primary';
         break;
       case 'over':
-        badgeClass = 'badge bg-danger'; // Red
+        badgeClass = 'badge bg-danger';
         break;
       default:
-        badgeClass = 'badge bg-secondary'; // Gray fallback
+        badgeClass = 'badge bg-secondary';
     }
-  
+
     return <span className={badgeClass}>{label}</span>;
   };
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.userId && !reservation.user) {
-          try {
-            const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
-            updatedReservations[i].user = {
-              firstname: userRes.data.firstname,
-              email: userRes.data.email,
-            };
-          } catch (error) {
-            console.error('Error fetching user details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations); // Update the state with user details
-    };
-
-    if (reservations.length > 0) {
-      fetchUserDetails();
-    }
-  }, [reservations]);
 
   const renderUserDetails = (rowData: Reservation) => {
     return rowData.user ? (
@@ -187,12 +152,22 @@ const Booking = () => {
         <div>{rowData.user.email}</div>
       </div>
     ) : (
-      '—' // Fallback if user details are not available yet
+      '—'
     );
   };
 
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return format(date, 'yyyy-MM-dd hha');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  };
+
   return (
-    <>
+    <div>
       <div className="page-wrapper page-settings">
         <div className="content">
           <div className="content-page-header content-page-headersplit">
@@ -201,8 +176,7 @@ const Booking = () => {
               <ul>
                 <li>
                   <div className="filter-sorting">
-                    <ul>
-                    </ul>
+                    <ul></ul>
                   </div>
                 </li>
               </ul>
@@ -219,7 +193,7 @@ const Booking = () => {
                       </Link>
                     </li>
                     <li>
-                      <Link to={routes.pendingBooking}>Pending </Link>
+                      <Link to={routes.pendingBooking}>Pending</Link>
                     </li>
                     <li>
                       <Link to={routes.completedBooking}>Completed</Link>
@@ -233,11 +207,11 @@ const Booking = () => {
             </div>
           </div>
           <div className="row">
-            <div className="col-12 ">
+            <div className="col-12">
               <div className="table-resposnive table-div">
                 <table className="table datatable">
                   <DataTable
-                    paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
+                    paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                     currentPageReportTemplate="{first} to {last} of {totalRecords}"
                     value={filteredReservations}
                     paginator
@@ -246,14 +220,29 @@ const Booking = () => {
                     tableStyle={{ minWidth: '50rem' }}
                   >
                     <Column header="User" body={renderUserDetails} />
-                    <Column field="startDate" header="Start Date" sortable />
-                    <Column field="endDate" header="End Date" sortable />
-                    <Column field="totalPrice" header="Total Price" sortable />
+                    <Column
+                      header="Start Date"
+                      body={(rowData) => formatDate(rowData.startDate)}
+                      sortable
+                    />
+                    <Column
+                      header="End Date"
+                      body={(rowData) => formatDate(rowData.endDate)}
+                      sortable
+                    />
+                    <Column 
+                      field="totalPrice" 
+                      header="Total Price" 
+                      sortable
+                      body={(rowData) => `${rowData.totalPrice} DT`}
+                    />
                     <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
-                    <Column header="Address" body={(rowData) => rowData.parking?.adresse || '—'} />
+                    <Column
+                      header="Address"
+                      body={(rowData) => <TruncatedAddress address={rowData.parking?.adresse} />}
+                    />
                     <Column header="Spot" body={(rowData) => rowData.parkingS?.numero || '—'} />
                     <Column field="status" header="Status" body={renderStatusBadge} sortable />
-
                   </DataTable>
                 </table>
               </div>
@@ -261,7 +250,7 @@ const Booking = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

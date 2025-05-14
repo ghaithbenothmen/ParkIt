@@ -40,6 +40,7 @@ export const all_routes = {
 
   providerCars: '/providers/cars',
   providerClaims:'/providers/claims',
+  voice:'/voice',
 
 
   commonNotification: '/customers/notification',

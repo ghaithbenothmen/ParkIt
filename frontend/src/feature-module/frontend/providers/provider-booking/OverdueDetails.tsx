@@ -1,28 +1,29 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import axios from "axios";
-import ImageWithBasePath from "../../../../core/img/ImageWithBasePath";
-import { all_routes } from "../../../../core/data/routes/all_routes";
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import axios from 'axios';
+import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
+import { all_routes } from '../../../../core/data/routes/all_routes';
 
 const OverdueDetails = () => {
   const { id } = useParams(); // Reservation ID from the URL
+
   interface Reservation {
     _id: string;
     userId: string;
     startDate: string;
     endDate: string;
     totalPrice: number;
-    parkingId: string;
+    parkingId: {
+      _id: string;
+      nom?: string;
+      images?: string[];
+      adresse?: string;
+      tarif_horaire?: number;
+    }; // Parking details directly under parkingId
     status: string;
     parkingSpot: string;
     additionalFee: number;
     extendedEndDate: string | null;
-    parking: {
-      nom?: string;
-      image?: string;
-      adresse?: string;
-      tarif_horaire?: number;
-    } | null;
     parkingS: {
       numero?: string;
     } | null;
@@ -30,28 +31,25 @@ const OverdueDetails = () => {
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const fetchReservation = async () => {
       try {
         const res = await axios.get(`http://localhost:4000/api/reservations/${id}`);
         const reservationData = res.data.data;
+        console.log('Reservation Data:', reservationData);
 
-        // Ensure parkingId is valid before making the API call
-        if (reservationData.parkingId && typeof reservationData.parkingId === "string") {
-          const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservationData.parkingId}`);
-          reservationData.parking = parkingRes.data;
-        }
-
+        // No need to fetch parking details separately since they're already in parkingId
         // Ensure parkingSpot is valid before making the API call
-        if (reservationData.parkingSpot && typeof reservationData.parkingSpot === "string") {
+        if (reservationData.parkingSpot && typeof reservationData.parkingSpot === 'string') {
           const parkingSpotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservationData.parkingSpot}`);
           reservationData.parkingS = parkingSpotRes.data.data;
         }
 
         setReservation(reservationData);
       } catch (error) {
-        console.error("Failed to fetch reservation details:", error);
+        console.error('Failed to fetch reservation details:', error);
       }
     };
 
@@ -61,15 +59,15 @@ const OverdueDetails = () => {
   const handlePayment = async () => {
     setIsLoadingPayment(true);
     try {
-      const res = await axios.post("http://localhost:4000/api/reservations/pay-additional-fee", {
+      const res = await axios.post('http://localhost:4000/api/reservations/pay-additional-fee', {
         reservationId: reservation?._id,
       });
-  
+
       if (res.data.paymentLink) {
         window.location.href = res.data.paymentLink;
       }
     } catch (error) {
-      console.error("Payment initiation failed:", error);
+      console.error('Payment initiation failed:', error);
     } finally {
       setIsLoadingPayment(false);
     }
@@ -95,6 +93,14 @@ const OverdueDetails = () => {
       </div>
     );
   }
+
+  // Determine the image source
+  const getImageSrc = () => {
+    if (imageError || !reservation.parkingId?.images || reservation.parkingId.images.length === 0) {
+      return 'assets/img/parking.jpg';
+    }
+    return reservation.parkingId.images[0];
+  };
 
   return (
     <div className="page-wrapper">
@@ -130,13 +136,17 @@ const OverdueDetails = () => {
                           </li>
                           <li className="list-group-item d-flex justify-content-between align-items-center">
                             <strong>Status:</strong>
-                            <span className={`badge ${reservation.status === "overdue" ? "bg-danger" : "bg-success"}`}>
+                            <span
+                              className={`badge ${reservation.status === 'overdue' ? 'bg-danger' : 'bg-success'}`}
+                            >
                               {reservation.status}
                             </span>
                           </li>
                           <li className="list-group-item d-flex justify-content-between align-items-center">
                             <strong>Total Additional Hours:</strong>
-                            <span>{additionalHours > 0 ? `${additionalHours} hour(s)` : "No Additional Hours"}</span>
+                            <span>
+                              {additionalHours > 0 ? `${additionalHours} hour(s)` : 'No Additional Hours'}
+                            </span>
                           </li>
                           <li className="list-group-item d-flex justify-content-between align-items-center">
                             <strong>Additional Fee:</strong>
@@ -145,23 +155,24 @@ const OverdueDetails = () => {
                         </ul>
                       </div>
                       <div className="col-md-6 text-center">
-                        <ImageWithBasePath
-                          src={reservation.parking?.image || "assets/img/parking.jpg"}
+                        <img
+                          src={getImageSrc()}
                           alt="Parking"
                           className="rounded mb-3"
-                          style={{ width: "100%", maxHeight: "200px", objectFit: "cover" }}
+                          style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
+                          onError={() => setImageError(true)}
                         />
                         <div>
                           <p className="mb-1">
-                            <strong>{reservation.parking?.nom || "Parking Name Not Available"}</strong>
+                            <strong>{reservation.parkingId?.nom || 'Parking Name Not Available'}</strong>
                           </p>
-                          <p className="mb-0">{reservation.parking?.adresse || "Address Not Available"}</p>
+                          <p className="mb-0">{reservation.parkingId?.adresse || 'Address Not Available'}</p>
                           <p className="mb-0">
-                            Hourly Rate:{" "}
+                            Hourly Rate:{' '}
                             <strong>
-                              {reservation.parking?.tarif_horaire
-                                ? `$${reservation.parking.tarif_horaire.toFixed(2)}`
-                                : "Not Available"}
+                              {reservation.parkingId?.tarif_horaire
+                                ? `$${reservation.parkingId.tarif_horaire.toFixed(2)}`
+                                : 'Not Available'}
                             </strong>
                           </p>
                         </div>

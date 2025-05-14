@@ -5,7 +5,6 @@ import * as Icon from 'react-feather';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   set_mouseoversidebar_data,
-  set_toggleSidebar_data_2,
 } from '../../../core/data/redux/action';
 import { all_routes } from '../../../core/data/routes/all_routes';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
@@ -15,16 +14,11 @@ import { AppState, SideBarData } from '../../../core/models/interface';
 const AdminSidebar = () => {
   const routes = all_routes;
   const toggle_data = useSelector((state: AppState) => state.mouseOverSidebar);
-  const toggle_data2 = useSelector((state: AppState) => state.toggleSidebar2);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [sidebarData, setSidebarData] = useState(adminSidebar);
-
-  const toggle = () => {
-    dispatch(set_toggleSidebar_data_2(toggle_data2 ? false : true));
-  };
 
   const toogle = () => {
     dispatch(set_mouseoversidebar_data(toggle_data ? false : true));
@@ -54,16 +48,16 @@ const AdminSidebar = () => {
 
   const handleLogout = () => {
     // Clear authentication data from localStorage
+    localStorage.clear();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
 
     // Reset sidebar state in Redux
     dispatch(set_mouseoversidebar_data(false));
-    dispatch(set_toggleSidebar_data_2(false));
 
-    // Navigate to login page
-    navigate(routes.login || '/login');
+    // Rediriger vers la page d'accueil
+    window.location.href = '/home';
   };
 
   return (
@@ -74,13 +68,14 @@ const AdminSidebar = () => {
       onMouseLeave={toogle}
       style={{ height: '100vh', overflow: 'hidden' }}
     >
-      <div className="admin-sidebar-header">
-        <div className="admin-sidebar-logo">
+      <div className="admin-sidebar-header" style={{ height: '50px', minHeight: '50px' }}>
+        <div className="admin-sidebar-logo" style={{ padding: '5px' }}>
           <Link to={routes.index}>
             <ImageWithBasePath
               src="assets/admin/img/full-parkit-dark.png"
               className="img-fluid logo"
               alt="Logo"
+              style={{ maxHeight: '40px' }}
             />
           </Link>
           <Link to={routes.index}>
@@ -88,23 +83,16 @@ const AdminSidebar = () => {
               src="assets/admin/img/logo-small.svg"
               className="img-fluid logo-small"
               alt="Logo"
+              style={{ maxHeight: '40px' }}
             />
           </Link>
         </div>
-        <div className="admin-siderbar-toggle">
-          <Link to="#" onClick={toggle}>
-            <label className="switch" id="toggle_btn">
-              <input type="checkbox" />
-              <span className="admin-slider round" />
-            </label>
-          </Link>
-        </div>
       </div>
-      <div className="admin-sidebar-inner slimscroll" style={{ height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
+      <div className="admin-sidebar-inner slimscroll" style={{ height: 'calc(100vh - 50px)', overflow: 'hidden' }}>
         <Scrollbars
           autoHeight
           autoHeightMin="100%"
-          autoHeightMax="calc(100vh - 60px)"
+          autoHeightMax="calc(100vh - 50px)"
           autoHide
           style={{ width: '100%', height: '100%' }}
         >

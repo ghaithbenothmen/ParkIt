@@ -223,14 +223,50 @@ const Users = () => {
                   <div className="btn-group" role="group">
                     <button
                       type="button"
-                      className={`btn ${roleFilter === 'admin' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      className="btn"
+                      style={{ 
+                        backgroundColor: roleFilter === 'admin' ? '#4169E1' : 'white',
+                        borderColor: '#4169E1',
+                        color: roleFilter === 'admin' ? 'white' : '#4169E1',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (roleFilter !== 'admin') {
+                          e.currentTarget.style.backgroundColor = '#4169E1';
+                          e.currentTarget.style.color = 'white';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (roleFilter !== 'admin') {
+                          e.currentTarget.style.backgroundColor = 'white';
+                          e.currentTarget.style.color = '#4169E1';
+                        }
+                      }}
                       onClick={() => filterByRole('admin')}
                     >
                       Admin
                     </button>
                     <button
                       type="button"
-                      className={`btn ${roleFilter === 'user' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      className="btn"
+                      style={{ 
+                        backgroundColor: roleFilter === 'user' ? '#4169E1' : 'white',
+                        borderColor: '#4169E1',
+                        color: roleFilter === 'user' ? 'white' : '#4169E1',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (roleFilter !== 'user') {
+                          e.currentTarget.style.backgroundColor = '#4169E1';
+                          e.currentTarget.style.color = 'white';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (roleFilter !== 'user') {
+                          e.currentTarget.style.backgroundColor = 'white';
+                          e.currentTarget.style.color = '#4169E1';
+                        }
+                      }}
                       onClick={() => filterByRole('user')}
                     >
                       User
@@ -241,10 +277,11 @@ const Users = () => {
                 {/* Add user button */}
                 <li>
                   <button 
-                    className="btn btn-primary" 
+                    className="btn text-white" 
                     type="button" 
                     data-bs-toggle="modal" 
                     data-bs-target="#add-user"
+                    style={{ backgroundColor: '#4169E1' }}
                   >
                     <i className="fa fa-plus me-2" />
                     Add User
@@ -275,7 +312,10 @@ const Users = () => {
                     field="role" 
                     header="Role" 
                     body={(rowData) => (
-                      <span className={`badge ${rowData.role === 'admin' ? 'bg-primary' : 'bg-secondary'}`}>
+                      <span className="badge" style={{
+                        backgroundColor: rowData.role === 'admin' ? '#4169E1' : '#808080',
+                        color: 'white'
+                      }}>
                         {rowData.role}
                       </span>
                     )}

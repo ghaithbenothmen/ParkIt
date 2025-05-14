@@ -54,20 +54,15 @@ const AdminHeader = () => {
     setIsFullscreen(!isFullscreen);
   };
 
-  const handleLogout = async () => {
-    try {
-      // Clear localStorage
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      
-      // Redirect to home page instead of login
-      navigate('/');
-      
-      // Optional: reload the page to ensure all states are reset
-      window.location.reload();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const handleLogout = () => {
+    // Nettoyer complètement le localStorage
+    localStorage.clear();
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    
+    // Rediriger vers la page d'accueil
+    window.location.href = '/home';
   };
 
   const fetchNotifications = async () => {
@@ -418,16 +413,6 @@ const AdminHeader = () => {
                     <p className="mb-0 text-muted">{user?.role}</p>
                   </div>
                 </div>
-              </li>
-              <li>
-                <Link to={routes.account} className="dropdown-item">
-                  <i className="ti ti-user me-2"></i> My Profile
-                </Link>
-              </li>
-              <li>
-                <Link to={routes.settings} className="dropdown-item">
-                  <i className="ti ti-settings me-2"></i> Settings
-                </Link>
               </li>
               <li>
                 <Link to="#" className="dropdown-item text-danger" onClick={handleLogout}>

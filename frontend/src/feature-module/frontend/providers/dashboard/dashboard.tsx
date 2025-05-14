@@ -19,7 +19,7 @@ interface Reservation {
   parkingSpot: string;
   parking: {
     nom: string;
-    image: string;
+    images?: string[];
     adresse: string;
   } | null;
   parkingS: {
@@ -39,13 +39,14 @@ interface Parking {
   averageRating: number;
   createdAt: string;
   updatedAt: string;
+  images?: string[];
 }
 
 interface Review {
   _id: string;
   parkingId: {
     nom: string;
-    image: string;
+    images?: string[];
   };
   rating: number;
   comment: string;
@@ -412,35 +413,6 @@ const ProviderDashboard = () => {
     ],
   });
 
-  useEffect(() => {
-    const fetchTopLocationsData = async () => {
-      if (!userInfo._id) return;
-      try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/reservation/parkuser/${userInfo._id}`);
-        const data = res.data.data;
-
-        const transformedData = Object.entries(data).map(([parkingName, count]: any) => ({
-          x: parkingName,
-          y: count,
-        }));
-
-        setTopLocationChart({
-          ...topLocationChart,
-          series: [
-            {
-              name: 'Reservations',
-              data: transformedData,
-            },
-          ],
-        });
-      } catch (error) {
-        console.error('Error fetching top location chart data:', error);
-      }
-    };
-
-    fetchTopLocationsData();
-  }, [userInfo._id]);
-
   const [topLocationChart, setTopLocationChart] = useState<any>({
     series: [],
     options: {
@@ -465,6 +437,41 @@ const ProviderDashboard = () => {
       },
     },
   });
+
+  useEffect(() => {
+    const fetchTopLocationsData = async () => {
+      if (!userInfo._id) return;
+      try {
+        const res = await axios.get(`http://localhost:4000/api/reservations/reservation/parkuser/${userInfo._id}`);
+        const data = res.data.data;
+
+        const transformedData = Object.entries(data).map(([parkingName, count]: any) => ({
+          x: parkingName,
+          y: count,
+        }));
+
+        setTopLocationChart(prevState => ({
+          ...prevState,
+          series: [
+            {
+              name: 'Reservations',
+              data: transformedData,
+            },
+          ],
+        }));
+      } catch (error) {
+        console.error('Error fetching top location chart data:', error);
+      }
+    };
+
+    fetchTopLocationsData();
+  }, [userInfo._id]);
+
+  const badgeImages = [
+    { name: 'Bronze', src: 'assets/img/medal.png', discount: 5 },
+    { name: 'Silver', src: 'assets/img/silver-medal.png', discount: 10 },
+    { name: 'Gold', src: 'assets/img/gold-badge.png', discount: 20 },
+  ];
 
   return (
     <>
@@ -571,57 +578,45 @@ const ProviderDashboard = () => {
               <div className="card flex-fill h-48">
                 <div className="card-body p-3">
                   <h6 className="mb-2 text-base font-semibold">Your Badge</h6>
-                  <div className="bg-white rounded-lg shadow p-2">
-                    {badge ? (
-                      <div className="text-center">
-                        <div className="relative mb-1">
+                  <div className="bg-white rounded-lg shadow p-4">
+                    <div
+                      className="flex justify-center items-center space-x-8 perspective-1000 force-horizontal"
+                      style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}
+                    >
+                      {badgeImages.map((badgeImg) => {
+                        const isCurrent = badge && badge.name === badgeImg.name;
+                        const zIndex = isCurrent ? 20 : 10;
+                        const scale = isCurrent ? 'scale-125' : 'scale-90';
+                        const rotateY = isCurrent ? 'rotate-y-0' : badgeImg.name === 'Bronze' ? 'rotate-y-15' : 'rotate-y--15';
+                        const opacity = isCurrent ? 'opacity-100' : 'opacity-70';
+
+                        return (
                           <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white transform transition hover:scale-105"
-                            style={getBadgeStyle(badge.name)}
+                            key={badgeImg.name}
+                            className={`flex flex-col items-center transform transition-all duration-300 ${scale} ${rotateY} ${opacity}`}
+                            style={{ zIndex }}
                           >
-                            {React.createElement(getBadgeIcon(badge.name), { className: 'text-xl' })}
+                            <Link to={routes.bookings} className="avatar avatar-lg mb-2">
+                              <ImageWithBasePath
+                                src={badgeImg.src}
+                                className="rounded-circle border-4 border-white shadow-lg"
+                                alt={`${badgeImg.name} Badge`}
+                              />
+                            </Link>
+                            <h5 className="text-sm font-bold">{badgeImg.name} Badge</h5>
+                            <p className="text-xs text-gray-500">{badgeImg.discount}% OFF</p>
+                            {isCurrent && (
+                              <p className="text-xs text-green-600 font-medium mt-1">Current Badge</p>
+                            )}
                           </div>
-                          <div className="absolute inset-0 rounded-full border-2 border-green-400 opacity-50 animate-pulse" />
-                        </div>
-                        <h5 className="text-lg font-bold mb-1">{badge.name} Badge</h5>
-                        <p className="text-sm text-green-600 mb-1">
-                          Enjoy <span className="font-semibold">{badge.discountPercentage}% OFF</span> on all reservations!
-                        </p>
-                        <p className="text-xs text-gray-500 mb-2">{getBadgeMessage(badge.name)}</p>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-1">
-                          <FaShieldAlt className="text-xl text-gray-400" />
-                        </div>
-                        <h5 className="text-lg font-bold mb-1">No Badge Yet</h5>
-                        <p className="text-xs text-gray-500 mb-2">{getBadgeMessage('')}</p>
-                        <Link
-                          to={routes.bookings}
-                          className="btn bg-blue-600 text-white text-xs px-2 py-1 rounded"
-                        >
-                          Start Booking
-                        </Link>
-                      </div>
-                    )}
-                    <div className="space-y-1">
-                      {badgeTiers.map((tier, index) => (
-                        <div key={index} className="flex items-center p-1">
-                          <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center mr-1"
-                            style={getBadgeStyle(tier.name)}
-                          >
-                            {React.createElement(tier.icon, { className: 'text-sm' })}
-                          </div>
-                          <div>
-                            <h6 className="text-sm font-medium">{tier.name} Badge</h6>
-                            <p className="text-xs text-green-600">
-                              <span className="font-semibold">{tier.discount}% OFF</span> | Unlock with {tier.requirement}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
+                    <p className="text-center text-gray-500 text-xs mt-4">
+                      {badge
+                        ? `Enjoy your ${badge.name} badge benefits! Make more reservations to upgrade.`
+                        : 'Start booking to earn badges and unlock discounts!'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -642,11 +637,23 @@ const ProviderDashboard = () => {
                     >
                       <div className="d-flex">
                         <Link to={`/parkings/parking-details/${parking._id}`} className="avatar avatar-lg me-2">
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="rounded-circle"
-                            alt="Parking"
-                          />
+                          {parking.images && parking.images.length > 0 ? (
+                            <img
+                              src={parking.images[0]}
+                              className="rounded-circle"
+                              alt="Parking"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'assets/img/parking.jpg';
+                              }}
+                            />
+                          ) : (
+                            <ImageWithBasePath
+                              src="assets/img/parking.jpg"
+                              className="rounded-circle"
+                              alt="Parking"
+                            />
+                          )}
                         </Link>
                         <div>
                           <Link to={`/parkings/parking-details/${parking._id}`} className="fw-medium mb-0">
@@ -697,11 +704,23 @@ const ProviderDashboard = () => {
                                   to={routes.bookingDetails}
                                   className="avatar avatar-sm flex-shrink-0 me-1"
                                 >
-                                  <ImageWithBasePath
-                                    src="assets/img/parking.jpg"
-                                    className="rounded-circle"
-                                    alt="Img"
-                                  />
+                                  {reservation.parking?.images && reservation.parking.images.length > 0 ? (
+                                    <img
+                                      src={reservation.parking.images[0]}
+                                      className="rounded-circle"
+                                      alt="Img"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = 'assets/img/parking.jpg';
+                                      }}
+                                    />
+                                  ) : (
+                                    <ImageWithBasePath
+                                      src="assets/img/parking.jpg"
+                                      className="rounded-circle"
+                                      alt="Img"
+                                    />
+                                  )}
                                 </Link>
                                 <div>
                                   <Link to={routes.bookingDetails} className="fw-medium text-sm">
@@ -766,11 +785,23 @@ const ProviderDashboard = () => {
                         <div className="d-flex justify-content-between align-items-center">
                           <div className="d-flex">
                             <Link to="#" className="avatar avatar-sm flex-shrink-0 me-1">
-                              <ImageWithBasePath
-                                src="assets/img/parking.jpg"
-                                className="rounded-circle"
-                                alt="Parking"
-                              />
+                              {review.parkingId.images && review.parkingId.images.length > 0 ? (
+                                <img
+                                  src={review.parkingId.images[0]}
+                                  className="rounded-circle"
+                                  alt="Parking"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = 'assets/img/parking.jpg';
+                                  }}
+                                />
+                              ) : (
+                                <ImageWithBasePath
+                                  src="assets/img/parking.jpg"
+                                  className="rounded-circle"
+                                  alt="Parking"
+                                />
+                              )}
                             </Link>
                             <div>
                               <h6 className="fw-medium text-sm mb-0">{review.parkingId.nom}</h6>
@@ -812,11 +843,23 @@ const ProviderDashboard = () => {
                     >
                       <div className="d-flex">
                         <Link to={routes.map} className="avatar avatar-sm me-1">
-                          <ImageWithBasePath
-                            src="assets/img/parking.jpg"
-                            className="rounded-circle"
-                            alt="Parking"
-                          />
+                          {parking.images && parking.images.length > 0 ? (
+                            <img
+                              src={parking.images[0]}
+                              className="rounded-circle"
+                              alt="Parking"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = 'assets/img/parking.jpg';
+                              }}
+                            />
+                          ) : (
+                            <ImageWithBasePath
+                              src="assets/img/parking.jpg"
+                              className="rounded-circle"
+                              alt="Parking"
+                            />
+                          )}
                         </Link>
                         <div>
                           <Link to={routes.map} className="fw-medium text-sm">
