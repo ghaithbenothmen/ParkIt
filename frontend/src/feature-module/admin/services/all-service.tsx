@@ -174,7 +174,7 @@ const ImageGalleryModal = ({ images, onClose }) => {
           <div className="modal-body text-center">
             <div className="position-relative">
               <img 
-                src={`http://localhost:4000${images[currentImageIndex]}`}
+                src={images[currentImageIndex]}
                 alt={`Parking ${currentImageIndex + 1}`}
                 className="img-fluid rounded shadow-lg"
                 style={{ maxHeight: '70vh', maxWidth: '100%' }}
@@ -618,7 +618,11 @@ const AllService = () => {
   };
 
   const openImageGallery = (images) => {
-    setCurrentGalleryImages(images);
+    const formattedImages = images.map((image) => {
+      // Remove any incorrect localhost prefix
+      return image.startsWith("http") ? image : `https://res.cloudinary.com/dmqhmgfme/image/upload/${image}`;
+    });
+    setCurrentGalleryImages(formattedImages);
     setShowImageGallery(true);
   };
 
@@ -1144,7 +1148,7 @@ const AllService = () => {
                           {existingImages.map((image, index) => (
                             <div key={`existing-${index}`} className="position-relative">
                               <img 
-                                src={`http://localhost:4000${image}`}
+                                src={image.startsWith("http") ? image : `https://res.cloudinary.com/dmqhmgfme/image/upload/${image}`}
                                 alt={`Existing ${index}`}
                                 className="img-thumbnail"
                                 style={{ width: '100px', height: '80px', objectFit: 'cover' }}
