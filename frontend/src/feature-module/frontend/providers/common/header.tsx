@@ -61,7 +61,11 @@ const ProviderHeader = () => {
   const toggle2 = () => {
     dispatch(set_mouseoversidebar_data(false));
   };
-
+ const logout = () => {
+    localStorage.clear();
+    window.location.href = '/home';
+  };
+  
   const [darkMode, setDarkMode] = useState(localStorage.getItem("darkMode"));
   const LayoutDark = () => {
     const htmlElement = document.documentElement;
@@ -499,13 +503,13 @@ const ProviderHeader = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link
+                  <button
                     className="dropdown-item d-flex align-items-center text-danger"
-                    to={routes.login}
+                    onClick={logout}
                   >
                     <i className="ti ti-logout me-2" />
                     Logout
-                  </Link>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -526,9 +530,9 @@ const ProviderHeader = () => {
         </Link>
         <div className="dropdown-menu dropdown-menu-end">
          
-          <Link className="dropdown-item" to={routes.login}>
+          <p  className="dropdown-item" onClick={logout}>
             Logout
-          </Link>
+          </p>
         </div>
       </div>
       {/* /Mobile Menu */}
