@@ -1,7 +1,6 @@
 flask==2.2.5
 tensorflow==2.3.0
 keras==2.2.4
-opencv-python>=4.6.0
-matplotlib>=3.2.2
+opencv-python==4.3.0.36
+matplotlib==3.1.1
 numpy==1.18.5
-ultralytics==8.0.20
