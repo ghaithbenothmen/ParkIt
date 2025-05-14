@@ -23,8 +23,7 @@ const notificationRoutes = require('./routes/notification.route'); // Importer l
 const claimRoutes = require('./routes/claim.route');
 const voiceRoutes = require('./routes/voice.route');
 const badgeRoutes = require('./routes/badge.route');
-const claimRoutes = require('./routes/claim.route');
-
+  
 
 
 

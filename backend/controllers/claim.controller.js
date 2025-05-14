@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
 const Claim = require('../models/claim.model');
 const Parking = require('../models/parking.model');
+const axios = require('axios'); // Added axios import
+const FormData = require('form-data'); // Added FormData import
 
 const multer = require('multer');
 const path = require('path');
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const { send } = require('process');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -23,7 +24,6 @@ const storage = new CloudinaryStorage({
     public_id: (req, file) => Date.now() + "-" + file.originalname,
   },
 });
-
 
 const upload = multer({ storage }).single('image');
 
@@ -61,33 +61,36 @@ exports.createClaim = async (req, res) => {
             contentType: response.headers['content-type'],
           });
 
-          const result = await axios.post('http://classifier:8000/classify', form, {
-            headers: form.getHeaders(),
+          const result = await axios.post('http://host.docker.internal:8000/classify', form, {
+            headers: {
+              ...form.getHeaders(),
+            },
           });
 
-          return result.data; // Returns {available: bool, occupied: bool, wrong_parking: bool, accident: bool, others: bool}
+          return result.data;
         } catch (err) {
-          console.error('Error sending image:', err.message);
+          console.error('Error sending image to classifier:', err.message, err.stack);
           return null;
         }
       }
 
       // Get classification result
       const classificationResult = await sendImageFromUrl(imageUrl);
+      console.log('Classification Result:', classificationResult);
 
-      // Map classifier labels to claimType
+      // Map user-selected claimType to AI model labels
       const claimTypeMap = {
-        'Spot Occupied': ['occupied', 'wrong_parking'], // Matches "occupied" or "wrong_parking"
-        'Payment Issue': ['others'], // Assuming payment issues might fall under "others"
-        'Security': ['accident'],   // Matches "accident"
-        'Other': ['others'],       // Catch-all for other cases
+        'Spot Occupied': 'occupied',
+        'Wrong Parking': 'wrong_parking',
+        'Security': 'accident',
+        'Other': 'others',
       };
 
+      // Determine claim status
       let status = 'Pending';
-      if (classificationResult) {
-        const predictedTypes = Object.keys(classificationResult).filter(key => classificationResult[key]);
-        const matchingClaimType = claimTypeMap[claimType];
-        if (matchingClaimType && predictedTypes.some(type => matchingClaimType.includes(type))) {
+      if (classificationResult && claimTypeMap[claimType]) {
+        const aiLabel = claimTypeMap[claimType];
+        if (classificationResult[aiLabel] === true) {
           status = 'Valid';
         }
       }
@@ -98,7 +101,7 @@ exports.createClaim = async (req, res) => {
         claimType,
         message,
         image: imageUrl,
-        status, // Set based on classification match
+        status,
       });
 
       await claim.save();
@@ -109,12 +112,11 @@ exports.createClaim = async (req, res) => {
         notification: 'Your claim has been sent to the administration.',
       });
     } catch (error) {
-      console.error(error.stack);
-      res.status(500).json({ message: 'Error creating the claim.', error });
+      console.error('Error creating claim:', error.stack);
+      res.status(500).json({ message: 'Error creating the claim.', error: error.message });
     }
   });
 };
-
 
 exports.getAllClaims = async (req, res) => {
   try {

@@ -13,7 +13,7 @@ const ClaimSchema = new mongoose.Schema({
   },
   claimType: {
     type: String,
-    enum: ['Spot Occupied', 'Payment Issue', 'Security', 'Other'],
+    enum: ['Spot Occupied', 'Wrong Parking', 'Security', 'Other'],
     required: true,
   },
   image: {
@@ -22,8 +22,7 @@ const ClaimSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Valid', 'Pending', 'Resolved', 'Rejected'],
-    default: 'Pending', // Default changed to Pending
+    enum: ['Valid', 'Pending', 'Resolved', 'Rejected']
   },
   submissionDate: {
     type: Date,
@@ -52,7 +51,7 @@ ClaimSchema.pre('save', async function (next) {
       case 'Security':
         score += 10;
         break;
-      case 'Payment Issue':
+      case 'Wrong Parking': // Fixed from 'wrong_parking'
         score += 8;
         break;
       case 'Spot Occupied':
@@ -81,7 +80,7 @@ ClaimSchema.pre('save', async function (next) {
     const user = await mongoose.model('User').findById(this.userId);
     if (user && user.role === 'admin') score += 3;
 
-    // Presence of an image (optional bonus, but status is set by classification)
+    // Presence of an image
     if (this.image) score += 2;
 
     this.priority = score;
@@ -89,4 +88,4 @@ ClaimSchema.pre('save', async function (next) {
   next();
 });
 
-module.exports = mongoose.model('Claim', ClaimSchema);
+module.exports = mongoose.model('Claim', ClaimSchema);  

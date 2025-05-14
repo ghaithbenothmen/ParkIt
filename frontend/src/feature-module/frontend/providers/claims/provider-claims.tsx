@@ -20,7 +20,7 @@ interface Claim {
         nom: string; // Name of the parkingA
         adresse: string; // Address of the parking
       };    
-    claimType: 'Occupied Space' | 'Payment Issue' | 'Security' | 'Other'; // Enum values for the claim type
+    claimType: 'Occupied Space' | 'Wrong Parking' | 'Security' | 'Other'; // Enum values for the claim type
     image?: string; // Optional URL for photo evidence
     status: 'Valid' | 'Pending' | 'Resolved' | 'Rejected'; // Enum values for the status
     submissionDate: string; // Date of submission (ISO string)

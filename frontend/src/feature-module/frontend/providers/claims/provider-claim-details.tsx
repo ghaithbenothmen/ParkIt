@@ -21,7 +21,7 @@ interface Claim {
       nom: string;
       adresse: string;
     };
-    claimType: 'Spot Occupied' |'Payment Issue' | 'Security'| 'Other';
+    claimType: 'Spot Occupied' |'Wrong Parking' | 'Security'| 'Other';
     image?: string;
     status: 'Valid' | 'Pending' | 'Resolved' | 'Rejected';
     submissionDate: string;
