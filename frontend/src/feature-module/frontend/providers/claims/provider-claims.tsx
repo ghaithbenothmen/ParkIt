@@ -322,8 +322,8 @@ const ProviderClaims = () => {
                     <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('all')}>
                       All
                     </Link>
-                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Resolved')}>
-                      Resolved
+                    <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Pending')}>
+                      Pending
                     </Link>
                     <Link to="#" className="dropdown-item" onClick={() => setFilterStatus('Rejected')}>
                       Rejected
