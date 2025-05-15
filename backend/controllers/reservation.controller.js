@@ -267,7 +267,7 @@ exports.deleteReservation = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const deletedReservation = await Reservation.deleteMany({});
+        const deletedReservation = await Reservation.findByIdAndDelete(id);
 
         if (!deletedReservation) {
             return res.status(404).json({ message: 'Réservation non trouvée.' });
