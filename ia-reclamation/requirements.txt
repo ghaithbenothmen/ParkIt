@@ -4,5 +4,6 @@ torch==2.3.0
 torchvision==0.18.0
 pillow==10.4.0
 pillow-avif-plugin==1.4.3
-pandas==2.2.2
+pandas==2.1.4
 python-multipart==0.0.9
+numpy==1.26.4

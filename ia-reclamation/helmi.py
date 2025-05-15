@@ -10,10 +10,10 @@ import tkinter as tk
 from tkinter import filedialog
 
 # ---------------- CONFIG ----------------
-BASE_DIR = r"D:\Bureau\type"
+BASE_DIR = "/data/type"  # Updated for Docker
 CSV_PATH = os.path.join(BASE_DIR, "labels.csv")
 SUBFOLDERS = ["acc", "bien placé", "mal stationner", "others"]
-MODEL_SAVE_PATH = os.path.join(BASE_DIR, "resnet_car_classifier.pth")  # Save in BASE_DIR
+MODEL_SAVE_PATH = os.path.join("/app", "resnet_car_classifier.pth")  # Save in container's /app
 IMG_SIZE = 224
 NUM_CLASSES = 5
 BATCH_SIZE = 8
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     # --- DATASET & DATALOADER ---
     try:
         dataset = CarDataset(CSV_PATH, BASE_DIR, SUBFOLDERS, transform)
-        dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
+        dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)  # Updated for Docker
     except Exception as e:
         print(f"Error setting up dataset/dataloader: {e}")
         exit(1)
@@ -247,7 +247,8 @@ if __name__ == "__main__":
         exit(1)
 
     # --- USER INFERENCE ---
-    try:
-        gui_image_selection_and_prediction(model, DEVICE)
-    except Exception as e:
-        print(f"Error during inference: {e}")
+    if os.getenv("DOCKER_ENV") != "true":  # Skip GUI in Docker
+        try:
+            gui_image_selection_and_prediction(model, DEVICE)
+        except Exception as e:
+            print(f"Error during inference: {e}")

@@ -30,10 +30,8 @@ model.fc = torch.nn.Sequential(
 )
 model = model.to(DEVICE)
 
-# Model path (match helmi.py output)
-#MODEL_PATH = os.path.join("/app/type", "resnet_car_classifier.pth")
-MODEL_PATH = os.path.join("C:\\Users\\helmi\\ParkIt\\ia-reclamation\\resnet_car_classifier.pth")
-
+# Model path (updated for Docker)
+MODEL_PATH = os.path.join("/app", "resnet_car_classifier.pth")
 
 try:
     if not os.path.exists(MODEL_PATH):
@@ -90,4 +88,4 @@ async def classify(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8008)

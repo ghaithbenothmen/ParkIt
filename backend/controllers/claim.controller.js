@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const Claim = require('../models/claim.model');
 const Parking = require('../models/parking.model');
-const axios = require('axios'); // Added axios import
-const FormData = require('form-data'); // Added FormData import
+const axios = require('axios');
+const FormData = require('form-data');
 
 const multer = require('multer');
 const path = require('path');
@@ -61,7 +61,7 @@ exports.createClaim = async (req, res) => {
             contentType: response.headers['content-type'],
           });
 
-          const result = await axios.post('http://host.docker.internal:8000/classify', form, {
+          const result = await axios.post('http://fastapi:8008/classify', form, {
             headers: {
               ...form.getHeaders(),
             },
