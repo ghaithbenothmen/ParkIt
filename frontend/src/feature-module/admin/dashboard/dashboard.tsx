@@ -557,7 +557,7 @@ const Dashboard = () => {
     {
       name: 'Received',
       type: 'column',
-      data: incomeSummary,
+      data: incomeSummary.map(value => parseFloat(value.toFixed(2))), // Ensure two decimal places
     },
     {
       name: 'Revenue',
@@ -659,7 +659,7 @@ const Dashboard = () => {
                       <div className="home-usercontentcount">
                         <ImageWithBasePath src="assets/admin/img/icons/arrow-up.svg" alt="img" className="me-2" />
                         <span className="counters" data-count={650}>
-                          {resCountTot !== null ? resCountTot : 'Loading...'} DT
+                          {resCountTot !== null ? resCountTot.toFixed(2) : 'Loading...'} DT
                         </span>
                       </div>
                     </div>

@@ -16,42 +16,32 @@ interface Reservation {
   startDate: string;
   endDate: string;
   totalPrice: number;
-  parkingId: string;
-  status: string;
-  parkingSpot: string;
-  parking: {
+  parkingId: {
+    _id: string;
     nom: string;
     image: string;
     adresse: string;
-  } | null;
-  parkingS: {
+  };
+  status: string;
+  parkingSpot: {
+    _id: string;
     numero: string;
-  } | null;
-  userId: string;
-  user?: {
+  };
+  userId: {
+    _id: string;
     firstname: string;
     email: string;
   };
 }
 
 const CompletedBooking = () => {
-  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [filterStatus, setFilterStatus] = useState('all');
-
-  const filteredReservations = reservations.filter(reservation => {
-    if (filterStatus === 'all') return true;
-    if (filterStatus === 'confirmed' && reservation.status === 'confirmed') return true;
-    if (filterStatus === 'pending' && reservation.status === 'pending') return true;
-    if (filterStatus === 'over' && reservation.status === 'over') return true;
-    return false;
-  });
 
   useEffect(() => {
     const fetchReservations = async () => {
       try {
         const res = await axios.get(`http://localhost:4000/api/reservations/confirmed`);
-        console.log("Fetched reservations:", res.data);
+        console.log("Fetched completed reservations:", res.data);
         setReservations(res.data.data);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
@@ -60,84 +50,6 @@ const CompletedBooking = () => {
 
     fetchReservations();
   }, []);
-
-  useEffect(() => {
-    const fetchParkings = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.parkingId && !reservation.parking) {
-          try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;
-          } catch (error) {
-            console.error('Error fetching parking details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchParkings();
-    }
-  }, [reservations]);
-
-  useEffect(() => {
-    const fetchParkingSpots = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-
-        if (reservation.parkingSpot && !reservation.parkingS) {
-          try {
-            console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
-            console.log("Parking spot fetched:", spotRes.data);
-            updatedReservations[i].parkingS = spotRes.data.data;
-          } catch (error) {
-            console.error('Error fetching parking spot for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchParkingSpots();
-    }
-  }, [reservations]);
-
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.userId && !reservation.user) {
-          try {
-            const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
-            updatedReservations[i].user = {
-              firstname: userRes.data.firstname,
-              email: userRes.data.email,
-            };
-          } catch (error) {
-            console.error('Error fetching user details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchUserDetails();
-    }
-  }, [reservations]);
 
   const renderStatusBadge = (rowData: Reservation) => {
     let badgeClass = '';
@@ -161,19 +73,15 @@ const CompletedBooking = () => {
   };
 
   const renderUserDetails = (rowData: Reservation) => {
-    return rowData.user ? (
+    return rowData.userId ? (
       <div>
-        <div>{rowData.user.firstname}</div>
-        <div>{rowData.user.email}</div>
+        <div>{rowData.userId.firstname}</div>
+        <div>{rowData.userId.email}</div>
       </div>
     ) : (
       '—'
     );
   };
-
-  const data = useSelector((state: any) => state.bookingCompleted);
-  const [selectedValue, setSelectedValue] = useState(null);
-  const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
 
   const formatDate = (dateString: string) => {
     try {
@@ -222,7 +130,7 @@ const CompletedBooking = () => {
                 <DataTable
                   paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                   currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                  value={filteredReservations}
+                  value={reservations}
                   paginator
                   rows={10}
                   rowsPerPageOptions={[5, 10, 25, 50]}
@@ -245,12 +153,12 @@ const CompletedBooking = () => {
                     sortable
                     body={(rowData) => `${rowData.totalPrice} DT`}
                   />
-                  <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
+                  <Column header="Parking" body={(rowData) => rowData.parkingId?.nom || '—'} />
                   <Column
                     header="Address"
-                    body={(rowData) => <TruncatedAddress address={rowData.parking?.adresse} />}
+                    body={(rowData) => <TruncatedAddress address={rowData.parkingId?.adresse} />}
                   />
-                  <Column header="Spot" body={(rowData) => rowData.parkingS?.numero || '—'} />
+                  <Column header="Spot" body={(rowData) => rowData.parkingSpot?.numero || '—'} />
                   <Column field="status" header="Status" body={renderStatusBadge} sortable />
                 </DataTable>
               </div>

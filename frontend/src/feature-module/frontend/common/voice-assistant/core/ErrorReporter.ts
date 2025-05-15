@@ -25,7 +25,7 @@ class ErrorReporter {
         }); */
     }
 
-    captureException(error: unknown) {
+    /* captureException(error: unknown) {
         if (error instanceof Error) {
             Sentry.captureException(error);
         } else {
@@ -37,7 +37,7 @@ class ErrorReporter {
 
     captureMessage(message: string) {
         Sentry.captureMessage(message);
-    }
+    } */
 }
 
 const errorReporter = new ErrorReporter();

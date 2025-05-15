@@ -135,7 +135,7 @@ exports.getClaimByUser = async (req, res) => {
     const { userId } = req.params;
 
     const claims = await Claim.find({ userId })
-      .sort({ priority: -1, submissionDate: -1 })
+      .sort({ priority: -1, submissionDate: 1 })
       .populate('userId', 'firstname lastname role')
       .populate('parkingId', 'nom adresse');
 

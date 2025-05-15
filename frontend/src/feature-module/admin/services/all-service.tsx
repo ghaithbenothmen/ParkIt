@@ -174,7 +174,7 @@ const ImageGalleryModal = ({ images, onClose }) => {
           <div className="modal-body text-center">
             <div className="position-relative">
               <img 
-                src={`http://localhost:4000${images[currentImageIndex]}`}
+                src={images[currentImageIndex]}
                 alt={`Parking ${currentImageIndex + 1}`}
                 className="img-fluid rounded shadow-lg"
                 style={{ maxHeight: '70vh', maxWidth: '100%' }}
@@ -618,7 +618,11 @@ const AllService = () => {
   };
 
   const openImageGallery = (images) => {
-    setCurrentGalleryImages(images);
+    const formattedImages = images.map((image) => {
+      // Remove any incorrect localhost prefix
+      return image.startsWith("http") ? image : `https://res.cloudinary.com/dmqhmgfme/image/upload/${image}`;
+    });
+    setCurrentGalleryImages(formattedImages);
     setShowImageGallery(true);
   };
 
@@ -659,8 +663,12 @@ const AllService = () => {
     }
     return (
       <button 
-        className="btn btn-sm btn-outline-primary"
+        className="btn btn-sm"
         onClick={() => openImageGallery(rowData.images)}
+        style={{ 
+          borderColor: '#4169E1',
+          color: '#4169E1' 
+        }}
       >
         <i className="fa-solid fa-images me-1"></i>
         View Images ({rowData.images.length})
@@ -672,8 +680,12 @@ const AllService = () => {
     return (
       <div className="btn-group">
         <button
-          className="btn btn-sm btn-outline-primary"
+          className="btn btn-sm"
           onClick={() => openUpdateModal(rowData)}
+          style={{ 
+            borderColor: '#4169E1',
+            color: '#4169E1'
+          }}
         >
           <i className="fa-solid fa-pen-to-square me-1"></i>
           Edit
@@ -806,7 +818,7 @@ const AllService = () => {
                 </li>
                 <li>
                   <button
-                    className="btn btn-primary"
+                    className="btn text-white"
                     onClick={() => {
                       resetCreateForm();
                       createModalRef.current?.show();
@@ -816,6 +828,7 @@ const AllService = () => {
                         }
                       }, 300);
                     }}
+                    style={{ backgroundColor: '#4169E1' }}
                   >
                     <i className="fa fa-plus me-2" />
                     Add Parking
@@ -1135,7 +1148,7 @@ const AllService = () => {
                           {existingImages.map((image, index) => (
                             <div key={`existing-${index}`} className="position-relative">
                               <img 
-                                src={`http://localhost:4000${image}`}
+                                src={image.startsWith("http") ? image : `https://res.cloudinary.com/dmqhmgfme/image/upload/${image}`}
                                 alt={`Existing ${index}`}
                                 className="img-thumbnail"
                                 style={{ width: '100px', height: '80px', objectFit: 'cover' }}
@@ -1262,13 +1275,18 @@ const AllService = () => {
                     <div className="modal-footer border-0 pt-4">
                       <button 
                         type="button" 
-                        className="btn btn-secondary" 
+                        className="btn text-white" 
                         data-bs-dismiss="modal"
                         onClick={() => setErrors({})}
+                        style={{ backgroundColor: '#DC3545' }}
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-primary">
+                      <button 
+                        type="submit" 
+                        className="btn text-white"
+                        style={{ backgroundColor: '#4169E1' }}
+                      >
                         Save Changes
                       </button>
                     </div>
@@ -1498,13 +1516,18 @@ const AllService = () => {
                   <div className="modal-footer border-0 pt-4">
                     <button 
                       type="button" 
-                      className="btn btn-secondary" 
+                      className="btn text-white" 
                       data-bs-dismiss="modal"
                       onClick={resetCreateForm}
+                      style={{ backgroundColor: '#DC3545' }}
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-primary">
+                    <button 
+                      type="submit" 
+                      className="btn text-white"
+                      style={{ backgroundColor: '#4169E1' }}
+                    >
                       Create Parking
                     </button>
                   </div>
