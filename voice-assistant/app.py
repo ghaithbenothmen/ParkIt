@@ -56,7 +56,9 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
     fulfillment_text = ""
 
     if intent == "BookParking":
-        parking_name = params.get("parkingName") or "mourouj"
+
+        parking_name = params.get("parkingName") or "Esprit Parking"
+
         start_str = params.get("startDate")
         end_str = params.get("endDate")
         duration = params.get("duration")
@@ -107,6 +109,7 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
         resp = requests.post(endpoint_url, json=payload)
         resp.raise_for_status()
         data = resp.json()
+        reply = data.get("reply")
         reservation_id = data.get("data", {}).get("_id")
         if resp.status_code == 201 and reservation_id:
             return {
@@ -116,7 +119,7 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
                 }
             }
         else:
-            return {"fulfillmentText": data.get("message", "Operation failed. Please try again.")}
+            return {"fulfillmentText": reply}
 
     except requests.RequestException as e:
         print(f"Error calling {endpoint_url}: {e}")

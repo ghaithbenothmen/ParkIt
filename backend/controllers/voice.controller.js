@@ -76,7 +76,7 @@ exports.booking = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-        return res.status(404).json({ message: "Utilisateur non trouvé" });
+        return res.status(404).json({ message: "User not found" });
     }
 
     const startDate = new Date(start);
@@ -85,7 +85,7 @@ exports.booking = async (req, res) => {
 
     try {
         const parking = await Parking.findOne({ nom: lot });
-        if (!parking) return res.json({ reply: "Parking not found." });
+        if (!parking)     return res.status(404).json({ reply: "Parking not found." });
 
         const mockReq = { body: { parkingId: parking._id, startDate, endDate } };
         let availableSpots;
