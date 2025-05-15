@@ -32,7 +32,7 @@ model = model.to(DEVICE)
 
 # Model path (match helmi.py output)
 #MODEL_PATH = os.path.join("/app/type", "resnet_car_classifier.pth")
-MODEL_PATH = os.path.join("C:\\Users\\helmi\\ParkIt\\ia-reclamation\\type\\resnet_car_classifier.pth")
+MODEL_PATH = os.path.join("C:\\Users\\helmi\\ParkIt\\ia-reclamation\\resnet_car_classifier.pth")
 
 
 try:
