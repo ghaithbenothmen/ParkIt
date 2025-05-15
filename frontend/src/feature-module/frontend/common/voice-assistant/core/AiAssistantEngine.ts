@@ -84,6 +84,7 @@ class AiAssistantEngine extends EventEmitter {
       );
 
       Logger.log('Dialogflow response:', res.data);
+      console.log("yyyyyyyyyyyyyyyyyyyyyyyy", res.status)
       const { queryResult } = res.data;
       const reply = queryResult.fulfillmentText || '';
       const redirect = queryResult.redirect;
@@ -131,7 +132,11 @@ class AiAssistantEngine extends EventEmitter {
     }
 
     if (response.data.redirectUrl) {
-      window.location.href = response.data.redirectUrl;
+      const redirectUrl = response.data.redirectUrl;
+      this.emit('toast', "reservation success");
+setTimeout(() => {
+    window.location.href = redirectUrl;
+  }, 3000);
     }
   };
 

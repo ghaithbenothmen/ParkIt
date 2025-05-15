@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAiAssistant } from './AiAssistantContext';
 import { FaMicrophone, FaVolumeUp } from 'react-icons/fa';
 import { GiBrainFreeze } from 'react-icons/gi';
+import { Toast } from 'primereact/toast';
 
 const injectStyles = () => {
     const style = document.createElement('style');
@@ -35,7 +36,7 @@ const injectStyles = () => {
             box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.7);
             transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
             position: fixed;
-            bottom: 75px;
+            bottom: 50px;
             right: 75px;
             z-index: 9999;
         }
@@ -73,6 +74,7 @@ interface AiAssistantButtonProps {
     stateColors?: StateColors;
     style?: any;
     onClick?: () => void;
+    toastRef?: React.RefObject<Toast>;
     [key: string]: any;
 }
 
@@ -80,6 +82,7 @@ const AiAssistantButton: React.FC<AiAssistantButtonProps> = ({
     stateColors = {},
     style = {},
     onClick,
+    toastRef,
     ...props
 }) => {
     const { aiAssistant } = useAiAssistant();
@@ -123,13 +126,26 @@ const AiAssistantButton: React.FC<AiAssistantButtonProps> = ({
                 );
             };
 
+            const handleToast = (message: string) => {
+                if (toastRef && toastRef.current) {
+                    toastRef.current.show({
+                        severity: 'success',
+                        summary: 'AI Assistant',
+                        detail: message,
+                        life: 3000,
+                    });
+                }
+            };
+
             aiAssistant.on('stateChange', handleStateChange);
+            aiAssistant.on('toast', handleToast);
 
             return () => {
                 aiAssistant.off('stateChange', handleStateChange);
+                aiAssistant.off('toast', handleToast);
             };
         }
-    }, [aiAssistant]);
+    }, [aiAssistant, toastRef]);
 
     useEffect(() => {
         if (buttonRef.current) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   set_dark_mode,
@@ -13,6 +13,7 @@ import { AppState } from '../../../../core/models/interface';
 import io from 'socket.io-client';
 import AiAssistantProvider from '../../common/voice-assistant/AiAssistantProvider';
 import { AiAssistantButton } from '../../common/voice-assistant/AiAssistantButton';
+import { Toast } from 'primereact/toast';
 
 interface NotificationType {
   _id: string;
@@ -31,6 +32,7 @@ const ProviderHeader = () => {
   const toggle_data = useSelector((state: AppState) => state.toggleSidebar2);
   const dispatch = useDispatch();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const toastRef = useRef<Toast>(null);
   const toggleFullscreen = () => {
     if (!isFullscreen) {
       // Request fullscreen
@@ -275,6 +277,8 @@ const ProviderHeader = () => {
 
   return (
         <AiAssistantProvider>
+                    <Toast ref={toastRef} />
+
 
     <div className="header provider-header">
       {/* Logo */}
@@ -512,7 +516,8 @@ const ProviderHeader = () => {
           </div>
         </div>
       </div>
-                          <AiAssistantButton currentState="STATE_IDLE" />
+                          <AiAssistantButton currentState="STATE_IDLE" toastRef={toastRef} />
+
 
       {/* Mobile Menu */}
       <div className="dropdown mobile-user-menu">
