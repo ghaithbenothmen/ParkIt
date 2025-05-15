@@ -7,7 +7,7 @@ export interface Parking {
   disponibilite: boolean;
   latitude: number;
   longitude: number;
-  //images?: string[]; // Tableau optionnel de chemins d'images
+  images?: string[]; // Tableau optionnel de chemins d'images
   description?: string; // Description optionnelle
   reviewCount?: number; // Compteur optionnel de réservations
 }

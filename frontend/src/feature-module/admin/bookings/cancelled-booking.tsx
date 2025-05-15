@@ -1,6 +1,5 @@
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
-
 import { Dropdown } from 'primereact/dropdown';
 import React, { useState, useEffect } from 'react';
 import ImageWithBasePath from '../../../core/img/ImageWithBasePath';
@@ -10,151 +9,101 @@ import { all_routes } from '../../../core/data/routes/all_routes';
 import * as Icon from 'react-feather';
 import { CancelledBookingInterface } from '../../../core/models/interface';
 import axios from "axios";
+import { format } from 'date-fns';
+import TruncatedAddress from '../dashboard/TruncatedAddress';
 
 interface Reservation {
   _id: string;
   startDate: string;
   endDate: string;
   totalPrice: number;
-  parkingId: string;  // Parking ID
+  parkingId: string;
   status: string;
   parkingSpot: string;
   parking: {
     nom: string;
     image: string;
     adresse: string;
-  } | null; // parking details will be populated later
+  } | null;
   parkingS: {
     numero: string;
   } | null;
-  userId: string;  // User ID field added
+  userId: string;
   user?: {
     firstname: string;
     email: string;
-  }; // User details will be added here // parking details will be populated later
+  };
 }
-const CancelledBooking = () => {
-  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
-  const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [filterStatus, setFilterStatus] = useState('all');
 
-  const filteredReservations = reservations.filter(reservation => {
-    if (filterStatus === 'all') return true;
-    if (filterStatus === 'confirmed' && reservation.status === 'confirmed') return true;
-    if (filterStatus === 'pending' && reservation.status === 'pending') return true;
-    if (filterStatus === 'over' && reservation.status === 'over') return true;
-    return false;
-  });
+const CancelledBooking = () => {
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const routes = all_routes;
 
   useEffect(() => {
     const fetchReservations = async () => {
       try {
         const res = await axios.get(`http://localhost:4000/api/reservations/over`);
-        console.log("Fetched reservations:", res.data);
+        console.log("Initial cancelled reservations:", res.data);
+        const updatedReservations = await Promise.all(
+          res.data.data.map(async (reservation: Reservation) => {
+            try {
+              // Fetch parking details
+              const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+              console.log("Parking data for reservation:", parkingRes.data);
 
-        setReservations(res.data.data);  // Access the array inside 'data'
+              // Fetch parking spot details
+              const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+              console.log("Spot data for reservation:", spotRes.data);
+
+              // Fetch user details
+              const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+              console.log("User data for reservation:", userRes.data);
+
+              return {
+                ...reservation,
+                parking: parkingRes.data,
+                parkingS: spotRes.data.data,
+                user: {
+                  firstname: userRes.data.firstname,
+                  email: userRes.data.email
+                }
+              };
+            } catch (error) {
+              console.error("Error fetching related data:", error);
+              return reservation;
+            }
+          })
+        );
+        console.log("Final updated reservations:", updatedReservations);
+        setReservations(updatedReservations);
       } catch (error) {
         console.error("Failed to fetch reservations:", error);
       }
     };
 
     fetchReservations();
-  }, []);
-  useEffect(() => {
-    const fetchParkings = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
+  }, []); // Empty dependency array - runs once on mount
 
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.parkingId && !reservation.parking) {
-          try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;  // Assuming parking details come with nom, image, adresse
-          } catch (error) {
-            console.error('Error fetching parking details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations); // Update the state with parking details
-    };
-
-    if (reservations.length > 0) {
-      fetchParkings();
-    }
-  }, [reservations]);
-  useEffect(() => {
-    const fetchParkingSpots = async () => {
-      const updatedReservations = [...reservations];
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-
-        if (reservation.parkingSpot && !reservation.parkingS) {
-          try {
-            console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
-            console.log("Parking spot fetched:", spotRes.data);
-            updatedReservations[i].parkingS = spotRes.data.data;
-          } catch (error) {
-            console.error('Error fetching parking spot for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations);
-    };
-
-    if (reservations.length > 0) {
-      fetchParkingSpots();
-    }
-  }, [reservations]);
   const renderStatusBadge = (rowData: Reservation) => {
     let badgeClass = '';
     const label = rowData.status;
 
     switch (rowData.status.toLowerCase()) {
       case 'confirmed':
-        badgeClass = 'badge bg-success'; // Green
+        badgeClass = 'badge bg-success';
         break;
       case 'pending':
-        badgeClass = 'badge bg-primary'; // Blue
+        badgeClass = 'badge bg-primary';
         break;
       case 'over':
-        badgeClass = 'badge bg-danger'; // Red
+        badgeClass = 'badge bg-danger';
         break;
       default:
-        badgeClass = 'badge bg-secondary'; // Gray fallback
+        badgeClass = 'badge bg-secondary';
     }
 
     return <span className={badgeClass}>{label}</span>;
   };
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
-
-      for (let i = 0; i < updatedReservations.length; i++) {
-        const reservation = updatedReservations[i];
-        if (reservation.userId && !reservation.user) {
-          try {
-            const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
-            updatedReservations[i].user = {
-              firstname: userRes.data.firstname,
-              email: userRes.data.email,
-            };
-          } catch (error) {
-            console.error('Error fetching user details for reservation:', reservation._id, error);
-          }
-        }
-      }
-
-      setReservations(updatedReservations); // Update the state with user details
-    };
-
-    if (reservations.length > 0) {
-      fetchUserDetails();
-    }
-  }, [reservations]);
 
   const renderUserDetails = (rowData: Reservation) => {
     return rowData.user ? (
@@ -163,18 +112,19 @@ const CancelledBooking = () => {
         <div>{rowData.user.email}</div>
       </div>
     ) : (
-      '—' // Fallback if user details are not available yet
+      '—'
     );
   };
-  const routes = all_routes;
 
-  const data = useSelector(
-    (state: any) => state.cancelled_booking,
-  );
-
-  const [selectedValue, setSelectedValue] = useState(null);
-  const value = [{ name: 'A - Z' }, { name: 'Z - A' }];
-
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return format(date, 'yyyy-MM-dd hha');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  };
 
   return (
     <>
@@ -182,41 +132,6 @@ const CancelledBooking = () => {
         <div className="content">
           <div className="content-page-header content-page-headersplit">
             <h5>Booking List</h5>
-            <div className="list-btn">
-              <ul>
-                <li>
-                  <div className="filter-sorting">
-                    <ul>
-                      <li>
-                        <Link to="#" className="filter-sets">
-                          <Icon.Filter className="react-feather-custom me-2" />
-                          Filter
-                        </Link>
-                      </li>
-                      <li>
-                        <span>
-                          <ImageWithBasePath
-                            src="assets/admin/img/icons/sort.svg"
-                            className="me-2"
-                            alt="img"
-                          />
-                        </span>
-                        <div className="review-sort">
-                          <Dropdown
-                            value={selectedValue}
-                            onChange={(e) => setSelectedValue(e.value)}
-                            options={value}
-                            optionLabel="name"
-                            placeholder="A - Z"
-                            className="select admin-select-breadcrumb"
-                          />
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </li>
-              </ul>
-            </div>
           </div>
           <div className="row">
             <div className="col-12">
@@ -239,9 +154,6 @@ const CancelledBooking = () => {
                     </li>
                   </ul>
                 </div>
-                <div className="tab-contents-count">
-                  <h6>Showing 8-10 of 84 results</h6>
-                </div>
               </div>
             </div>
           </div>
@@ -250,23 +162,38 @@ const CancelledBooking = () => {
               <div className="table-resposnive table-div">
                 <table className="table datatable">
                   <DataTable
-                    paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink  "
+                    paginatorTemplate="RowsPerPageDropdown CurrentPageReport PrevPageLink PageLinks NextPageLink"
                     currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                    value={filteredReservations}
+                    value={reservations}
                     paginator
                     rows={10}
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     tableStyle={{ minWidth: '50rem' }}
                   >
                     <Column header="User" body={renderUserDetails} />
-                    <Column field="startDate" header="Start Date" sortable />
-                    <Column field="endDate" header="End Date" sortable />
-                    <Column field="totalPrice" header="Total Price" sortable />
+                    <Column
+                      header="Start Date"
+                      body={(rowData) => formatDate(rowData.startDate)}
+                      sortable
+                    />
+                    <Column
+                      header="End Date"
+                      body={(rowData) => formatDate(rowData.endDate)}
+                      sortable
+                    />
+                    <Column 
+                      field="totalPrice" 
+                      header="Total Price" 
+                      sortable
+                      body={(rowData) => `${rowData.totalPrice} DT`}
+                    />
                     <Column header="Parking" body={(rowData) => rowData.parking?.nom || '—'} />
-                    <Column header="Address" body={(rowData) => rowData.parking?.adresse || '—'} />
+                    <Column
+                      header="Address"
+                      body={(rowData) => <TruncatedAddress address={rowData.parking?.adresse} />}
+                    />
                     <Column header="Spot" body={(rowData) => rowData.parkingS?.numero || '—'} />
                     <Column field="status" header="Status" body={renderStatusBadge} sortable />
-
                   </DataTable>
                 </table>
               </div>

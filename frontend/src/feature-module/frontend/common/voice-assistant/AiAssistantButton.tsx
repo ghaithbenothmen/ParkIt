@@ -36,7 +36,9 @@ const injectStyles = () => {
             box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.7);
             transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
             position: fixed;
-            bottom: 50px;
+
+            bottom: 40px;
+
             right: 75px;
             z-index: 9999;
         }

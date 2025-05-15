@@ -96,7 +96,7 @@ app.use('/api/claims', claimRoutes);
 app.use('/api/voice', voiceRoutes);
 
 app.use('/api/badges', badgeRoutes);
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Configurer CORS pour autoriser les requêtes depuis http://localhost:3000
 

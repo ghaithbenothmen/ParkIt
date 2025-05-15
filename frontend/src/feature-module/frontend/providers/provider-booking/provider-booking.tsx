@@ -2,32 +2,28 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import ImageWithBasePath from '../../../../core/img/ImageWithBasePath';
 import { all_routes } from '../../../../core/data/routes/all_routes';
-import { customerOption, serviceOption, staffOption } from '../../../../core/data/json/dropDownData';
-import CustomDropdown from '../../common/dropdown/commonSelect';
-import CommonDatePicker from '../../../../core/hooks/commonDatePicker';
-import PaymentButton from '../../home/new-home/PaymentButton';
 import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/themify-icons/css/themify-icons.css"></link>
-// adjust as needed
-import axios from "axios";
 interface Reservation {
   _id: string;
   startDate: string;
   endDate: string;
   totalPrice: number;
-  parkingId: string;  // Parking ID
+  parkingId: string;
   status: string;
   parkingSpot: string;
   parking: {
+    _id:string;
     nom: string;
-    image: string;
+    images?: string[]; // Updated to array of Cloudinary URLs
     adresse: string;
-  } | null; // parking details will be populated later
+  } | null;
   parkingS: {
     numero: string;
-  } | null; // parking details will be populated later
+  } | null;
 }
+
 const ProviderBooking = () => {
   const routes = all_routes;
   const [selectedItems, setSelectedItems] = useState(Array(10).fill(false));
@@ -38,7 +34,6 @@ const ProviderBooking = () => {
       return updatedSelectedItems;
     });
   };
-  const [parkings, setParkings] = useState<Record<string, { nom: string; image: string; adresse: string }>>({});
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [userInfo, setUserInfo] = useState({
@@ -46,16 +41,13 @@ const ProviderBooking = () => {
     firstname: '',
     lastname: '',
     email: '',
-    phone: ''
+    phone: '',
   });
   const RESERVATIONS_PER_PAGE = 5;
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'week'>('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Calculate total pages
-
-
-  // Get paginated reservations
+  // Calculate filtered reservations
   const filteredReservations = useMemo(() => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -84,14 +76,13 @@ const ProviderBooking = () => {
     });
   }, [reservations, filterStatus, dateFilter]);
 
-
+  // Get paginated reservations
   const paginatedReservations = useMemo(() => {
     const startIndex = (currentPage - 1) * RESERVATIONS_PER_PAGE;
     return filteredReservations.slice(startIndex, startIndex + RESERVATIONS_PER_PAGE);
   }, [currentPage, filteredReservations]);
 
   const totalPages = Math.ceil(filteredReservations.length / RESERVATIONS_PER_PAGE);
-
 
   // Pagination click handler
   const handlePageChange = (pageNumber: number) => {
@@ -104,28 +95,25 @@ const ProviderBooking = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        // Is it a JWT token or JSON object?
         if (storedUser.startsWith('{')) {
-          // It's a JSON string (not a token)
           const user = JSON.parse(storedUser);
-          console.log("Loaded user object from localStorage:", user);
+          console.log('Loaded user object from localStorage:', user);
           setUserInfo({
             _id: user._id || '',
             firstname: user.firstname || '',
             lastname: user.lastname || '',
             email: user.email || '',
-            phone: user.phone || ''
+            phone: user.phone || '',
           });
         } else {
-          // It's probably a JWT token
           const decoded: any = jwtDecode(storedUser);
-          console.log("Decoded user from JWT token:", decoded);
+          console.log('Decoded user from JWT token:', decoded);
           setUserInfo({
             _id: decoded._id || '',
             firstname: decoded.firstname || '',
             lastname: decoded.lastname || '',
             email: decoded.email || '',
-            phone: decoded.phone || ''
+            phone: decoded.phone || '',
           });
         }
       } catch (err) {
@@ -139,40 +127,41 @@ const ProviderBooking = () => {
       if (userInfo._id) {
         try {
           const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
-          console.log("Fetched reservations:", res.data);
-
-          setReservations(res.data.data);  // Access the array inside 'data'
+          console.log('Fetched reservations:', res.data);
+          setReservations(res.data.data);
         } catch (error) {
-          console.error("Failed to fetch reservations:", error);
+          console.error('Failed to fetch reservations:', error);
         }
       }
     };
 
     fetchReservations();
   }, [userInfo._id]);
+
   useEffect(() => {
     const fetchParkings = async () => {
-      const updatedReservations = [...reservations]; // Copy of reservations state
+      const updatedReservations = [...reservations];
 
       for (let i = 0; i < updatedReservations.length; i++) {
         const reservation = updatedReservations[i];
         if (reservation.parkingId && !reservation.parking) {
           try {
             const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
-            updatedReservations[i].parking = parkingRes.data;  // Assuming parking details come with nom, image, adresse
+            updatedReservations[i].parking = parkingRes.data;
           } catch (error) {
             console.error('Error fetching parking details for reservation:', reservation._id, error);
           }
         }
       }
 
-      setReservations(updatedReservations); // Update the state with parking details
+      setReservations(updatedReservations);
     };
 
     if (reservations.length > 0) {
       fetchParkings();
     }
   }, [reservations]);
+
   useEffect(() => {
     const fetchParkingSpots = async () => {
       const updatedReservations = [...reservations];
@@ -184,7 +173,7 @@ const ProviderBooking = () => {
           try {
             console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
             const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
-            console.log("Parking spot fetched:", spotRes.data);
+            console.log('Parking spot fetched:', spotRes.data);
             updatedReservations[i].parkingS = spotRes.data.data;
           } catch (error) {
             console.error('Error fetching parking spot for reservation:', reservation._id, error);
@@ -199,6 +188,7 @@ const ProviderBooking = () => {
       fetchParkingSpots();
     }
   }, [reservations]);
+
   const countReservationsByStatus = (reservations: Reservation[]) => {
     const counts = {
       confirmed: 0,
@@ -218,6 +208,7 @@ const ProviderBooking = () => {
 
     return counts;
   };
+
   const [reservationCounts, setReservationCounts] = useState({
     confirmed: 0,
     pending: 0,
@@ -225,20 +216,24 @@ const ProviderBooking = () => {
   });
 
   useEffect(() => {
-    // Calculate counts whenever reservations change
     if (reservations.length > 0) {
       const counts = countReservationsByStatus(reservations);
       setReservationCounts(counts);
     }
-  }, [reservations]); // Only rerun when reservations change
-  const percentagePending = Math.round((reservationCounts.pending / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
-  const percentageConfirmed = Math.round((reservationCounts.confirmed / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
-  const percentageOver = Math.round((reservationCounts.over / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100);
+  }, [reservations]);
 
+  const percentagePending = Math.round(
+    (reservationCounts.pending / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100
+  ) || 0;
+  const percentageConfirmed = Math.round(
+    (reservationCounts.confirmed / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100
+  ) || 0;
+  const percentageOver = Math.round(
+    (reservationCounts.over / (reservationCounts.confirmed + reservationCounts.pending + reservationCounts.over)) * 100
+  ) || 0;
 
   return (
     <>
-      {/* Page Wrapper */}
       <div className="page-wrapper">
         <div className="content container-fluid">
           <div className="col-12">
@@ -386,146 +381,171 @@ const ProviderBooking = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
 
+          <div className="row justify-content-center">
+            <div className="col-xxl-12 col-lg-12">
+              {paginatedReservations.length > 0 ? (
+                paginatedReservations.map((reservation) => (
+                  <div key={reservation._id} className="card shadow-none booking-list position-relative">
+                    <div className="card-body d-md-flex align-items-center">
+                      <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
+                        <div className="booking-img me-sm-3 mb-3 mb-sm-0">
+                          <Link to={`/providers/map2/${reservation.parking?._id}`} className="avatar">
+                          
+                            {reservation.parking?.images && reservation.parking.images.length > 0 ? (
+                              <img
+                                src={reservation.parking.images[0]}
+                                className="avatar-img"
+                                alt="Parking Image"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = 'assets/img/parking.jpg';
+                                }}
+                              />
+                            ) : (
+                              <ImageWithBasePath
+                                src="assets/img/parking.jpg"
+                                className="avatar-img"
+                                alt="Parking Image"
+                              />
+                            )}
+                          </Link>
+                        </div>
+
+                        <div className="booking-det-info">
+                          <h6 className="mb-3">
+                            <Link to={`${routes.providerBooking}/${reservation._id}`}>
+                              {reservation.parking?.nom || 'Parking Spot'}
+                            </Link>
+                            <span
+                              className={`badge ms-2 ${
+                                reservation.status === 'confirmed' ||
+                                reservation.status === 'checked-in' ||
+                                reservation.status === 'completed'
+                                  ? 'badge-soft-success'
+                                  : reservation.status === 'pending' ||
+                                    reservation.status === 'overdue' ||
+                                    reservation.status === 'no-show'
+                                  ? 'badge-soft-danger'
+                                  : 'badge-soft-secondary'
+                              }`}
+                            >
+                              {reservation.status}
+                            </span>
+                          </h6>
+
+                          <ul className="booking-details">
+                            <li className="d-flex align-items-center mb-2">
+                              <span className="book-item">Reservation Date</span>
+                              <small className="me-2">: </small>
+                              {new Date(reservation.startDate).toLocaleDateString()}{' '}
+                              {new Date(reservation.startDate).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}{' '}
+                              -{' '}
+                              {new Date(reservation.endDate).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </li>
+                            <li className="d-flex align-items-center mb-2">
+                              <span className="book-item">Amount</span>
+                              <small className="me-2">:</small>{reservation.totalPrice.toFixed(2)} DT
+                              <span
+                                className={`badge ms-2 ${
+                                  reservation.status === 'pending' ||
+                                  reservation.status === 'overdue' ||
+                                  reservation.status === 'no-show'
+                                    ? 'badge-soft-danger'
+                                    : 'badge-soft-success'
+                                }`}
+                              >
+                                {reservation.status === 'pending' ||
+                                reservation.status === 'overdue' ||
+                                reservation.status === 'no-show'
+                                  ? 'Not Paid'
+                                  : 'Paid'}
+                              </span>
+                            </li>
+                            <li className="d-flex align-items-center mb-2">
+                              <span className="book-item">Location</span>
+                              <small className="me-2">: </small>
+                              {reservation.parking?.adresse || 'Unknown'}
+                            </li>
+                            <li className="d-flex align-items-center mb-2">
+                              <span className="book-item">Parking Spot</span>
+                              <small className="me-2">: </small>
+                              {reservation.parkingS?.numero || 'Unknown'}
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      {reservation.status === 'overdue' && (
+                        <div
+                          className="position-absolute top-50 end-40 translate-middle-y text-center"
+                          style={{
+                            right: '100px',
+                            cursor: 'pointer',
+                          }}
+                          title="Click to view details and pay additional fees"
+                          onClick={() =>
+                            (window.location.href = `${routes.overdueDetailsBooking}/${reservation._id}`)
+                          }
+                        >
+                          <i
+                            className="fa-solid fa-triangle-exclamation text-danger"
+                            style={{ fontSize: '24px' }}
+                          ></i>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No reservations available.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3 mt-4">
+            <div className="value d-flex align-items-center">
+              <span>Show</span>
+              <select value={RESERVATIONS_PER_PAGE} disabled>
+                <option>{RESERVATIONS_PER_PAGE}</option>
+              </select>
+              <span>entries</span>
+            </div>
+
+            <div className="d-flex align-items-center justify-content-center">
+              <span className="me-2 text-gray-9">
+                {((currentPage - 1) * RESERVATIONS_PER_PAGE) + 1} -{' '}
+                {Math.min(currentPage * RESERVATIONS_PER_PAGE, reservations.length)} of {reservations.length}
+              </span>
+              <nav aria-label="Page navigation">
+                <ul className="paginations d-flex justify-content-center align-items-center">
+                  {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                    <li className="page-item me-2" key={pageNum}>
+                      <button
+                        className={`page-link-1 d-flex justify-content-center align-items-center ${
+                          pageNum === currentPage ? 'active' : ''
+                        }`}
+                        onClick={() => handlePageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
-        <div className="row justify-content-center">
-          <div className="col-xxl-12 col-lg-12">
-            {paginatedReservations.length > 0 ? (
-              paginatedReservations.map((reservation) => (
-                <div key={reservation._id} className="card shadow-none booking-list position-relative">
-                  <div className="card-body d-md-flex align-items-center">
-                    <div className="booking-widget d-sm-flex align-items-center row-gap-3 flex-fill mb-3 mb-md-0">
-                      <div className="booking-img me-sm-3 mb-3 mb-sm-0">
-                        <Link to={routes.map2} className="avatar">
-                          <ImageWithBasePath
-                            src={reservation.parking?.image || "assets/img/parking.jpg"}
-                            alt="Parking Image"
-                          />
-                        </Link>
-                      </div>
-
-                      <div className="booking-det-info">
-                        <h6 className="mb-3">
-                          <Link to={`${routes.providerBooking}/${reservation._id}`}>
-                            {reservation.parking?.nom || "Parking Spot"}
-                          </Link>
-                          <span
-                            className={`badge ms-2 ${reservation.status === "confirmed" || reservation.status === "checked-in" || reservation.status === "completed"
-                                ? "badge-soft-success"
-                                : reservation.status === "pending" || reservation.status === "overdue" || reservation.status === "no-show"
-                                  ? "badge-soft-danger"
-                                  : "badge-soft-secondary"
-                              }`}
-                          >
-                            {reservation.status}
-                          </span>
-                        </h6>
-
-                        <ul className="booking-details">
-                          <li className="d-flex align-items-center mb-2">
-                            <span className="book-item">Reservation Date</span>
-                            <small className="me-2">: </small>
-                            {new Date(reservation.startDate).toLocaleDateString()}{" "}
-                            {new Date(reservation.startDate).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}{" "}
-                            -{" "}
-                            {new Date(reservation.endDate).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </li>
-                          <li className="d-flex align-items-center mb-2">
-                            <span className="book-item">Amount</span>
-                            <small className="me-2">:</small> ${reservation.totalPrice.toFixed(2)}
-                            <span
-                              className={`badge ms-2 ${reservation.status === "pending" || reservation.status === "overdue" || reservation.status === "no-show"
-                                  ? "badge-soft-danger"
-                                  : "badge-soft-success"
-                                }`}
-                            >
-                              {reservation.status === "pending" || reservation.status === "overdue" || reservation.status === "no-show"
-                                ? "Not Paid"
-                                : "Paid"}
-                            </span>
-                          </li>
-                          <li className="d-flex align-items-center mb-2">
-                            <span className="book-item">Location</span>
-                            <small className="me-2">: </small>
-                            {reservation.parking?.adresse || "Unknown"}
-                          </li>
-                          <li className="d-flex align-items-center mb-2">
-                            <span className="book-item">Parking Spot</span>
-                            <small className="me-2">: </small>
-                            {reservation.parkingS?.numero || "Unknown"}
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Overdue Alert */}
-                    {reservation.status === "overdue" && (
-                      <div
-                        className="position-absolute top-50 end-40 translate-middle-y text-center"
-                        style={{
-                          right: "100px",
-                          cursor: "pointer",
-                        }}
-                        title="Click to view details and pay additional fees"
-                        onClick={() => window.location.href = `${routes.overdueDetailsBooking}/${reservation._id}`}
-                      >
-                        <i className="fa-solid fa-triangle-exclamation text-danger" style={{ fontSize: "24px" }}></i>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No reservations available.</p>
-            )}
-          </div>
-        </div>
-
-
-        <div className="d-flex justify-content-between align-items-center flex-wrap row-gap-3 mt-4">
-          <div className="value d-flex align-items-center">
-            <span>Show</span>
-            <select value={RESERVATIONS_PER_PAGE} disabled>
-              <option>{RESERVATIONS_PER_PAGE}</option>
-            </select>
-            <span>entries</span>
-          </div>
-
-          <div className="d-flex align-items-center justify-content-center">
-            <span className="me-2 text-gray-9">
-              {((currentPage - 1) * RESERVATIONS_PER_PAGE) + 1} -{" "}
-              {Math.min(currentPage * RESERVATIONS_PER_PAGE, reservations.length)} of {reservations.length}
-            </span>
-            <nav aria-label="Page navigation">
-              <ul className="paginations d-flex justify-content-center align-items-center">
-                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
-                  <li className="page-item me-2" key={pageNum}>
-                    <button
-                      className={`page-link-1 d-flex justify-content-center align-items-center ${pageNum === currentPage ? "active" : ""}`}
-                      onClick={() => handlePageChange(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
-        </div>
-
       </div>
-      {/* /Page Wrapper */}
-      
     </>
-
   );
 };
 

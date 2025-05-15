@@ -56,7 +56,9 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
     fulfillment_text = ""
 
     if intent == "BookParking":
+
         parking_name = params.get("parkingName") or "Esprit Parking"
+
         start_str = params.get("startDate")
         end_str = params.get("endDate")
         duration = params.get("duration")

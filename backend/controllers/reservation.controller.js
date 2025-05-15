@@ -42,38 +42,25 @@ cron.schedule('0 0 1 * *', async () => {  // Runs at midnight on the first day o
 
 const User = require('../models/user.model.js');
  */
+const User = require('../models/user.model.js');
 exports.createReservation = async (req, res) => {
     try {
-        console.log("Received reservation request:", req.body);
-
         const { userId, parkingId, parkingSpot, vehicule, startDate, endDate, totalPrice } = req.body;
 
-        // Validate required fields
-        if (!userId || !parkingId || !parkingSpot || !vehicule || !startDate || !endDate || !totalPrice) {
-            console.error("Missing required fields:", req.body);
-            return res.status(400).json({ message: "All fields are required." });
-        }
-
-        // Ensure endDate is after startDate
-        if (new Date(endDate) <= new Date(startDate)) {
-            console.error("Invalid date range: endDate must be after startDate.");
-            return res.status(400).json({ message: "End date must be after start date." });
-        }
-
-        // Check if the parking spot is already reserved for the given period
+        // Vérifier si la place de parking est déjà réservée pour cette période
         const existingReservation = await Reservation.findOne({
             parkingSpot,
             $or: [
-                { startDate: { $lt: endDate }, endDate: { $gt: startDate } } // Overlapping dates
+                { startDate: { $lt: endDate }, endDate: { $gt: startDate } }, // Chevauchement de dates
             ]
         });
 
         if (existingReservation) {
-            console.error("Parking spot already reserved for this period:", existingReservation);
-            return res.status(400).json({ message: "The parking spot is already reserved for this period." });
+            return res.status(400).json({ message: 'La place de parking est déjà réservée pour cette période.' });
         }
 
-        // Create a new reservation
+
+        // Créer une nouvelle réservation
         const newReservation = new Reservation({
             userId,
             parkingId,
@@ -83,18 +70,38 @@ exports.createReservation = async (req, res) => {
             endDate,
             totalPrice
         });
-
         await newReservation.save();
-        console.log("Reservation created successfully:", newReservation);
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-        // Create a notification after the reservation is created
+        // Increment the user's points by 1 (1 point per reservation)
+        user.weeklyPoints += 1;
+
+        // Assign badge based on the user's points
+        let badge = null;
+        if (user.weeklyPoints >= 101) {
+            badge = await Badge.findOne({ minPoints: { $lte: user.weeklyPoints }, maxPoints: { $gte: user.weeklyPoints }, name: 'Gold' });
+        } else if (user.weeklyPoints >= 11) {
+            badge = await Badge.findOne({ minPoints: { $lte: user.weeklyPoints }, maxPoints: { $gte: user.weeklyPoints }, name: 'Silver' });
+        } else if (user.weeklyPoints >= 1) {
+            badge = await Badge.findOne({ minPoints: { $lte: user.weeklyPoints }, maxPoints: { $gte: user.weeklyPoints }, name: 'Bronze' });
+        }
+
+        if (badge) {
+            user.badge = badge._id; // Assign the badge to the user
+        }
+
+        await user.save();
+
+        // Créer une notification après la création de la réservation
         NotificationController.createNotification(newReservation);
 
-        res.status(201).json({ message: "Reservation created successfully", data: newReservation });
+        res.status(201).json({ message: 'Réservation créée avec succès', data: newReservation });
 
     } catch (error) {
-        console.error("Error creating reservation:", error);
-        res.status(500).json({ message: "Error creating reservation", error: error.message });
+        res.status(500).json({ message: 'Erreur lors de la création de la réservation', error: error.message });
     }
 };
 exports.reservationPayment = async (req, res) => {

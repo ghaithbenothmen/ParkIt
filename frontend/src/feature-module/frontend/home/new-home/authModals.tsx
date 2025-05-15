@@ -99,26 +99,35 @@ const AuthModals = () => {
     try {
       if (authResult.code) {
         const result = await googleAuth(authResult.code);
-        const { email, name, image } = result.data.user;
-        const token = result.data.token;
+        
+        // First, get the complete user data from the backend
+        const userResponse = await axios.get(`http://localhost:4000/api/users/${result.data.user._id}`);
+        const completeUserData = userResponse.data;
 
-        // Save user info in localStorage
+        // Combine the auth result with complete user data
+        const userData = {
+          ...result.data.user,
+          badge: completeUserData.badge || null,
+          weeklyPoints: completeUserData.weeklyPoints || 0,
+        };
+
+        // Save complete user info in localStorage
         localStorage.setItem('token', result.data.token);
-        localStorage.setItem('user', JSON.stringify(result.data.user));
-  
+        localStorage.setItem('user', JSON.stringify(userData));
+        
         // Extract and store role
-        const role = result.data.user?.role || 'user';
+        const role = userData.role || 'user';
         localStorage.setItem('role', role);
-        setEmail(email);
-        // Call the backend to check if the user has a phone number
+        setEmail(userData.email);
+
+        // Check for phone number
         const response = await axios.post('http://localhost:4000/api/users/check', {
-          email,
+          email: userData.email,
         });
 
         if (!response.data.hasPhone) {
-          setShowPhoneModal(true); // Show the phone number modal
+          setShowPhoneModal(true);
         } else {
-          // Proceed to the dashboard
           navigate('/providers/dashboard');
         }
 
@@ -336,7 +345,10 @@ const AuthModals = () => {
   
       // If 2FA is not enabled, proceed to login
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify({
+        ...data.user,
+        badge: data.user.badge || null // Ensure badge is included
+      }));
   
       const modalElement = document.getElementById('login-modal');
       if (modalElement) {
@@ -408,8 +420,12 @@ const AuthModals = () => {
         code: twoFACode,
       });
 
+      // Store complete user data including badge after 2FA
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('user', JSON.stringify({
+        ...response.data.user,
+        badge: response.data.user.badge || null // Ensure badge is included
+      }));
 
       console.log('2FA verification successful. Token:', response.data.token);
 
