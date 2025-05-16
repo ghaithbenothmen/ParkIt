@@ -1,6 +1,5 @@
 FROM python:3.7.4-slim
 
-# Install system libraries required for OpenCV and other dependencies
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     libsm6 \
@@ -14,16 +13,17 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy Python dependencies and install them
 COPY requirements.txt .
+
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install torch==1.13.1 torchvision==0.14.1
 
-# Copy the rest of the source code
+# Install ultralytics without dependencies to avoid OpenCV conflict
+RUN pip install --no-deps ultralytics==8.0.20
+
 COPY . .
 
-# Expose the Flask default port
 EXPOSE 5000
 
-# Run the application
 CMD ["python", "app.py"]

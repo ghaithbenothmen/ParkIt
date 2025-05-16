@@ -34,7 +34,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: parkit
     volumes:
       - db-data:/data/db
-
+        
   lpr:
     build:
       context: ./lpr-python
@@ -71,3 +71,4 @@ services:
 
 volumes:
   db-data: {}
+  

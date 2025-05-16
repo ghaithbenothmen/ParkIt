@@ -13,7 +13,7 @@ const ClaimSchema = new mongoose.Schema({
   },
   claimType: {
     type: String,
-    enum: ['Spot Occupied', 'Payment Issue', 'Security', 'Other'],
+    enum: ['Spot Occupied', 'Wrong Parking', 'Security', 'Other'],
     required: true,
   },
   image: {
@@ -22,8 +22,7 @@ const ClaimSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Valid', 'Pending', 'Resolved', 'Rejected'],
-    default: 'Valid',
+    enum: ['Valid', 'Pending', 'Resolved', 'Rejected']
   },
   submissionDate: {
     type: Date,
@@ -52,7 +51,7 @@ ClaimSchema.pre('save', async function (next) {
       case 'Security':
         score += 10;
         break;
-      case 'Payment Issue':
+      case 'Wrong Parking': // Fixed from 'wrong_parking'
         score += 8;
         break;
       case 'Spot Occupied':
@@ -68,36 +67,25 @@ ClaimSchema.pre('save', async function (next) {
       claimType: this.claimType,
       status: { $in: ['Valid', 'Pending'] },
     });
-    if (similarClaims >= 3) {
-      score += 5;
-    }
+    if (similarClaims >= 3) score += 5;
 
     // Claims for the same parking
     const parkingClaims = await mongoose.model('Claim').countDocuments({
       parkingId: this.parkingId,
       status: { $in: ['Valid', 'Pending'] },
     });
-    if (parkingClaims >= 3) {
-      score += 3;
-    }
+    if (parkingClaims >= 3) score += 3;
 
     // User role
     const user = await mongoose.model('User').findById(this.userId);
-    if (user && user.role === 'admin') {
-      score += 3;
-    }
+    if (user && user.role === 'admin') score += 3;
 
     // Presence of an image
-    if (this.image) {
-      score += 2;
-      this.status = 'Valid';
-    } else {
-      this.status = 'Pending';
-    }
+    if (this.image) score += 2;
 
     this.priority = score;
   }
   next();
 });
 
-module.exports = mongoose.model('Claim', ClaimSchema);
+module.exports = mongoose.model('Claim', ClaimSchema);  
