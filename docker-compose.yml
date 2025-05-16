@@ -78,7 +78,6 @@ services:
         - "8008:8008"
       volumes:
         - ./ia-reclamation:/app
-        - "D:/Bureau/type:/data/type"  # Mount dataset for training
       environment:
         - DOCKER_ENV=true  # Skip GUI in helmi.py
       depends_on:

@@ -4,6 +4,12 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
+# Copy the dataset directory
+COPY type /data/type
+
+# Copy the pre-trained model
+COPY resnet_car_classifier.pth /app/resnet_car_classifier.pth
+
 # Copy requirements.txt first (for caching)
 COPY requirements.txt .
 
