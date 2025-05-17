@@ -36,14 +36,10 @@ services:
       - db-data:/data/db
         
   lpr:
-    build:
-      context: ./lpr-python
-      dockerfile: Dockerfile
+    image: gbothmen/parkit-lpr-app:latest
     container_name: lpr
     ports:
       - "5000:5000"
-    volumes:
-      - ./lpr-python:/app
     depends_on:
       - api
       - mongo
