@@ -34,10 +34,11 @@ const ParkingVisualization = ({
   const [reservations, setReservations] = useState<any[]>([]);
 
   const mapSpotData = (spot: any) => {
+    const spotNumber = parseInt(spot.numero.match(/[0-9]+/)[0]);
     return {
       id: spot.numero,
       _id: spot._id,
-      position: spot.numero.match(/[0-9]+/)[0] % 7 === 0 || spot.numero.match(/[0-9]+/)[0] <= 2 ? 'right' : 'left',
+      position: spotNumber >= 6 ? 'right' : 'left', // Changed logic: only spots 6 and 7 go to the right
       row: determineCustomRow(spot.numero),
       disponibilite: spot.disponibilite,
     };
@@ -117,7 +118,18 @@ const ParkingVisualization = ({
   };
 
   const renderSpots = (spots: ParkingSpot[], side: 'left' | 'right') => {
-    const sortedSpots = spots.sort((a, b) => parseInt(a.id.replace(/[^0-9]/g, '')) - parseInt(b.id.replace(/[^0-9]/g, '')));
+    const sortedSpots = spots.sort((a, b) => {
+      const aNum = parseInt(a.id.replace(/[^0-9]/g, ''));
+      const bNum = parseInt(b.id.replace(/[^0-9]/g, ''));
+      
+      if (side === 'right') {
+        // For right side, use ascending order (06 will be above 07)
+        return aNum - bNum;
+      }
+      // For left side, keep original order (01 to 05)
+      return aNum - bNum;
+    });
+    
     return sortedSpots.map((spot) => {
       const isSelected = selectedSpot === spot._id;
       const occupied = isSpotOccupied(spot._id);
@@ -160,7 +172,7 @@ const ParkingVisualization = ({
             <div className="road-boundary right"></div>
             <div className="road-marking"></div>
           </div>
-          <div className="right-lane">
+          <div className="right-lane" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
             {renderSpots(rightSpots, 'right')}
           </div>
         </div>

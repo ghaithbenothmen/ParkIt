@@ -17,11 +17,12 @@ const ParkingPreview = () => {
   const [error, setError] = useState<string | null>(null);
 
   const mapSpotData = (spot: any) => {
+    const spotNumber = parseInt(spot.numero.match(/[0-9]+/)[0]);
     return {
       id: spot.numero,
       _id: spot._id,
       numero: spot.numero,
-      position: spot.numero.match(/[0-9]+/)[0] % 7 === 0 || spot.numero.match(/[0-9]+/)[0] <= 2 ? 'right' : 'left',
+      position: spotNumber >= 6 ? 'right' : 'left', // Changed logic: only spots 6 and 7 go to the right
     };
   };
 
@@ -54,9 +55,17 @@ const ParkingPreview = () => {
   }, [id]);
 
   const renderSpots = (spots: ParkingSpot[], side: 'left' | 'right') => {
-    const sortedSpots = spots.sort((a, b) => 
-      parseInt(a.numero.replace(/[^0-9]/g, '')) - parseInt(b.numero.replace(/[^0-9]/g, ''))
-    );
+    const sortedSpots = spots.sort((a, b) => {
+      const aNum = parseInt(a.numero.replace(/[^0-9]/g, ''));
+      const bNum = parseInt(b.numero.replace(/[^0-9]/g, ''));
+      
+      if (side === 'right') {
+        // For right side, sort in ascending order (06 will be above 07)
+        return bNum - aNum;  // Changed to bNum - aNum to reverse the order
+      }
+      // For left side, keep original order (01 to 05)
+      return aNum - bNum;
+    });
     
     return sortedSpots.map((spot) => (
       <div className={`parking-spot-container ${side}-side`} key={spot._id}>
@@ -88,7 +97,13 @@ const ParkingPreview = () => {
             <div className="road-boundary right"></div>
             <div className="road-marking"></div>
           </div>
-          <div className="right-lane">
+          <div className="right-lane" style={{ 
+            display: 'flex', 
+            flexDirection: 'column-reverse', // Changed to column-reverse
+            justifyContent: 'flex-start', // Changed to flex-start
+            height: '100%',
+            paddingTop: '50%' // Add padding to push spots to bottom half
+          }}>
             {renderSpots(rightSpots, 'right')}
           </div>
         </div>
