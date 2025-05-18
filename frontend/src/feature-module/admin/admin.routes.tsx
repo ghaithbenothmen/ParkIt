@@ -19,7 +19,7 @@ import Claims from './claims/claims';
 
 
 import AllService from './services/all-service';
-
+import ParkingPreview from './services/parking-preview';
 
 import AdminSignin from './authentication/signin';
 import AdminSignup from './authentication/signup';
@@ -97,6 +97,12 @@ const AdminRoutes = () => {
       path: '/services/all-services',
       name: 'all-services',
       element: <AllService />,
+      route: Route,
+    },
+    {
+      path: '/services/live-preview/:id',
+      name: 'live-preview',
+      element: <ParkingPreview />,
       route: Route,
     },
   

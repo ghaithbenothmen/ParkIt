@@ -13,6 +13,7 @@ import { Modal } from "bootstrap";
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import { FileUpload } from 'primereact/fileupload';
+import { Link } from 'react-router-dom';
 
 // Configuration de l'icône Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -230,7 +231,7 @@ const AllService = () => {
   const [newParking, setNewParking] = useState({
     nom: "",
     adresse: "",
-    nbr_place: "",
+    nbr_place: "7", // Changed to initialize with "7"
     tarif_horaire: "",
     disponibilite: true,
     latitude: "",
@@ -534,7 +535,7 @@ const AllService = () => {
     setNewParking({
       nom: "",
       adresse: "",
-      nbr_place: "",
+      nbr_place: "7", // Changed to initialize with "7"
       tarif_horaire: "",
       disponibilite: true,
       latitude: "",
@@ -697,6 +698,17 @@ const AllService = () => {
           <i className="fa-solid fa-trash-can me-1"></i>
           Delete
         </button>
+        <Link
+          to={`/admin/services/live-preview/${rowData._id}`}
+          className="btn btn-sm ms-2"
+          style={{ 
+            borderColor: '#28a745',
+            color: '#28a745'
+          }}
+        >
+          <i className="fa-solid fa-eye me-1"></i>
+          Live Preview
+        </Link>
       </div>
     );
   };
@@ -1094,17 +1106,10 @@ const AllService = () => {
                           <input
                             type="number"
                             name="nbr_place"
-                            value={parkingToUpdate.nbr_place || ""}
-                            onChange={handleUpdateChange}
-                            className={`form-control ${errors.nbr_place ? "is-invalid" : ""}`}
-                            min="1"
-                            max="1000"
+                            value="7"
+                            className="form-control"
+                            readOnly
                           />
-                          {errors.nbr_place && (
-                            <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                              {errors.nbr_place}
-                            </div>
-                          )}
                         </div>
                       </div>
                       <div className="col-md-6">
@@ -1357,17 +1362,10 @@ const AllService = () => {
                         <input
                           type="number"
                           name="nbr_place"
-                          value={newParking.nbr_place}
-                          onChange={handleCreateChange}
-                          className={`form-control ${errors.nbr_place ? "is-invalid" : ""}`}
-                          min="1"
-                          max="1000"
+                          value="7"
+                          className="form-control"
+                          readOnly
                         />
-                        {errors.nbr_place && (
-                          <div className="text-danger small mt-1" style={{fontSize: '0.8rem'}}>
-                            {errors.nbr_place}
-                          </div>
-                        )}
                       </div>
                     </div>
                     <div className="col-md-6">
