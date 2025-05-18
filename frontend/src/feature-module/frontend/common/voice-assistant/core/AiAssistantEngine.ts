@@ -136,7 +136,7 @@ class AiAssistantEngine extends EventEmitter {
       this.emit('toast', "reservation success");
 setTimeout(() => {
     window.location.href = redirectUrl;
-  }, 3000);
+  }, 2300);
     }
   };
 
