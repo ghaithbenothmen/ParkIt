@@ -58,7 +58,7 @@ const ParkingPreview = () => {
   // Fonction pour déclencher la détection sur une image existante
   const checkParkingFromFile = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/parking/from-file', {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL_FLASK}/parking/from-file`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_path: 'uploads/ooo.jpg' }) // <-- utilise toujours des slashs /
