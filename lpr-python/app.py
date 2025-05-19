@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
 
 import os
 import sys
@@ -21,6 +22,7 @@ if __name__ == "__main__":
     sys.argv = [sys.argv[0]]
 
 app = Flask(__name__)
+CORS(app)  # Autorise toutes les origines (pour dev)
 
 UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -113,6 +115,26 @@ def parking():
     finally:
         os.remove(filepath)
 
-        
+@app.route('/api/parking/from-file', methods=['POST'])
+def parking_from_file():
+    data = request.get_json()
+    image_path = data.get('image_path')
+    if not image_path or not os.path.exists(image_path):
+        return jsonify({"error": "Image path not provided or file does not exist."}), 400
+
+    try:
+        image = cv2.imread(image_path)
+        if image is None:
+            return jsonify({"error": "Failed to load the image. Please check the file."}), 400
+
+        status, annotated_image_path = detect_parking_spots_yolo(image_path, PARKING_SPOTS)
+
+        return jsonify({
+            "parking_status": status,
+            "annotated_image_path": annotated_image_path
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e), "debug_info": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000,debug=True)

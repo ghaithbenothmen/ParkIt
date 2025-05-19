@@ -7,7 +7,7 @@ const char* ssid = "Galaxy";       // Replace with your WiFi SSID
 const char* password = "00000000"; // Replace with your WiFi password
 
 // === Backend Configuration ===
-const char* backendServer = "192.168.155.25"; // Replace with your backend IP
+const char* backendServer = "192.168.28.25"; // Replace with your backend IP
 const int backendPort = 5000;                 // Flask backend port
 const String parkingEndpoint = "/api/parking"; // Flask endpoint for parking detection
 

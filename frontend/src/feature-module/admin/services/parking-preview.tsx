@@ -15,6 +15,7 @@ const ParkingPreview = () => {
   const [parkingInfo, setParkingInfo] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [parkingStatus, setParkingStatus] = useState<any>(null);
 
   const mapSpotData = (spot: any) => {
     const spotNumber = parseInt(spot.numero.match(/[0-9]+/)[0]);
@@ -54,31 +55,52 @@ const ParkingPreview = () => {
     }
   }, [id]);
 
+  // Fonction pour déclencher la détection sur une image existante
+  const checkParkingFromFile = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/parking/from-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_path: 'uploads/ooo.jpg' }) // <-- utilise toujours des slashs /
+      });
+      const data = await response.json();
+      setParkingStatus(data.parking_status);
+      // Tu peux aussi afficher l'image annotée : data.annotated_image_path
+    } catch (err) {
+      alert("Erreur lors de la détection : " + err);
+    }
+  };
+
+  // Nouveau rendu des spots façon pickParkingSpot
   const renderSpots = (spots: ParkingSpot[], side: 'left' | 'right') => {
     const sortedSpots = spots.sort((a, b) => {
       const aNum = parseInt(a.numero.replace(/[^0-9]/g, ''));
       const bNum = parseInt(b.numero.replace(/[^0-9]/g, ''));
-      
-      if (side === 'right') {
-        // For right side, sort in ascending order (06 will be above 07)
-        return bNum - aNum;  // Changed to bNum - aNum to reverse the order
-      }
-      // For left side, keep original order (01 to 05)
+      if (side === 'right') return bNum - aNum;
       return aNum - bNum;
     });
-    
-    return sortedSpots.map((spot) => (
-      <div className={`parking-spot-container ${side}-side`} key={spot._id}>
-        <div className="access-lane"></div>
-        <div className="parking-spot">
-          <div className="spot-placeholder">
-            <button className="spot-btn">
-              {spot.numero.replace(/[^0-9]/g, '')}
-            </button>
+
+    return sortedSpots.map((spot) => {
+      const globalIdx = parkingSpots.findIndex(s => s._id === spot._id);
+      const occupied = parkingStatus && parkingStatus[globalIdx] === "occupied";
+
+      return (
+        <div className={`parking-spot-container ${side}-side`} key={spot._id}>
+          <div className="access-lane"></div>
+          <div className={`parking-spot${occupied ? ' occupied' : ''}`}>
+            {occupied ? (
+              <div className="spot-placeholder d-flex flex-column align-items-center justify-content-center" style={{height: '48px'}}>
+                <img src="/assets/img/car2D.png" alt="Occupée" className="occupied-spot-img" />
+              </div>
+            ) : (
+              <button className="spot-btn" disabled>
+                {spot.numero.replace(/[^0-9]/g, '')}
+              </button>
+            )}
           </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   const generateParkingLayout = () => {
@@ -127,6 +149,10 @@ const ParkingPreview = () => {
                 Price: {parkingInfo.tarif_horaire}DT per hour • {parkingInfo.nbr_place} total spots
               </div>
             )}
+            {/* Bouton pour déclencher la détection */}
+            <button className="btn btn-primary" onClick={checkParkingFromFile}>
+              Vérifier disponibilité (photo existante)
+            </button>
           </div>
 
           <div className="card border-0 shadow-lg">
