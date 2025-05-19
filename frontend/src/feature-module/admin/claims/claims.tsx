@@ -47,7 +47,7 @@ const Claims = () => {
 
   const fetchClaims = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/claims');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/claims`);
       setClaims(response.data);
       setFilteredClaims(response.data); // Set all data initially
     } catch (error) {
@@ -115,7 +115,7 @@ const Claims = () => {
     if (!selectedClaim) return;
 
     try {
-      await axios.put(`http://localhost:4000/api/claims/${selectedClaim._id}`, {
+      await axios.put(`${process.env.REACT_APP_API_BASE_URL}/claims/${selectedClaim._id}`, {
         status: newStatus,
         feedback: feedback.trim(),
       });

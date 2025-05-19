@@ -28,7 +28,7 @@ const UserSignup = () => {
     e.preventDefault(); // Prevent the default form submission behavior
 
     try {
-      const { data } = await axios.post('http://localhost:4000/api/auth/register', {
+      const { data } = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/register`, {
         firstname,
         lastname,
         phone,

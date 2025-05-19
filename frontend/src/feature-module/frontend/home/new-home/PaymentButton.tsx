@@ -8,7 +8,7 @@ interface PaymentButtonProps {
 const PaymentButton: React.FC<PaymentButtonProps> = ({ id }) => {
   const handlePaymentClick = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/reservations/${id}/payment`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/reservations/${id}/payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

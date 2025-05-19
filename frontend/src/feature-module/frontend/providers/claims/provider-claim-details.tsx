@@ -55,7 +55,7 @@ const ClaimDetails = () => {
     const fetchAllDetails = async () => {
       try {
         // Step 1: Fetch reservation
-        const claimRes = await axios.get(`http://localhost:4000/api/claims/${id}`);
+        const claimRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/claims/${id}`);
         const claimData = claimRes.data.data;
         console.log("hahaahhahahhahahaahha");
         console.log(claimData);
@@ -69,7 +69,7 @@ const ClaimDetails = () => {
         const parkingSpotData = parkingSpotRes.data.data;
 */
         // Step 4: Fetch user
-        const userRes = await axios.get(`http://localhost:4000/api/users/${claimData.userId._id}`);
+        const userRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/${claimData.userId._id}`);
         const userData = userRes.data;
 
         setClaim(claimData);

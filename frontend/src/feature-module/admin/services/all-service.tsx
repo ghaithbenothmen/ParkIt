@@ -174,7 +174,7 @@ const ImageGalleryModal = ({ images, onClose }) => {
           <div className="modal-body text-center">
             <div className="position-relative">
               <img 
-                src={`http://localhost:4000${images[currentImageIndex]}`}
+                src={`${process.env.REACT_APP_BASE_URL}${images[currentImageIndex]}`}
                 alt={`Parking ${currentImageIndex + 1}`}
                 className="img-fluid rounded shadow-lg"
                 style={{ maxHeight: '70vh', maxWidth: '100%' }}
@@ -343,7 +343,7 @@ const AllService = () => {
   const deleteParking = async () => {
     if (!parkingToDelete) return;
     try {
-      await axios.delete(`http://localhost:4000/api/parking/${parkingToDelete._id}`);
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/parking/${parkingToDelete._id}`);
       fetchServices();
       showToast('success', 'Success', 'Parking deleted successfully');
       deleteModalRef.current?.hide();
@@ -416,7 +416,7 @@ const AllService = () => {
         formData.append('images', file);
       });
 
-      const response = await axios.post("http://localhost:4000/api/parking", formData, {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/parking`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -454,7 +454,7 @@ const AllService = () => {
   
       while (retryCount <= maxRetries && !success) {
         try {
-          await axios.post("http://localhost:4000/api/parking-spots", {
+          await axios.post(`${process.env.REACT_APP_API_BASE_URL}/parking-spots`, {
             parkingId,
             numero: spot.numero
           });
@@ -511,7 +511,7 @@ const AllService = () => {
       });
 
       const response = await axios.put(
-        `http://localhost:4000/api/parking/${parkingToUpdate._id}`,
+        `${process.env.REACT_APP_API_BASE_URL}/parking/${parkingToUpdate._id}`,
         formData,
         {
           headers: {

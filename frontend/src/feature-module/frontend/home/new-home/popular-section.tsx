@@ -29,7 +29,7 @@ const PopularSection = () => {
 
   const fetchParkings = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/parking');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking`);
       const normalizedParkings = response.data
         .map(parking => ({
           ...parking,
@@ -158,7 +158,7 @@ const PopularSection = () => {
                               }}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = 'http://localhost:4000/uploads/parkings/default.jpg';
+                                target.src = `${process.env.REACT_APP_BASE_URL}/uploads/parkings/default.jpg`;
                               }}
                             />
                           ) : (

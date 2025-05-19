@@ -58,7 +58,7 @@ const CreateClaim = () => {
 
   const fetchParkings = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/parking');
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/parking`);
       if (!response.ok) throw new Error('Failed to fetch parkings');
       const data = await response.json();
       setParkings(data);
@@ -69,7 +69,7 @@ const CreateClaim = () => {
 
   const fetchClaimDetails = async (claimId: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/claims/${claimId}`);
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/claims/${claimId}`);
       if (!response.ok) throw new Error('Error fetching claim details');
       const data = await response.json();
       setclaimType(data.claimType);
@@ -120,8 +120,8 @@ claimData.forEach((value, key) => {
 });
     try {
       const url = isEditMode
-        ? `http://localhost:4000/api/claims/${id}`
-        : 'http://localhost:4000/api/claims';
+        ? `${process.env.REACT_APP_API_BASE_URL}/claims/${id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/claims`;
       const method = isEditMode ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

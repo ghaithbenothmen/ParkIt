@@ -54,12 +54,12 @@ const ParkingVisualization = ({
       try {
         setLoading(true);
 
-        const parkingResponse = await axios.get(`http://localhost:4000/api/parking/${parkingId}`);
+        const parkingResponse = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/${parkingId}`);
         const parkingData = parkingResponse.data;
         console.log('Fetched parking details:', parkingData);
         setParkingInfo(parkingData);
 
-        const reservationsResponse = await axios.get(`http://localhost:4000/api/reservations/by-parking/${parkingId}`).catch(err => {
+        const reservationsResponse = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/by-parking/${parkingId}`).catch(err => {
           if (err.response && err.response.status === 404) {
             console.warn("No reservations found for this parking.");
             return { data: { data: [] } };
@@ -70,7 +70,7 @@ const ParkingVisualization = ({
         setReservations(allReservations);
         console.log("allReservations", allReservations);
 
-        const spotsResponse = await axios.get(`http://localhost:4000/api/parking-spots/by-parking/${parkingId}`);
+        const spotsResponse = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking-spots/by-parking/${parkingId}`);
         console.log('Fetched parking spots:', spotsResponse.data);
         if (spotsResponse.data && spotsResponse.data.data) {
           const spots = spotsResponse.data.data.map(mapSpotData);

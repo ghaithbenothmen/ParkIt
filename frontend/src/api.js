@@ -2,17 +2,22 @@ import axios from 'axios';
 
 // Créez une instance Axios avec une URL de base
 export const api = axios.create({
-    baseURL: "http://localhost:4000/api/", // URL de base de votre backend
+    baseURL: `${process.env.REACT_APP_API_BASE_URL}/api/`, // URL de base de votre backend
+    // withCredentials: true, // Décommentez si vous utilisez des cookies pour l'authentification
+});
+export const api2 = axios.create({
+    baseURL: `${process.env.REACT_APP_API_BASE_URL}`, // URL de base de votre backend
     // withCredentials: true, // Décommentez si vous utilisez des cookies pour l'authentification
 });
 
+
 // Fonction pour l'authentification Google
-export const googleAuth = (code) => api.get(`auth/google?code=${code}`);
+export const googleAuth = (code) => api2.get(`auth/google?code=${code}`);
 
 // Fonction pour récupérer les véhicules de l'utilisateur connecté
 export const getVehiculesByUser = async (userId) => {
     try {
-        const response = await axios.get(`http://localhost:4000/api/vehicules/user/${userId}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/vehicules/user/${userId}`);
         return response.data.vehicules; // Assurez-vous que le backend renvoie bien `vehicules`
     } catch (error) {
         console.error("Erreur lors de la récupération des véhicules :", error);

@@ -36,14 +36,14 @@ const OverdueDetails = () => {
   useEffect(() => {
     const fetchReservation = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/${id}`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/${id}`);
         const reservationData = res.data.data;
         console.log('Reservation Data:', reservationData);
 
         // No need to fetch parking details separately since they're already in parkingId
         // Ensure parkingSpot is valid before making the API call
         if (reservationData.parkingSpot && typeof reservationData.parkingSpot === 'string') {
-          const parkingSpotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservationData.parkingSpot}`);
+          const parkingSpotRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking-spots/${reservationData.parkingSpot}`);
           reservationData.parkingS = parkingSpotRes.data.data;
         }
 
@@ -59,7 +59,7 @@ const OverdueDetails = () => {
   const handlePayment = async () => {
     setIsLoadingPayment(true);
     try {
-      const res = await axios.post('http://localhost:4000/api/reservations/pay-additional-fee', {
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/reservations/pay-additional-fee`, {
         reservationId: reservation?._id,
       });
 

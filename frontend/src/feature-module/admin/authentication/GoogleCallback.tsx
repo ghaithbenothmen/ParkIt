@@ -47,7 +47,7 @@ const GoogleCallback = () => {
 
         if (code) {
             // Envoyez le code au backend
-            api.get(`/api/auth/google?code=${code}`)
+            api.get(`/auth/google?code=${code}`)
                 .then((response : any) => {
                     const { token, user } = response.data;
                     console.log("Utilisateur connecté :", user);

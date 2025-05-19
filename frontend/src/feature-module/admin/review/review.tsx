@@ -52,7 +52,7 @@ const Reviews = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/reviews');
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reviews`);
         console.log('Full API Response:', JSON.stringify(response.data, null, 2));
         const formattedReviews = response.data.map((review: any) => ({
           ...review,
@@ -138,7 +138,7 @@ const Reviews = () => {
     if (!reviewToDelete) return;
 
     try {
-      await axios.delete(`http://localhost:4000/api/reviews/${reviewToDelete._id}`);
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/reviews/${reviewToDelete._id}`);
       const updatedReviews = reviews.filter((review) => review._id !== reviewToDelete._id);
       setReviews(updatedReviews);
       setFilteredReviews(updatedReviews);
@@ -175,9 +175,9 @@ const Reviews = () => {
 
     if (Object.keys(validationErrors).length === 0) {
       try {
-        await axios.put(`http://localhost:4000/api/reviews/${reviewId}`, formData);
+        await axios.put(`${process.env.REACT_APP_API_BASE_URL}/reviews/${reviewId}`, formData);
         showToast('success', 'Success', 'Review updated successfully');
-        const response = await axios.get('http://localhost:4000/api/reviews');
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reviews`);
         const formattedReviews = response.data.map((review: any) => ({
           ...review,
           parkingId: review.parkingId || { nom: 'Unknown' },

@@ -40,7 +40,7 @@ const CompletedBooking = () => {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/confirmed`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/confirmed`);
         console.log("Fetched completed reservations:", res.data);
         setReservations(res.data.data);
       } catch (error) {

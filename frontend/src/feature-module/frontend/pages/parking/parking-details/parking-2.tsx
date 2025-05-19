@@ -15,7 +15,7 @@ const Parking2 = () => {
   useEffect(() => {
     // Replace with your actual API endpoint
     axios
-      .get(`http://localhost:4000/api/parking/${id}`)
+      .get(`${process.env.REACT_APP_API_BASE_URL}/parking/${id}`)
       .then((response) => {
         setParking(response.data); // Store API response
         setLoading(false);

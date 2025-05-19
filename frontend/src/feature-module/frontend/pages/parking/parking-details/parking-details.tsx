@@ -101,7 +101,7 @@ const ParkingDetails = () => {
     try {
       if (isEditing && userReview) {
         const response = await axios.put(
-          `http://localhost:4000/api/reviews/${userReview._id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/reviews/${userReview._id}`,
           {
             parkingId: reviewForm.parkingId,
             rating: Number(reviewForm.rating),
@@ -118,7 +118,7 @@ const ParkingDetails = () => {
         );
       } else {
         const response = await axios.post(
-          'http://localhost:4000/api/reviews',
+          `${process.env.REACT_APP_API_BASE_URL}/reviews`,
           {
             parkingId: reviewForm.parkingId,
             rating: Number(reviewForm.rating),
@@ -161,7 +161,7 @@ const ParkingDetails = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:4000/api/parking/${id}`)
+      .get(`${process.env.REACT_APP_API_BASE_URL}/parking/${id}`)
       .then((response) => {
         const parkingData = {
           ...response.data,
@@ -177,7 +177,7 @@ const ParkingDetails = () => {
       });
 
     axios
-      .get(`http://localhost:4000/api/reviews/parking/${id}`)
+      .get(`${process.env.REACT_APP_API_BASE_URL}/reviews/parking/${id}`)
       .then((response) => {
         setReviews(response.data);
         const existingReview = response.data.find(
@@ -323,7 +323,7 @@ const ParkingDetails = () => {
                                 onClick={() => openLightbox(index)}
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
-                                  target.src = 'http://localhost:4000/uploads/parkings/default.jpg';
+                                  target.src = `${process.env.REACT_APP_BASE_URL}/uploads/parkings/default.jpg`;
                                 }}
                               />
                             </div>
@@ -347,7 +347,7 @@ const ParkingDetails = () => {
                               }}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = 'http://localhost:4000/uploads/parkings/default.jpg';
+                                target.src = `${process.env.REACT_APP_BASE_URL}/uploads/parkings/default.jpg`;
                               }}
                             />
                           </div>

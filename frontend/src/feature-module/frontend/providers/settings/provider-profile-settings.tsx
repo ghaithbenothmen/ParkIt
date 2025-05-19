@@ -26,7 +26,7 @@ const ProviderProfileSettings: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:4000/api/auth/profile", {
+      .get(`${process.env.REACT_APP_API_BASE_URL}/auth/profile`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       .then((res) => {
@@ -57,7 +57,7 @@ const ProviderProfileSettings: React.FC = () => {
     }
 
     try {
-      const res = await axios.put("http://localhost:4000/api/auth/profile", formData, {
+      const res = await axios.put(`${process.env.REACT_APP_API_BASE_URL}/auth/profile`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           "Content-Type": "multipart/form-data",
@@ -71,7 +71,7 @@ const ProviderProfileSettings: React.FC = () => {
 
       setAlert({ type: "success", message: "Profile updated successfully!" });
 
-      const profileRes = await axios.get("http://localhost:4000/api/auth/profile", {
+      const profileRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/auth/profile`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setUser(profileRes.data);
@@ -93,7 +93,7 @@ const ProviderProfileSettings: React.FC = () => {
 
   const handleChangePassword = async () => {
     try {
-      const response = await axios.post('http://localhost:4000/api/auth/change-password', {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/change-password`, {
         currentPassword,
         newPassword,
       }, {

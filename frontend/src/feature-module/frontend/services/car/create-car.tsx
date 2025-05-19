@@ -44,7 +44,7 @@ const CreateCar = () => {
 
   const fetchVehiculeDetails = async (vehiculeId: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/vehicules/${vehiculeId}`);
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/vehicules/${vehiculeId}`);
       if (!response.ok) {
         throw new Error('Error fetching vehicle details');
       }
@@ -106,8 +106,8 @@ const CreateCar = () => {
 
     try {
       const url = isEditMode
-        ? `http://localhost:4000/api/vehicules/${id}`
-        : 'http://localhost:4000/api/vehicules';
+        ? `${process.env.REACT_APP_API_BASE_URL}/vehicules/${id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/vehicules`;
       const method = isEditMode ? 'PUT' : 'POST';
 
       const response = await fetch(url, {

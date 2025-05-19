@@ -73,7 +73,7 @@ const ProviderSecuritySettings = () => {
   useEffect(() => {
     const fetch2FAStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/auth/profile', {
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/auth/profile`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -96,7 +96,7 @@ const ProviderSecuritySettings = () => {
     try {
       const userId = id;
   
-      const response = await axios.post('http://localhost:4000/api/auth/register_face', 
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/register_face`, 
         { userId }, // <- send as JSON, not FormData
         {
           headers: {
@@ -123,7 +123,7 @@ const ProviderSecuritySettings = () => {
     try {
       if (is2FAEnabled) {
         // Disable 2FA
-        await axios.post('http://localhost:4000/api/auth/disable-2fa', {
+        await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/disable-2fa`, {
           email,
         });
         setIs2FAEnabled(false);
@@ -131,7 +131,7 @@ const ProviderSecuritySettings = () => {
         setShowSuccessModal(true);
       } else {
         // Enable 2FA
-        const response = await axios.post('http://localhost:4000/api/auth/enable-2fa', {
+        const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/enable-2fa`, {
           email,
         });
         setQrCodeUrl(response.data.qrCodeUrl);
@@ -146,7 +146,7 @@ const ProviderSecuritySettings = () => {
   // Handle 2FA code verification
   const handleVerify2FA = async () => {
     try {
-      const response = await axios.post('http://localhost:4000/api/auth/verify-2fa', {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/verify-2fa`, {
         email,
         code: twoFACode,
       });
@@ -184,7 +184,7 @@ const ProviderSecuritySettings = () => {
   
     try {
       const response = await axios.post(
-        'http://localhost:4000/api/auth/change-password',
+        `${process.env.REACT_APP_API_BASE_URL}/auth/change-password`,
         {
           currentPassword,
           newPassword,

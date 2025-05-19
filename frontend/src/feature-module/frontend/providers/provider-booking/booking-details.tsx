@@ -95,12 +95,12 @@ const BookingDetails = () => {
   useEffect(() => {
     const fetchAllDetails = async () => {
       try {
-        const reservationRes = await axios.get(`http://localhost:4000/api/reservations/${id}`);
+        const reservationRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/${id}`);
         const reservationData = reservationRes.data.data;
         console.log('Reservation Data:', reservationData);
 
         // No need to fetch parking or parking spot details separately since they're in parkingId and parkingSpot
-        const userRes = await axios.get(`http://localhost:4000/api/users/${reservationData.userId}`);
+        const userRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/${reservationData.userId}`);
         const userData = userRes.data;
 
         const enrichedReservation = {
@@ -122,7 +122,7 @@ const BookingDetails = () => {
     const fetchReservations = async () => {
       if (userInfo._id) {
         try {
-          const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
+          const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/by-user/${userInfo._id}`);
           const data = res.data.data;
 
           const enrichedReservations = await Promise.all(
@@ -153,7 +153,7 @@ const BookingDetails = () => {
   useEffect(() => {
     if (reservation?.parkingId) {
       axios
-        .get(`http://localhost:4000/api/reviews/parking/${reservation.parkingId._id}`)
+        .get(`${process.env.REACT_APP_API_BASE_URL}/reviews/parking/${reservation.parkingId._id}`)
         .then((response) => {
           setReviews(response.data);
           const existingReview = response.data.find(
@@ -204,7 +204,7 @@ const BookingDetails = () => {
     try {
       if (isEditing && userReview) {
         const response = await axios.put(
-          `http://localhost:4000/api/reviews/${userReview._id}`,
+          `${process.env.REACT_APP_API_BASE_URL}/reviews/${userReview._id}`,
           {
             parkingId: reviewForm.parkingId,
             rating: Number(reviewForm.rating),
@@ -221,7 +221,7 @@ const BookingDetails = () => {
         );
       } else {
         const response = await axios.post(
-          'http://localhost:4000/api/reviews',
+          `${process.env.REACT_APP_API_BASE_URL}/reviews`,
           {
             parkingId: reviewForm.parkingId,
             rating: Number(reviewForm.rating),

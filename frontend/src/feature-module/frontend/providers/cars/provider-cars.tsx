@@ -41,7 +41,7 @@ const ProviderCars = () => {
       const decoded = jwtDecode(token);
       const userId = decoded.id;
 
-      const response = await fetch(`http://localhost:4000/api/vehicules/${userId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/vehicules/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -105,7 +105,7 @@ const ProviderCars = () => {
   // Function to delete a vehicle
   const handleDeleteVehicle = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/vehicules/${vehicleToDelete}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/vehicules/${vehicleToDelete}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -145,7 +145,7 @@ const ProviderCars = () => {
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:4000/api/vehicules/${selectedVehicle._id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/vehicules/${selectedVehicle._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ const ProviderCars = () => {
         immatriculation: fullImmatriculation
       };
 
-      const response = await fetch('http://localhost:4000/api/vehicules', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/vehicules`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

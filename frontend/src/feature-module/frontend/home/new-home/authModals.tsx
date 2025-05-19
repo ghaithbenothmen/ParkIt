@@ -101,7 +101,7 @@ const AuthModals = () => {
         const result = await googleAuth(authResult.code);
         
         // First, get the complete user data from the backend
-        const userResponse = await axios.get(`http://localhost:4000/api/users/${result.data.user._id}`);
+        const userResponse = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/${result.data.user._id}`);
         const completeUserData = userResponse.data;
 
         // Combine the auth result with complete user data
@@ -121,7 +121,7 @@ const AuthModals = () => {
         setEmail(userData.email);
 
         // Check for phone number
-        const response = await axios.post('http://localhost:4000/api/users/check', {
+        const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/check`, {
           email: userData.email,
         });
 
@@ -270,7 +270,7 @@ const AuthModals = () => {
     try {
       console.log("🧠 Starting face login...");
   
-      const response = await axios.post("http://localhost:4000/api/auth/login_face");
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/login_face`);
   
       console.log('Face login response:', response.data);
   
@@ -415,7 +415,7 @@ const AuthModals = () => {
       console.log('Email:', email);
       console.log('2FA Code:', twoFACode);
 
-      const response = await axios.post('http://localhost:4000/api/auth/verify-2fa', {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/verify-2fa`, {
         email,
         code: twoFACode,
       });
@@ -464,7 +464,7 @@ const AuthModals = () => {
   const handleForgotPasswordSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await fetch('http://localhost:4000/api/auth/request-reset', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/auth/request-reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -565,7 +565,7 @@ const AuthModals = () => {
                           }
 
                           // Call the backend to update the phone number
-                          const response = await axios.post('http://localhost:4000/api/users/update-phone', {
+                          const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/update-phone`, {
                             email, // Use the email from state
                             phone,
                           });

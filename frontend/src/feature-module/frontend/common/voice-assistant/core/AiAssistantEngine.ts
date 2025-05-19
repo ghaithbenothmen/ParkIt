@@ -61,7 +61,7 @@ class AiAssistantEngine extends EventEmitter {
 
     try {
       const res = await axios.post<DialogflowResponse>(
-        'http://localhost:4000/api/voice/dialogflow',
+        `${process.env.REACT_APP_API_BASE_URL}/voice/dialogflow`,
         { query: text, session: 'user-session-id' }
       );
 

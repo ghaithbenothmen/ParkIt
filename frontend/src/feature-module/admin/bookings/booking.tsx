@@ -63,7 +63,7 @@ const Booking = () => {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/reservations`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations`);
         console.log("Fetched reservations:", res.data);
         const reservationsData = res.data.data;
 
@@ -76,15 +76,15 @@ const Booking = () => {
 
             try {
               if (reservation.parkingId) {
-                const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+                const parkingRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/${reservation.parkingId}`);
                 parkingData = parkingRes.data;
               }
               if (reservation.parkingSpot) {
-                const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+                const spotRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking-spots/${reservation.parkingSpot}`);
                 spotData = spotRes.data.data;
               }
               if (reservation.userId) {
-                const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+                const userRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/${reservation.userId}`);
                 userData = {
                   firstname: userRes.data.firstname,
                   email: userRes.data.email,

@@ -136,7 +136,7 @@ const ProviderClaims = () => {
     const fetchClaims = async () => {
       if (userInfo._id) {
       try {
-        const res = await axios.get(`http://localhost:4000/api/claims/by-user/${userInfo._id}`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/claims/by-user/${userInfo._id}`);
         console.log("Fetched claims:", res.data);
 
         setClaims(res.data);  // Access the array inside 'data'

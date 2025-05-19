@@ -34,7 +34,7 @@ const CustomerSection = () => {
 
   const fetchReviews = async () => {
     try {
-      const reviewsRes = await axios.get('http://localhost:4000/api/reviews');
+      const reviewsRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reviews`);
       const sortedReviews = reviewsRes.data.sort((a: Review, b: Review) => 
         b.rating - a.rating  // Trier par rating en ordre décroissant
       );

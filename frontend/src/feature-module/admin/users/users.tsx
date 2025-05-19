@@ -25,7 +25,7 @@ const Users = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/users');
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users`);
         setUsers(response.data);
         setFilteredUsers(response.data);
       } catch (error) {
@@ -100,7 +100,7 @@ const Users = () => {
     if (!userToDelete) return;
     
     try {
-      await axios.delete(`http://localhost:4000/api/users/${userToDelete._id}`);
+      await axios.delete(`${process.env.REACT_APP_API_BASE_URL}/users/${userToDelete._id}`);
       const updatedUsers = users.filter((user) => user._id !== userToDelete._id);
       setUsers(updatedUsers);
       setFilteredUsers(updatedUsers);
@@ -334,7 +334,7 @@ const Users = () => {
         validateForm={validateForm}
         showToast={showToast}
         refreshUsers={() => {
-          axios.get('http://localhost:4000/api/users')
+          axios.get(`${process.env.REACT_APP_API_BASE_URL}/users`)
             .then((response) => {
               setUsers(response.data);
               setFilteredUsers(response.data);

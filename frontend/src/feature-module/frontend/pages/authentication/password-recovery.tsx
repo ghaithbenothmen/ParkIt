@@ -30,7 +30,7 @@ const PasswordRecovery = () => {
 
     try {
       // TODO: Replace with your actual API call to send password reset request
-      const response = await fetch('http://localhost:4000/api/auth/request-reset', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/auth/request-reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

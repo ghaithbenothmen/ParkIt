@@ -67,7 +67,7 @@ const AdminHeader = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/notifications/all');
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/notifications/all`);
       const data = await response.json();
       const sortedNotifications = Array.isArray(data) ? 
         data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : 
@@ -117,7 +117,7 @@ const AdminHeader = () => {
   useEffect(() => {
     fetchNotifications();
 
-    const socket = io('http://localhost:4000', {
+    const socket = io(`${process.env.REACT_APP_BASE_URL}`, {
       withCredentials: true,
       transports: ['websocket']
     });
@@ -175,7 +175,7 @@ const AdminHeader = () => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      const response = await fetch('http://localhost:4000/api/notifications/mark-all-read', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/notifications/mark-all-read`, {
         method: 'POST',
       });
       

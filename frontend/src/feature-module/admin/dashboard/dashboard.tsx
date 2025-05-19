@@ -107,7 +107,7 @@ const Dashboard = () => {
 
   const fetchResCountTot = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/reservations/total');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/total`);
       setResCountTot(response.data.totalPrice);
     } catch (error) {
       console.error('Error fetching total reservation amount:', error);
@@ -117,7 +117,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/reservations`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations`);
         console.log("Fetched reservations:", res.data);
         setReservations(res.data.data);
       } catch (error) {
@@ -136,7 +136,7 @@ const Dashboard = () => {
         const reservation = updatedReservations[i];
         if (reservation.parkingId && !reservation.parking) {
           try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+            const parkingRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/${reservation.parkingId}`);
             updatedReservations[i].parking = parkingRes.data;
             hasChanges = true;
           } catch (error) {
@@ -156,7 +156,7 @@ const Dashboard = () => {
 
   const fetchReservationWeekendStat = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/reservations/weekend');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/weekend`);
       console.log('Weekend Reservations:', response.data);
       const data = response.data.count;
       setReservationWeekendStat(data);
@@ -179,7 +179,7 @@ const Dashboard = () => {
         if (reservation.parkingSpot && !reservation.parkingS) {
           try {
             console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+            const spotRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking-spots/${reservation.parkingSpot}`);
             console.log("Parking spot fetched:", spotRes.data);
             updatedReservations[i].parkingS = spotRes.data.data;
             hasChanges = true;
@@ -239,7 +239,7 @@ const Dashboard = () => {
         const reservation = updatedReservations[i];
         if (reservation.userId && !reservation.user && !fetchedUserIds.has(reservation.userId)) {
           try {
-            const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+            const userRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/${reservation.userId}`);
             updatedReservations[i].user = {
               firstname: userRes.data.firstname,
               email: userRes.data.email,
@@ -264,7 +264,7 @@ const Dashboard = () => {
 
   const fetchUserCount = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/users/users/count');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/users/count`);
       setUserCount(response.data.count);
     } catch (error) {
       console.error('Error fetching user count:', error);
@@ -273,7 +273,7 @@ const Dashboard = () => {
 
   const fetchParkingCount = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/parking/parc/count');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/parc/count`);
       setParcCount(response.data.count);
     } catch (error) {
       console.error('Error fetching parc count:', error);
@@ -292,7 +292,7 @@ const Dashboard = () => {
 
   const fetchIncomeSummary = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/reservations/reservation-summary');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/reservation-summary`);
       setIncomeSummary(response.data.count);
     } catch (error) {
       console.error('Error fetching income summary:', error);
@@ -301,7 +301,7 @@ const Dashboard = () => {
 
   const fetchResCount = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/reservations/count');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/count`);
       setResCount(response.data.count);
     } catch (error) {
       console.error('Error fetching reservation count:', error);
@@ -310,9 +310,10 @@ const Dashboard = () => {
 
   const fetchReservationStat = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/reservations/reservation-statistics');
+      const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/reservation-statistics`);
       const data = response.data.count;
       setReservationStat(data);
+      console.log('Reservation Statistics:', data);
       setBookChartData((prev) => ({
         ...prev,
         series: data,
@@ -325,7 +326,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTopUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/reservations/top-users');
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/top-users`);
         setTopUsers(response.data.topUsers);
       } catch (error) {
         console.error('Error fetching top users:', error);
@@ -337,7 +338,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTopParkings = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/reservations/top-parkings');
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/top-parkings`);
         setTopParkings(response.data.topParkings);
       } catch (error) {
         console.error('Error fetching top parkings:', error);

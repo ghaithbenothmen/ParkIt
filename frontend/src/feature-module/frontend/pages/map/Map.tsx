@@ -65,7 +65,7 @@ const MapPage = () => {
 
   // Fetch parkings
   useEffect(() => {
-    axios.get("http://localhost:4000/api/parking")
+    axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking`)
       .then(response => {
         setParkings(response.data);
         setFilteredParkings(response.data);

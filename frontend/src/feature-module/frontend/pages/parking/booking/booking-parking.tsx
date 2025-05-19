@@ -44,7 +44,7 @@ const BookingParking = () => {
   useEffect(() => {
     // Replace with your actual API endpoint
     axios
-      .get(`http://localhost:4000/api/parking/${id}`)
+      .get(`${process.env.REACT_APP_API_BASE_URL}/parking/${id}`)
       .then((response) => {
         setParking(response.data); // Store API response
         setLoading(false);
@@ -67,7 +67,7 @@ const BookingParking = () => {
   const handlePayment = async () => {
 
     try {
-      const response = await fetch(`http://localhost:4000/api/reservations/${reservationId}/payment`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/reservations/${reservationId}/payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ const BookingParking = () => {
     const fetchBadge = async () => {
       if (userInfo.badge) {
         try {
-          const response = await axios.get(`http://localhost:4000/api/badges/${userInfo.badge}`);
+          const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/badges/${userInfo.badge}`);
           setBadge(response.data);
         } catch (error) {
           console.error('Error fetching badge:', error);
@@ -172,7 +172,7 @@ const BookingParking = () => {
           return;
         }
 
-        const response = await axios.get(`http://localhost:4000/api/vehicules/${userId}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/vehicules/${userId}`);
         console.log('Fetched vehicles:', response.data);
         setUserVehicles(response.data.vehicules);
       } catch (error) {
@@ -275,7 +275,7 @@ const BookingParking = () => {
 
       console.log("Reservation Data being sent:", reservationData);
 
-      const response = await fetch('http://localhost:4000/api/reservations', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/reservations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

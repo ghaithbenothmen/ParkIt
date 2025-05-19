@@ -126,7 +126,7 @@ const ProviderBooking = () => {
     const fetchReservations = async () => {
       if (userInfo._id) {
         try {
-          const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
+          const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/by-user/${userInfo._id}`);
           console.log('Fetched reservations:', res.data);
           setReservations(res.data.data);
         } catch (error) {
@@ -146,7 +146,7 @@ const ProviderBooking = () => {
         const reservation = updatedReservations[i];
         if (reservation.parkingId && !reservation.parking) {
           try {
-            const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+            const parkingRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/${reservation.parkingId}`);
             updatedReservations[i].parking = parkingRes.data;
           } catch (error) {
             console.error('Error fetching parking details for reservation:', reservation._id, error);
@@ -172,7 +172,7 @@ const ProviderBooking = () => {
         if (reservation.parkingSpot && !reservation.parkingS) {
           try {
             console.log(`Fetching parking spot for ID: ${reservation.parkingSpot}`);
-            const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+            const spotRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking-spots/${reservation.parkingSpot}`);
             console.log('Parking spot fetched:', spotRes.data);
             updatedReservations[i].parkingS = spotRes.data.data;
           } catch (error) {

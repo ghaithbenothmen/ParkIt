@@ -125,8 +125,8 @@ const UsersModal = ({ validateForm, showToast, refreshUsers }: any) => {
       });
 
       const url = isEditMode 
-        ? `http://localhost:4000/api/users/${formData._id}`
-        : 'http://localhost:4000/api/auth/register';
+        ? `${process.env.REACT_APP_API_BASE_URL}/users/${formData._id}`
+        : `${process.env.REACT_APP_API_BASE_URL}/auth/register`;
       
       const method = isEditMode ? 'put' : 'post';
 

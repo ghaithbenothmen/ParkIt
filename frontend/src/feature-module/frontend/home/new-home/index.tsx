@@ -29,9 +29,9 @@ const NewHome = () => {
   const fetchCounts = async () => {
     try {
       const [parkingsRes, reservationsRes, reviewsRes] = await Promise.all([
-        axios.get('http://localhost:4000/api/parking/count'),
-        axios.get('http://localhost:4000/api/reservations/count'),
-        axios.get('http://localhost:4000/api/reviews')
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/count`),
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/count`),
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/reviews`)
       ]);
       
       setParkingCount(parkingsRes.data?.count || 215);

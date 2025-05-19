@@ -167,7 +167,7 @@ const ProviderDashboard = () => {
     const fetchBadge = async () => {
       if (userInfo.badge) {
         try {
-          const response = await axios.get(`http://localhost:4000/api/badges/${userInfo.badge}`);
+          const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/badges/${userInfo.badge}`);
           setBadge(response.data);
         } catch (error) {
           console.error('Error fetching badge:', error);
@@ -182,7 +182,7 @@ const ProviderDashboard = () => {
     const fetchLatestReviews = async () => {
       if (userInfo._id) {
         try {
-          const res = await axios.get(`http://localhost:4000/api/reviews/user/${userInfo._id}`);
+          const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reviews/user/${userInfo._id}`);
           setLatestReviews(res.data.slice(0, 3));
         } catch (error) {
           console.error('Failed to fetch latest reviews:', error);
@@ -197,7 +197,7 @@ const ProviderDashboard = () => {
     const fetchWeeklyReservationCount = async () => {
       if (userInfo._id) {
         try {
-          const res = await axios.get(`http://localhost:4000/api/reservations/countweek/${userInfo._id}`);
+          const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/countweek/${userInfo._id}`);
           const data = res.data.data;
           const totalReservations = Object.values(data).reduce((acc: number, val: any) => acc + val, 0);
 
@@ -227,7 +227,7 @@ const ProviderDashboard = () => {
     if (userInfo._id && date) {
       try {
         const formattedDate = formatDate(date);
-        const res = await axios.get(`http://localhost:4000/api/reservations/userdate`, {
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/userdate`, {
           params: {
             userId: userInfo._id,
             startDate: formattedDate,
@@ -245,7 +245,7 @@ const ProviderDashboard = () => {
   useEffect(() => {
     const fetchParkings = async () => {
       try {
-        const response = await axios.get<Parking[]>('http://localhost:4000/api/parking');
+        const response = await axios.get<Parking[]>(`${process.env.REACT_APP_API_BASE_URL}/parking`);
         setParkings(response.data);
       } catch (error) {
         console.error('Error fetching parkings:', error);
@@ -258,7 +258,7 @@ const ProviderDashboard = () => {
   useEffect(() => {
     const fetchTopParkings = async () => {
       try {
-        const response = await axios.get<Parking[]>('http://localhost:4000/api/parking/top-rated');
+        const response = await axios.get<Parking[]>(`${process.env.REACT_APP_API_BASE_URL}/parking/top-rated`);
         setTopParkings(response.data);
       } catch (error) {
         console.error('Error fetching parkings:', error);
@@ -272,7 +272,7 @@ const ProviderDashboard = () => {
     const fetchReservations = async () => {
       if (userInfo._id) {
         try {
-          const res = await axios.get(`http://localhost:4000/api/reservations/by-user/${userInfo._id}`);
+          const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/by-user/${userInfo._id}`);
           setReservations(res.data.data);
         } catch (error) {
           console.error('Failed to fetch reservations:', error);
@@ -442,7 +442,7 @@ const ProviderDashboard = () => {
     const fetchTopLocationsData = async () => {
       if (!userInfo._id) return;
       try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/reservation/parkuser/${userInfo._id}`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/reservation/parkuser/${userInfo._id}`);
         const data = res.data.data;
 
         const transformedData = Object.entries(data).map(([parkingName, count]: any) => ({

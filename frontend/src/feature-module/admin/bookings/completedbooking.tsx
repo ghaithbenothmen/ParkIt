@@ -40,7 +40,7 @@ const CompletedBooking = () => {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/reservations/confirmed`);
+        const res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/reservations/confirmed`);
         console.log("Initial completed reservations:", res.data);
         
         // Fetch all additional data in parallel
@@ -48,15 +48,15 @@ const CompletedBooking = () => {
           res.data.data.map(async (reservation: Reservation) => {
             try {
               // Fetch parking details
-              const parkingRes = await axios.get(`http://localhost:4000/api/parking/${reservation.parkingId}`);
+              const parkingRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/${reservation.parkingId}`);
               console.log(`Parking data for ${reservation._id}:`, parkingRes.data);
 
               // Fetch parking spot details
-              const spotRes = await axios.get(`http://localhost:4000/api/parking-spots/${reservation.parkingSpot}`);
+              const spotRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking-spots/${reservation.parkingSpot}`);
               console.log(`Spot data for ${reservation._id}:`, spotRes.data);
 
               // Fetch user details
-              const userRes = await axios.get(`http://localhost:4000/api/users/${reservation.userId}`);
+              const userRes = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/${reservation.userId}`);
               console.log(`User data for ${reservation._id}:`, userRes.data);
 
               return {

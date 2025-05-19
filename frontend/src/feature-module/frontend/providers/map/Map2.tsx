@@ -184,7 +184,7 @@ const MapPage2 = () => {
   useEffect(() => {
     if (parkingId) {
       axios
-        .get(`http://localhost:4000/api/parking/${parkingId}`)
+        .get(`${process.env.REACT_APP_API_BASE_URL}/parking/${parkingId}`)
         .then((response) => {
           setParking(response.data);
           setMapLocation([response.data.latitude, response.data.longitude]); // Center map on the parking

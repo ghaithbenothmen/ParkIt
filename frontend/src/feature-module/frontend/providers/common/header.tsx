@@ -80,7 +80,7 @@ const ProviderHeader = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/notifications/all');
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/notifications/all`);
       const data = await response.json();
       // S'assurer que les notifications sont triées par date décroissante
       const sortedNotifications = Array.isArray(data) ? 
@@ -139,7 +139,7 @@ const ProviderHeader = () => {
     fetchNotifications();
 
     // Configurer Socket.IO pour les nouvelles notifications
-    const socket = io('http://localhost:4000', {
+    const socket = io(`${process.env.REACT_APP_BASE_URL}`, {
       withCredentials: true,
       transports: ['websocket']
     });
@@ -215,7 +215,7 @@ const ProviderHeader = () => {
 
   const handleMarkAllAsRead = async () => {
     try {
-        const response = await fetch('http://localhost:4000/api/notifications/mark-all-read', {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/notifications/mark-all-read`, {
             method: 'POST',
         });
         
@@ -247,7 +247,7 @@ const ProviderHeader = () => {
           return;
         }
 
-        const response = await fetch('http://localhost:4000/api/auth/profile', {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/auth/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
