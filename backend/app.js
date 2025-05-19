@@ -39,7 +39,7 @@ const server = http.createServer(app);
 // Socket.IO setup
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000"],
+    origin: [process.env.FRONTEND_URL, 'http://localhost:3000'],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -70,7 +70,7 @@ mongoose.connect(process.env.MONGO_URI)
 })
 .catch((err) => console.error('MongoDB connection error:', err));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://192.168.34.177'],
+  origin: [process.env.FRONTEND_URL,'http://localhost:3000', 'http://192.168.34.177'],
   //allowedHeaders: ['Content-Type','Authorization'], // Autoriser les requêtes depuis ce domaine
   credentials: true,
 }));

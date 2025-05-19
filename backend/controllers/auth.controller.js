@@ -113,7 +113,7 @@ exports.register = async (req, res) => {
         { expiresIn: "24h" }
       );
 
-      const activationLink = `http://localhost:4000/api/auth/verify/${activationToken}`;
+     const activationLink = `${process.env.BACKEND_URL}/api/auth/verify/${activationToken}`;
 
       // Send activation email
       const mailOptions = {
@@ -268,7 +268,7 @@ exports.verifyActivation = async (req, res) => {
     // Find the user by ID
     const user = await User.findById(decoded.id);
       if (!user) {
-        const frontendErrorUrl = `http://localhost:3000/activation-error`;
+        const frontendErrorUrl = `${process.env.FRONTEND_URL}/activation-error`;
         return res.redirect(frontendErrorUrl);
       }
     console.log("User Before Activation:", user);
@@ -279,13 +279,13 @@ exports.verifyActivation = async (req, res) => {
     console.log("User After Activation:", user);
 
     // Redirect to the frontend success page
-    const frontendSuccessUrl = `http://localhost:3000/activation-success`;
+    const frontendSuccessUrl = `${process.env.FRONTEND_URL}/activation-success`;
     res.redirect(frontendSuccessUrl);
     
   } catch (error) {
     console.error("Error verifying account:", error);
 
-    const frontendErrorUrl = `http://localhost:3000/activation-error`;
+    const frontendErrorUrl = `${process.env.FRONTEND_URL}/activation-error`;
     res.redirect(frontendErrorUrl);
   }
 };
@@ -464,7 +464,7 @@ exports.requestPasswordReset = async (req, res) => {
     await user.save();
 
     // Send the reset link via email
-    const resetLink = `http://localhost:3000/authentication/emailForgetPassword?token=${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL}/authentication/emailForgetPassword?token=${resetToken}`;
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: user.email,
