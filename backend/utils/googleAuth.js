@@ -2,9 +2,9 @@ const axios = require('axios');
 
 exports.getAccessToken = async (req, res) => {
   const tokenUrl = 'https://oauth2.googleapis.com/token'; // Google OAuth2 token endpoint
-  const clientId = process.env.GOOGLE_CLIENT_ID; // Using the correct env variable
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET; // Using the correct env variable
-  const refreshToken = process.env.GOOGLE_REFRESH_TOKEN; // Using the correct env variable
+  const clientId = process.env.G_CLIENT_ID; // Using the correct env variable
+  const clientSecret = process.env.G_CLIENT_SECRET; // Using the correct env variable
+  const refreshToken = process.env.G_REFRESH_TOKEN; // Using the correct env variable
 
   try {
     const response = await axios.post(tokenUrl, new URLSearchParams({
