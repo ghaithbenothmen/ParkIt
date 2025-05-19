@@ -15,11 +15,11 @@ build/
 .next/
 out/
 coverage/
+.env
 
 # Backend (Express, MongoDB)
 *.log
 logs/
-data/
 dump.rdb
 *.sqlite
 *.sqlite3
@@ -42,6 +42,31 @@ sdkconfig.old
 # IDE / Editor Files
 .vscode/
 .idea/
+
+#python lpr
+# Environnement virtuel
+lpr-tn-venv/
+
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Images générées
+
+# Fichiers de détection ou résultats
+output.jpg
+Licence_Plate_extracted.jpg
+
+# Fichiers de modèles volumineux (optionnel selon ton cas)
+*.weights
+*.h5
+
+# Dossiers d'upload
+uploads/
+
+# VSCode
+.vscode/
 
 
 
