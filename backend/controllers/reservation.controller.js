@@ -126,8 +126,8 @@ exports.reservationPayment = async (req, res) => {
                 amount: Math.round(reservation.totalPrice * 1000),
                 accept_card: true,
                 session_timeout_secs: 1200,
-                success_link: `http://localhost:4000/api/reservations/success?trackingId=${trackingId}&reservationId=${id}`,
-                fail_link: `http://localhost:4000/api/reservations/fail?trackingId=${trackingId}&reservationId=${reservation._id}`,
+                success_link: `${process.env.BACKEND_URL}/api/reservations/success?trackingId=${trackingId}&reservationId=${id}`,
+                fail_link: `${process.env.BACKEND_URL}/api/reservations/fail?trackingId=${trackingId}&reservationId=${reservation._id}`,
                 developer_tracking_id: trackingId
             }),
         });
@@ -189,7 +189,7 @@ exports.paymentSuccess = async (req, res) => {
         parkingSpot.disponibilite = false;
         await parkingSpot.save();
 
-        const frontendSuccessUrl = `http://localhost:3000/payment-success`;
+        const frontendSuccessUrl = `${process.env.FRONTEND_URL}/payment-success`;
         return res.redirect(frontendSuccessUrl);
 
     } catch (error) {
@@ -201,7 +201,7 @@ exports.paymentSuccess = async (req, res) => {
     }
 };
 exports.paymentFail = async (req, res) => {
-    const frontendErrorUrl = `http://localhost:3000/payment-error`;
+    const frontendErrorUrl = `${process.env.FRONTEND_URL}/payment-error`;
     return res.redirect(frontendErrorUrl);
 }
 
@@ -700,8 +700,8 @@ exports.getReservationCountByUserForEachParking = async (req, res) => {
                 amount: Math.round(reservation.additionalFee * 1000), // Convert to millimes
                 accept_card: true,
                 session_timeout_secs: 1200,
-                success_link: `http://localhost:4000/api/reservations/additional-fee-success/${reservationId}?trackingId=${trackingId}`,
-                fail_link: `http://localhost:4000/api/reservations/additional-fee-fail/${reservationId}?trackingId=${trackingId}`,
+                success_link: `${process.env.BACKEND_URL}/api/reservations/additional-fee-success/${reservationId}?trackingId=${trackingId}`,
+                fail_link: `${process.env.BACKEND_URL}/api/reservations/additional-fee-fail/${reservationId}?trackingId=${trackingId}`,
                 developer_tracking_id: trackingId
             }),
         });
@@ -761,7 +761,7 @@ exports.additionalFeeSuccess = async (req, res) => {
         
         await reservation.save();
 
-        const frontendSuccessUrl = `http://localhost:3000/payment-success`;
+        const frontendSuccessUrl = `${process.env.FRONTEND_URL}/payment-success`;
         return res.redirect(frontendSuccessUrl);
 
     } catch (error) {
@@ -777,7 +777,7 @@ exports.additionalFeeFail = async (req, res) => {
     const { reservationId } = req.params;
     console.log(`Payment failed for reservation ${reservationId}`);
     
-    const frontendErrorUrl = `http://localhost:3000/payment-error`;
+    const frontendErrorUrl = `${process.env.FRONTEND_URL}/payment-error`;
     return res.redirect(frontendErrorUrl);
 };
 

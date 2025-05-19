@@ -6,7 +6,7 @@ import {api} from "../../../api"
 const exchangeCodeForToken = async (code: string): Promise<void> => {
     const clientId = "198801170360-1m8sop4r23hle1a8de8v09fi8c053o56.apps.googleusercontent.com";
     const clientSecret = "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"; // Remplacez par votre client secret
-    const redirectUri = "http://localhost:3000/react/template/auth/google/callback";
+    const redirectUri = `${process.env.REACT_APP_FRONT_BASE_URL}/react/template/auth/google/callback`; // Remplacez par votre URI de redirection
 
     try {
         const response = await fetch("https://oauth2.googleapis.com/token", {

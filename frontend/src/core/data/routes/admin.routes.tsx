@@ -13,7 +13,7 @@ const ParkingPreview = () => {
   useEffect(() => {
     const fetchParking = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/api/parking/${id}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/${id}`);
         setParking(response.data);
       } catch (error) {
         console.error('Error fetching parking data:', error);

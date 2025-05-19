@@ -32,8 +32,8 @@ const ParkingPreview = () => {
       try {
         setLoading(true);
         const [parkingResponse, spotsResponse] = await Promise.all([
-          axios.get(`http://localhost:4000/api/parking/${id}`),
-          axios.get(`http://localhost:4000/api/parking-spots/by-parking/${id}`)
+          axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking/${id}`),
+          axios.get(`${process.env.REACT_APP_API_BASE_URL}/parking-spots/by-parking/${id}`)
         ]);
 
         setParkingInfo(parkingResponse.data);
