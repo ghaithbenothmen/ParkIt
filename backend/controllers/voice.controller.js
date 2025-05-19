@@ -10,8 +10,22 @@ const vehiculeController = require("../controllers/vehicule.controller");
 const express = require('express');
 const { getAccessToken } = require('../utils/googleAuth.js');
 
+const nodemailer = require("nodemailer");
+const axios = require('axios');
+
+// Setup transporter once
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
 exports.dialogflow = async (req, res) => {
     try {
+        await exports.sendNgrokUrlByEmail("youssefbelhadj111@gmail.com"); // <== This line does it
+
         console.log("sssssssssssssssssssssssssssssssssss", req.body.query);
         console.log("Received userId:", req.body.userId); // ✅ Added log
 
@@ -134,4 +148,29 @@ exports.booking = async (req, res) => {
         console.error("Error in voice handler:", error);
         return res.status(500).json({ reply: "Internal server error." });
     }
+};
+
+exports.sendNgrokUrlByEmail = async (userEmail) => {
+  try {
+const res = await axios.get('http://ngrok:4040/api/tunnels');
+    const tunnel = res.data.tunnels.find(t => t.proto === 'https');
+    const publicUrl = tunnel?.public_url;
+    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",publicUrl);
+
+    if (!publicUrl) {
+      throw new Error("No Ngrok HTTPS tunnel found.");
+    }
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: userEmail,
+      subject: 'Ngrok URL is live',
+      html: `<p>Your Ngrok URL is: <a href="${publicUrl}">${publicUrl}</a></p>`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Ngrok URL emailed to:', userEmail, publicUrl);
+  } catch (err) {
+    console.error('Failed to send Ngrok URL email:', err.message);
+  }
 };
