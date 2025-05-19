@@ -34,16 +34,12 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: parkit
     volumes:
       - db-data:/data/db
-
+        
   lpr:
-    build:
-      context: ./lpr-python
-      dockerfile: Dockerfile
+    image: gbothmen/parkit-lpr-app:latest
     container_name: lpr
     ports:
       - "5000:5000"
-    volumes:
-      - ./lpr-python:/app
     depends_on:
       - api
       - mongo
@@ -69,5 +65,22 @@ services:
     ports:
       - 4040:4040
 
+  fastapi:
+      build:
+        context: ./ia-reclamation
+        dockerfile: Dockerfile
+      container_name: fastapi
+      ports:
+        - "8008:8008"
+      volumes:
+        - ./ia-reclamation:/app
+      environment:
+        - DOCKER_ENV=true  # Skip GUI in helmi.py
+      depends_on:
+        - api
+        - mongo
+      command: ["uvicorn", "model_server:app", "--host", "0.0.0.0", "--port", "8008", "--reload"]
+
 volumes:
   db-data: {}
+  

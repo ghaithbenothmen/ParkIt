@@ -10,60 +10,60 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with your frontend domain in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Base URL for your Node.js backend
 NODE_BACKEND_BASE_URL = "http://api:3000/api/voice"
 
 class DialogflowWebhookBody(BaseModel):
-    session: str                # e.g. "projects/…/agent/sessions/<USER_ID>"
+    session: str
     queryResult: dict
+    originalDetectIntentRequest: dict
 
-# Map Dialogflow intent names to Node.js route paths
 INTENT_ROUTE_MAP = {
     "BookParking": "",
     "CancelParking": "/cancelParking",
     "CheckAvailability": "/checkAvailability",
-    # Add more intent-to-route mappings here
 }
 
 @app.post("/voice")
 async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
-    # Extract Dialogflow payload
     query_result = body.queryResult
     intent = query_result.get("intent", {}).get("displayName")
 
-    # Default fallback if intent not recognized
+    # Get userId from Dialogflow payload
+    user_id = (
+        body.originalDetectIntentRequest
+        .get("payload", {})
+        .get("fields", {})
+        .get("userId", {})
+        .get("stringValue")
+    ) or body.session.rsplit("/", 1)[-1]
+
+    print("User ID:", user_id)
+
     if intent not in INTENT_ROUTE_MAP:
         return {"fulfillmentText": f"Sorry, I don't know how to handle intent '{intent}'."}
 
-    # Determine which Node.js route to call
     node_route = INTENT_ROUTE_MAP[intent]
     endpoint_url = NODE_BACKEND_BASE_URL + node_route
 
-    # Common parameters
     params = query_result.get("parameters", {})
-    user_id = body.session.rsplit("/", 1)[-1]
-
-    # Build payload and fulfillment
-    payload = {"userId": "67c73ea3191de590b7f141ad"}
+    payload = {"userId": user_id}
     fulfillment_text = ""
-    redirect = ""
 
-    # Handle each intent's parameters
     if intent == "BookParking":
-        parking_name = params.get("parkingName") or "mourouj"
-        if parking_name.lower().startswith("m"):
-            parking_name = "mourouj"
+
+        parking_name = params.get("parkingName") or "Esprit Parking"
+
         start_str = params.get("startDate")
         end_str = params.get("endDate")
         duration = params.get("duration")
 
-        # Validate dates
+       # Validate dates
         start_time_str = start_str["date_time"]
         start = dateutil.parser.isoparse(start_time_str)
 
@@ -98,16 +98,18 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
         date_str = params.get("date")
         if not lot_name or not date_str:
             return {"fulfillmentText": "Which lot and date would you like to check?"}
-        date = dateutil.parser.isoparse(date_str)
+        try:
+            date = dateutil.parser.isoparse(date_str)
+        except Exception:
+            return {"fulfillmentText": "Invalid date format."}
         payload.update({"lot": lot_name, "date": date.date().isoformat()})
         fulfillment_text = f"Checking availability for {lot_name} on {date.date().isoformat()}."
-        
 
-    # Call the Node.js backend
     try:
         resp = requests.post(endpoint_url, json=payload)
         resp.raise_for_status()
         data = resp.json()
+        reply = data.get("reply")
         reservation_id = data.get("data", {}).get("_id")
         if resp.status_code == 201 and reservation_id:
             return {
@@ -116,15 +118,12 @@ async def dialogflow_webhook(request: Request, body: DialogflowWebhookBody):
                     "redirect": f"http://localhost:3000/providers/booking/{reservation_id}"
                 }
             }
-
         else:
-            return {"fulfillmentText": data.get("message", "Operation failed. Please try again.")}
+            return {"fulfillmentText": reply}
 
     except requests.RequestException as e:
-        # Log error and notify user
         print(f"Error calling {endpoint_url}: {e}")
         return {"fulfillmentText": "Sorry, I'm having trouble connecting to the service right now."}
-
 
 def parse_duration(duration_str):
     if isinstance(duration_str, (int, float)):

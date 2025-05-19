@@ -325,10 +325,19 @@ const BookingParking = () => {
                       <div className="card-body">
                         <div className="service-info bg-white d-flex align-items-center mb-3">
                           <span className="avatar avatar-xl me-2 flex-shrink-0">
-                            <ImageWithBasePath
-                              src=""
+                            <img
+                              src={
+                                parking?.images && parking.images.length > 0
+                                  ? (parking.images[0].startsWith("//")
+                                      ? `https:${parking.images[0]}` // Replace leading "//" with "https:"
+                                      : parking.images[0].startsWith("http") || parking.images[0].startsWith("https")
+                                      ? parking.images[0]
+                                      : `https://res.cloudinary.com/dmqhmgfme/image/upload/${parking.images[0].replace(/^\//, "")}` // Remove leading slash if present
+                                    )
+                                  : "assets/parking.jpg" // Fallback to a default image
+                              }
                               className="border-0"
-                              alt="img"
+                              alt="Parking Image"
                             />
                           </span>
                           <div>

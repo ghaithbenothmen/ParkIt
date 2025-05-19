@@ -33,7 +33,7 @@ const CreateClaim = () => {
   const [userId, setUserId] = useState('');
   const claimTypes = [
     'Spot Occupied',
-    'Payment Issue',
+    'Wrong Parking',
     'Security',
     'Other',
   ];

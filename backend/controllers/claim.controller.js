@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Claim = require('../models/claim.model');
 const Parking = require('../models/parking.model');
+const axios = require('axios');
+const FormData = require('form-data');
 
 const multer = require('multer');
 const path = require('path');
@@ -23,7 +25,6 @@ const storage = new CloudinaryStorage({
   },
 });
 
-
 const upload = multer({ storage }).single('image');
 
 exports.createClaim = async (req, res) => {
@@ -32,25 +33,75 @@ exports.createClaim = async (req, res) => {
       return res.status(400).json({ message: "Image upload failed", error: err.message });
     }
 
-    console.log('FormData received: ', req.body); // Should print all the other fields
-    console.log('File uploaded: ', req.file);   // Should print the uploaded image
+    console.log('FormData received: ', req.body);
+    console.log('File uploaded: ', req.file);
 
     try {
       const { userId, parkingId, claimType, message } = req.body;
       const user = await mongoose.model('User').findById(userId);
       const parking = await Parking.findById(parkingId);
 
-      if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
-      }
-      if (!parking) {
-        return res.status(404).json({ message: 'Parking not found.' });
+      if (!user) return res.status(404).json({ message: 'User not found.' });
+      if (!parking) return res.status(404).json({ message: 'Parking not found.' });
+
+      const imageUrl = req.file.path;
+
+      // Function to send image to classifier and get result
+      async function sendImageFromUrl(imageUrl) {
+        try {
+          const response = await axios({
+            method: 'get',
+            url: imageUrl,
+            responseType: 'stream',
+          });
+
+          const form = new FormData();
+          form.append('file', response.data, {
+            filename: 'uploaded_image.jpg',
+            contentType: response.headers['content-type'],
+          });
+
+          const result = await axios.post('http://fastapi:8008/classify', form, {
+            headers: {
+              ...form.getHeaders(),
+            },
+          });
+
+          return result.data;
+        } catch (err) {
+          console.error('Error sending image to classifier:', err.message, err.stack);
+          return null;
+        }
       }
 
-      const imageUrl =  req.file.path;
+      // Get classification result
+      const classificationResult = await sendImageFromUrl(imageUrl);
+      console.log('Classification Result:', classificationResult);
+
+      // Map user-selected claimType to AI model labels
+      const claimTypeMap = {
+        'Spot Occupied': 'occupied',
+        'Wrong Parking': 'wrong_parking',
+        'Security': 'accident',
+        'Other': 'others',
+      };
+
+      // Determine claim status
+      let status = 'Pending';
+      if (classificationResult && claimTypeMap[claimType]) {
+        const aiLabel = claimTypeMap[claimType];
+        if (classificationResult[aiLabel] === true) {
+          status = 'Valid';
+        }
+      }
 
       const claim = new Claim({
-        userId, parkingId, claimType, message, image: imageUrl
+        userId,
+        parkingId,
+        claimType,
+        message,
+        image: imageUrl,
+        status,
       });
 
       await claim.save();
@@ -58,14 +109,14 @@ exports.createClaim = async (req, res) => {
       res.status(201).json({
         message: 'Claim created successfully.',
         claim,
-        notification: 'Your claim has been sent to the administration.'
+        notification: 'Your claim has been sent to the administration.',
       });
     } catch (error) {
-      res.status(500).json({ message: 'Error creating the claim.', error });
+      console.error('Error creating claim:', error.stack);
+      res.status(500).json({ message: 'Error creating the claim.', error: error.message });
     }
   });
 };
-
 
 exports.getAllClaims = async (req, res) => {
   try {
@@ -84,7 +135,7 @@ exports.getClaimByUser = async (req, res) => {
     const { userId } = req.params;
 
     const claims = await Claim.find({ userId })
-      .sort({ priority: -1, submissionDate: -1 })
+      .sort({ priority: -1, submissionDate: 1 })
       .populate('userId', 'firstname lastname role')
       .populate('parkingId', 'nom adresse');
 

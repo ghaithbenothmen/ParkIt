@@ -4,6 +4,7 @@ import AudioRecorder from './AudioRecorder';
 import Logger from './Logger';
 import ErrorReporter from './ErrorReporter';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 /**
  * Expected Dialogflow response shape.
@@ -18,6 +19,7 @@ interface DialogflowResponse {
 class AiAssistantEngine extends EventEmitter {
   private readonly audioPlayer: AudioPlayer;
   private readonly audioRecorder: AudioRecorder;
+  private readonly userId: string | null;
   private gettingUserInput = false;
   private makingAPIRequest = false;
 
@@ -28,10 +30,22 @@ class AiAssistantEngine extends EventEmitter {
     this.audioRecorder = new AudioRecorder();
     this.audioPlayer = new AudioPlayer();
 
+    const token = localStorage.getItem('token');
+    let id: string | null = null;
+
+    if (token) {
+      try {
+        const decoded = jwtDecode<{ id: string }>(token);
+        id = decoded.id;
+        Logger.log(`Decoded user ID: ${id}`);
+      } catch (error) {
+        Logger.error('Invalid token:', error);
+      }
+    }
+
+    this.userId = id;
     Logger.log('Initialize Ai Assistant Engine');
   }
-
- 
 
   startProcessing = async (): Promise<void> => {
     Logger.log('F: startProcessing');
@@ -66,6 +80,7 @@ class AiAssistantEngine extends EventEmitter {
       );
 
       Logger.log('Dialogflow response:', res.data);
+      console.log("yyyyyyyyyyyyyyyyyyyyyyyy", res.status)
       const { queryResult } = res.data;
       const reply = queryResult.fulfillmentText || '';
       const redirect = queryResult.redirect;
@@ -86,9 +101,6 @@ class AiAssistantEngine extends EventEmitter {
     }
   };
 
-  /**
-   * Central handler for all API-like responses.
-   */
   private _handleApiResponse = (response: {
     statusCode: number;
     message: string;
@@ -116,20 +128,18 @@ class AiAssistantEngine extends EventEmitter {
     }
 
     if (response.data.redirectUrl) {
-      window.location.href = response.data.redirectUrl;
+      const redirectUrl = response.data.redirectUrl;
+      this.emit('toast', "reservation success");
+setTimeout(() => {
+    window.location.href = redirectUrl;
+  }, 2300);
     }
   };
 
-  /**
-   * Displays text and speaks via TTS.
-   */
   private _handleTextResponse(content: string): void {
     Logger.log('F: _handleTextResponse');
     Logger.log('>>> AI OUTPUT:', content);
 
-    // Notify UI
-
-    // Speak with Web Speech API
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(content);
