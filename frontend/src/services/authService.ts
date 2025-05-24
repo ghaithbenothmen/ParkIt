@@ -44,7 +44,9 @@ export const register = async (userData: {
 
   export const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/auth/login`, { email, password });
+      const loginUrl = `${process.env.REACT_APP_API_BASE_URL}/auth/login`;
+      console.log("Login URL:", loginUrl); // Debug: check the URL used
+      const response = await axios.post(loginUrl, { email, password });
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
