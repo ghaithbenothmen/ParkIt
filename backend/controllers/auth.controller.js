@@ -47,6 +47,10 @@ const {
 } = require('../utils/emailTemplates');
 
 exports.register = async (req, res) => {
+  // Add CORS headers for debugging cross-origin issues
+  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   upload(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ message: "Image upload failed", error: err.message });
@@ -138,7 +142,8 @@ exports.register = async (req, res) => {
       });
     } catch (error) {
       console.error("Register Error:", error);
-      res.status(500).json({ message: error.message });
+      // Always return JSON
+      res.status(500).json({ message: error.message || "Internal server error" });
     }
   });
 };
