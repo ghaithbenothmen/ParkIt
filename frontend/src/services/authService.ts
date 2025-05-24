@@ -18,13 +18,23 @@ export const register = async (userData: {
         },
         body: JSON.stringify(userData), // Send the correct user data
       });
-  
+
+      // Check if response has content before parsing as JSON
+      const text = await response.text();
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed. Please try again.');
+        let errorMessage = 'Registration failed. Please try again.';
+        try {
+          const errorData = text ? JSON.parse(text) : {};
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // ignore JSON parse error
+        }
+        throw new Error(errorMessage);
       }
-  
-      const data = await response.json();
+
+      // If response is empty, return an empty object
+      if (!text) return {};
+      const data = JSON.parse(text);
       return data; // Return data if registration is successful
     } catch (error: any) {
       throw new Error(error.message || 'Registration failed. Please try again.');
