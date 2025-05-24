@@ -70,7 +70,7 @@ mongoose.connect(process.env.MONGO_URI)
 })
 .catch((err) => console.error('MongoDB connection error:', err));
 app.use(cors({
-  origin: [process.env.FRONTEND_URL,'http://localhost:3000', 'http://192.168.34.177'],
+  origin: [process.env.FRONTEND_URL,'http://localhost:3000', 'http://192.168.34.177'] || '*',
   //allowedHeaders: ['Content-Type','Authorization'], // Autoriser les requêtes depuis ce domaine
   credentials: true,
 }));

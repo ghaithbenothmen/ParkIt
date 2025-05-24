@@ -23,7 +23,7 @@ const char* ssid = "Galaxy";
 const char* password = "00000000";
 
 // === MQTT Config ===
-const char* mqtt_server = "192.168.155.25";
+const char* mqtt_server = "192.168.28.25";
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
@@ -32,10 +32,10 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 // === Flask Server Config ===
-const char* flaskServer = "http://192.168.155.25:5000/api/lpr";
+const char* flaskServer = "http://192.168.28.25:5000/api/lpr";
 
 // === Backend Config ===
-const char* backendServer = "192.168.155.25";
+const char* backendServer = "192.168.28.25";
 const int backendPort = 4000;
 const String checkExitPlateEndpoint = "/api/lpr/check-exit-vehicle";
 
@@ -83,8 +83,8 @@ void setupCamera() {
   config.pin_d1 = Y3_GPIO_NUM;
   config.pin_d2 = Y4_GPIO_NUM;
   config.pin_d3 = Y5_GPIO_NUM;
-  config.pin_d4 = Y6_GPIO_NUM; // Corrected
-  config.pin_d5 = Y7_GPIO_NUM; // Corrected
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
   config.pin_d6 = Y8_GPIO_NUM;
   config.pin_d7 = Y9_GPIO_NUM;
   config.pin_xclk = XCLK_GPIO_NUM;
@@ -99,13 +99,13 @@ void setupCamera() {
   config.pixel_format = PIXFORMAT_JPEG;
 
   if (psramFound()) {
-    config.frame_size = FRAMESIZE_SVGA; // 800x600
-    config.jpeg_quality = 8; // Less compression
+    config.frame_size = FRAMESIZE_XGA; // 1024x768 pour une meilleure qualité
+    config.jpeg_quality = 6;          // Compression minimale
     config.fb_count = 2;
     config.grab_mode = CAMERA_GRAB_LATEST;
   } else {
-    config.frame_size = FRAMESIZE_CIF;
-    config.jpeg_quality = 12;
+    config.frame_size = FRAMESIZE_SVGA;
+    config.jpeg_quality = 8;
     config.fb_count = 1;
   }
 
@@ -116,24 +116,26 @@ void setupCamera() {
   }
 
   sensor_t *s = esp_camera_sensor_get();
-  s->set_vflip(s, 1);
-  s->set_hmirror(s, 1);
-  s->set_framesize(s, FRAMESIZE_SVGA);
-  s->set_brightness(s, 1);
-  s->set_contrast(s, 1);
-  s->set_saturation(s, 0);
-  s->set_sharpness(s, 1);
-  s->set_whitebal(s, 0);
-  s->set_awb_gain(s, 0);
-  s->set_exposure_ctrl(s, 0);
-  s->set_aec_value(s, 300);
+  s->set_vflip(s, 1);    // Flip vertical
+  s->set_hmirror(s, 1);  // Miroir horizontal
+  s->set_framesize(s, FRAMESIZE_XGA); // Correspond à la config
+  s->set_brightness(s, 1);   // Luminosité modérée (+1) pour réduire les reflets
+  s->set_contrast(s, 1);     // Contraste modéré (+1) pour plus de clarté
+  s->set_saturation(s, 0);   // Saturation normale
+  s->set_sharpness(s, 3);    // Netteté maximale pour le texte des plaques
+  s->set_whitebal(s, 1);     // Balance des blancs automatique
+  s->set_awb_gain(s, 1);     // Gain automatique de la balance des blancs
+  s->set_exposure_ctrl(s, 1); // Exposition automatique
+  s->set_aec_value(s, 150);  // Exposition modérée pour réduire les reflets
+  s->set_special_effect(s, 0); // Pas d'effets spéciaux
+  s->set_wb_mode(s, 0);      // Balance des blancs automatique
 
-  publishLog("Camera setup complete.");
+  publishLog("Camera setup complete. Resolution: XGA, Quality: 6");
 }
 
 void resetCamera() {
   esp_camera_deinit();
-  delay(200); // Increased for stability
+  delay(200);
   setupCamera();
   publishLog("Camera reinitialized");
 }
@@ -147,7 +149,7 @@ void setup() {
   ESP32PWM::allocateTimer(0);
   myservo.setPeriodHertz(50);
   myservo.attach(servoPin, 500, 2400);
-  myservo.write(180); // Set initial position to 180 degrees
+  myservo.write(180); // Position initiale à 180 degrés
 
   pinMode(ledPin, OUTPUT);
   pinMode(paymentLedPin, OUTPUT);
@@ -387,7 +389,7 @@ void loop() {
             myservo.write(180); // Close gate back to 180 degrees
             delay(500); // Allow servo to settle
             myservo.detach(); // Detach to prevent jitter
-delay(500); // Allow detachment to stabilize
+            delay(500); // Allow detachment to stabilize
             myservo.attach(servoPin, 500, 2400); // Reattach for next use
             myservo.write(180); // Reinforce initial position
             publishLog("Gate closed");
