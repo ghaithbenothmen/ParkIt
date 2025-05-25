@@ -911,7 +911,8 @@
 }
 
 .logo-small img {
-    width: 30px;
+    width: 150px;
+    height: 100%;
 }
 
 @include respond-above(lg) {

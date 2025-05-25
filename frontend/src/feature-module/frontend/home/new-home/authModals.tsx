@@ -7,7 +7,7 @@ import { googleAuth } from '../../../../api';
 import axios, { AxiosError } from 'axios';
 import { register, login } from '../../../../services/authService';
 import { Modal } from 'bootstrap';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, X } from 'lucide-react'; // <-- Add X icon from lucide-react
 
 
 interface User {
@@ -754,9 +754,22 @@ const AuthModals = () => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-              <Link to="#" data-bs-dismiss="modal" aria-label="Close">
-                <i className="ti ti-circle-x-filled fs-20" />
-              </Link>
+              <button
+                type="button"
+                className="btn p-0 m-0"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                style={{
+                  boxShadow: 'none',
+                  background: 'none',
+                  border: 'none',
+                  color: '#888', // grey color
+                  padding: 0,
+                  margin: 0,
+                }}
+              >
+                <X size={24} />
+              </button>
             </div>
             <div className="modal-body p-4">
               <form onSubmit={handleLogin}>
@@ -860,9 +873,22 @@ const AuthModals = () => {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header d-flex align-items-center justify-content-end pb-0 border-0">
-              <Link to="#" data-bs-dismiss="modal" aria-label="Close">
-                <i className="ti ti-circle-x-filled fs-20" />
-              </Link>
+              <button
+                type="button"
+                className="btn p-0 m-0"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                style={{
+                  boxShadow: 'none',
+                  background: 'none',
+                  border: 'none',
+                  color: '#888', // grey color
+                  padding: 0,
+                  margin: 0,
+                }}
+              >
+                <X size={24} />
+              </button>
             </div>
             <div className="modal-body p-4">
               <form onSubmit={handleRegisterSubmit}>

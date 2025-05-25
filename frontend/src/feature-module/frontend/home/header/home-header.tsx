@@ -252,7 +252,8 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                 }
               }}
             >
-              <i className="ti ti-user-filled me-2" />Join Us
+              {/* Use react-feather UserPlus icon for Join Us */}
+              <Icon.UserPlus size={15} className="me-1" />Join Us
             </Link>
           </li>
         </ul>
@@ -344,7 +345,19 @@ const HomeHeader: React.FC<props> = ({ type }) => {
         <div className={` ${type == 4 || type == 1 ? 'container-fluid' : 'container'}`}>
           <nav className="navbar navbar-expand-lg header-nav">
             <div className="navbar-header">
-              <Link onClick={toogle} id="mobile_btn" to="#">
+              <Link
+                onClick={e => {
+                  e.preventDefault();
+                  toogle();
+                  setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    const menu = document.querySelector('.main-menu-wrapper');
+                    if (menu) (menu as HTMLElement).focus();
+                  }, 100);
+                }}
+                id="mobile_btn"
+                to="#"
+              >
                 <span className="bar-icon">
                   <span />
                   <span />
@@ -557,6 +570,40 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                 })}
 
               </ul>
+              {/* Add Sign In / Join Us buttons at the bottom for mobile sidebar if not logged in */}
+              {!user && (
+                <div className="d-lg-none px-3 pb-4" style={{ position: 'absolute', bottom: 0, left: 0, width: '100%' }}>
+                  <Link
+                    className="btn btn-light w-100 mb-2"
+                    to="#"
+                    onClick={e => {
+                      e.preventDefault();
+                      const loginModal = document.getElementById('login-modal');
+                      if (loginModal) {
+                        const bsModal = new bootstrap.Modal(loginModal);
+                        bsModal.show();
+                      }
+                    }}
+                  >
+                    <i className="ti ti-lock me-2" />Sign In
+                  </Link>
+                  <Link
+                    className="btn btn-linear-primary w-100"
+                    to="#"
+                    onClick={e => {
+                      e.preventDefault();
+                      const registerModal = document.getElementById('register-modal');
+                      if (registerModal) {
+                        const bsModal = new bootstrap.Modal(registerModal);
+                        bsModal.show();
+                      }
+                    }}
+                  >
+                    {/* Use react-feather UserPlus icon for Join Us */}
+                    <Icon.UserPlus size={15} className="me-1" />Join Us
+                  </Link>
+                </div>
+              )}
             </div>
             {renderButtons(type)}
           </nav>

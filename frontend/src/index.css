@@ -166,7 +166,7 @@
   .p-dropdown-items-wrapper
   .p-dropdown-items
   .p-dropdown-item:not(.p-highlight):not(.p-disabled):hover {
-  background-color: #FF008A;
+  background-color: #9b0e16;
   color: #fff;
 }
 
@@ -417,7 +417,7 @@ div.slick-slider.service-slider button:hover,
 .client-section .slick-slider button:hover,
 .slick-slider.catering-slider button:hover,
 .slick-slider.categories-slider-seven button:hover {
-  background-color: #FF008A;
+  background-color: #9b0e16;
 }
 
 button.slick-prev:before,
@@ -429,7 +429,7 @@ div.slick-slider.service-slider button:focus,
 .popular-slider .slick-slider button:focus,
 .client-section .slick-slider button:focus,
 .slick-slider.catering-slider button:focus {
-  background-color: #FF008A;
+  background-color: #9b0e16;
 }
 
 .service-section .slick-slider.service-slider div.slick-slide > div,
@@ -565,7 +565,7 @@ div.slick-slider.service-slider button:focus,
 }
 
 .home-four-wrapper .slick-slider .slick-dots li.slick-active button:before {
-  color: #FF008A;
+  color: #9b0e16;
   border-radius: 50%;
   font-size: 10px;
   opacity: 1;
@@ -596,7 +596,7 @@ div.slick-slider.service-slider button:focus,
   left: 0;
 }
 .custom-slick .slick-dots li.slick-active {
-  background: #ff008a;
+  background: #9b0e16;
   width: 20px;
 }
 .customer-review-slider.custom-slick .slick-dots {
@@ -617,7 +617,7 @@ div.slick-slider.service-slider button:focus,
 }
 
 .home-four-wrapper .slick-slider .slick-dots li.slick-active button {
-  border: 2px solid #FF008A;
+  border: 2px solid #9b0e16;
   border-radius: 10px;
 }
 
@@ -688,13 +688,13 @@ div.slick-slider.service-slider button:focus,
 
 .home-seven-wrapper .slick-dots li.slick-active button:before {
   opacity: 1;
-  color: #ff008a;
+  color: #9b0e16;
   font-size: 16px;
 }
 
 .home-two-wrapper .slick-dots li.slick-active button:before {
   opacity: 1;
-  color: #ff008a;
+  color: #9b0e16;
   font-size: 16px;
 }
 
@@ -794,7 +794,7 @@ button.fc-prev-button.fc-button.fc-button-primary {
 }
 
 .search-input-new.line-two-six svg {
-  color: #ff008a;
+  color: #9b0e16;
   right: 12px;
 }
 
@@ -816,7 +816,7 @@ button.fc-prev-button.fc-button.fc-button-primary {
 }
 
 .search-input-new.line-six svg {
-  color: #ff008a;
+  color: #9b0e16;
   right: 12px;
 }
 
@@ -1472,7 +1472,7 @@ td.valid-data {
   
 }
 .otp-input .p-inputtext.p-filled {
-  border-color: #FF008A !important;
+  border-color: #9b0e16 !important;
 }
 .otp-input .p-inputtext:enabled:focus {
   box-shadow: none;
@@ -1505,27 +1505,27 @@ td.valid-data {
   z-index: 99 !important;
 } 
 .p-slider .p-slider-handle {
-  background: #FF008A;
-    border: 2px solid #FF008A;
+  background: #9b0e16;
+    border: 2px solid #9b0e16;
 }
 .p-slider .p-slider-range {
-  background: #FF008A;
+  background: #9b0e16;
 }
 .ant-slider .ant-slider-track {
-  background-color: #FF008A;
+  background-color: #9b0e16;
 }
 .ant-slider .ant-slider-handle::after {
   box-shadow: 0 0 0 2px #fff;
-  background-color: #FF008A;
+  background-color: #9b0e16;
 }
 .ant-tooltip .ant-tooltip-inner {
-  background-color: #FF008A;
+  background-color: #9b0e16;
 }
 .ant-tooltip .ant-tooltip-arrow:before {
-  background: #FF008A;
+  background: #9b0e16;
 }
 .ant-slider:hover .ant-slider-track {
-  background-color: #FF008A;
+  background-color: #9b0e16;
 }
 .reactslick .slick-slide > div {
   margin-right: 14px;
@@ -1555,7 +1555,7 @@ td.valid-data {
 } */
 div.slick-slider button.slick-arrow:hover, div.slick-slider button.slick-arrow:focus {
   color: transparent;
-  background-color: #FF008A;
+  background-color: #9b0e16;
 }
 div.slick-slider button.slick-arrow:hover::before, div.slick-slider button.slick-arrow:focus::before {
   color: #fff;
@@ -1591,11 +1591,11 @@ div.slick-slider button.slick-arrow {
 }
 .dark .p-dropdown-panel .p-dropdown-items-wrapper .p-dropdown-items .p-dropdown-item.p-highlight {
   background: #0D0D0D;
-  color: #FF008A;
+  color: #9b0e16;
 }
 .dark .p-dropdown-panel .p-dropdown-items .p-dropdown-item:not(.p-highlight):not(.p-disabled).p-focus {
   background: #0D0D0D;
-  color: #FF008A;
+  color: #9b0e16;
 }
 .dark .react-datepicker {
   background: #0D0D0D;
@@ -1803,7 +1803,7 @@ margin-right: 20px;
 }
 
 .testimonial-item .comment-text.expanded::-webkit-scrollbar-thumb {
-  background-color: #FF008A;
+  background-color: #9b0e16;
   border-radius: 4px;
 }
 
@@ -2061,7 +2061,7 @@ margin-right: 20px;
 
 .dropdown-item.active {
   background-color: #f8f9fa;
-  color: #FF008A;
+  color: #9b0e16;
 }
 
 .notification-indicator {
@@ -2340,7 +2340,7 @@ margin-right: 20px;
 }
 
 .dropdown-body .text-primary {
-  color: #FF008A !important;
+  color: #9b0e16 !important;
 }
 
 .dropdown-body .text-muted {
@@ -2928,7 +2928,7 @@ margin-right: 20px;
   border: none;
   padding: 0;
   margin: 0;
-  color: #FF008A;
+  color: #9b0e16;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -2952,7 +2952,7 @@ margin-right: 20px;
 
 .testimonial-item .show-more-btn {
   font-size: 12px;
-  color: #FF008A;
+  color: #9b0e16;
   background: none;
   border: none;
   padding: 0;
@@ -2979,7 +2979,7 @@ margin-right: 20px;
   border: none;
   padding: 0;
   margin: 0;
-  color: #FF008A;
+  color: #9b0e16;
   font-size: 12px;
   cursor: pointer;
   text-decoration: none;
@@ -3006,7 +3006,7 @@ margin-right: 20px;
 
 .show-more-dots {
   display: inline-block;
-  color: #FF008A;
+  color: #9b0e16;
   cursor: pointer;
   font-weight: bold;
   padding: 0 4px;
@@ -3020,7 +3020,7 @@ margin-right: 20px;
 
 .show-less-button {
   display: inline-block;
-  color: #FF008A;
+  color: #9b0e16;
   font-size: 12px;
   cursor: pointer;
   padding: 2px 6px;
@@ -3076,7 +3076,7 @@ margin-right: 20px;
 .show-more-dots {
   display: inline-block;
   position: relative;
-  color: #FF008A;
+  color: #9b0e16;
   cursor: pointer;
   font-weight: bold;
   padding: 0 4px;
@@ -3103,7 +3103,7 @@ margin-right: 20px;
 
 /* Style pour le bouton "Show less" */
 .show-less-button {
-  color: #FF008A;
+  color: #9b0e16;
   font-size: 12px;
   cursor: pointer;
   background: none;
@@ -3157,7 +3157,7 @@ margin-right: 20px;
   bottom: 0;
   background: linear-gradient(to left, white 40%, transparent);
   padding: 0 8px 0 20px;
-  color: #FF008A;
+  color: #9b0e16;
   cursor: pointer;
   font-weight: 500;
   z-index: 2;
@@ -3170,7 +3170,7 @@ margin-right: 20px;
 /* Style pour le bouton "voir moins" */
 .show-less-button {
   display: inline-block;
-  color: #FF008A;
+  color: #9b0e16;
   font-size: 12px;
   cursor: pointer;
   padding: 4px 0;
@@ -3240,7 +3240,7 @@ margin-right: 20px;
 /* Style pour les boutons Voir plus/moins */
 .show-more-dots,
 .show-less-button {
-  color: #FF008A;
+  color: #9b0e16;
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
