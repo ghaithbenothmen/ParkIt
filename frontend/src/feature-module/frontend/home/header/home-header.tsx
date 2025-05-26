@@ -44,6 +44,7 @@ const HomeHeader: React.FC<props> = ({ type }) => {
     
     return all_routes.includes(location.pathname);
   };
+ const [showMobileDropdown, setShowMobileDropdown] = useState(false);
 
   // useEffect(() => {
   // }, [header_data]);
@@ -570,40 +571,114 @@ const HomeHeader: React.FC<props> = ({ type }) => {
                 })}
 
               </ul>
-              {/* Add Sign In / Join Us buttons at the bottom for mobile sidebar if not logged in */}
-              {!user && (
-                <div className="d-lg-none px-3 pb-4" style={{ position: 'absolute', bottom: 0, left: 0, width: '100%' }}>
-                  <Link
-                    className="btn btn-light w-100 mb-2"
-                    to="#"
-                    onClick={e => {
-                      e.preventDefault();
-                      const loginModal = document.getElementById('login-modal');
-                      if (loginModal) {
-                        const bsModal = new bootstrap.Modal(loginModal);
-                        bsModal.show();
-                      }
-                    }}
-                  >
-                    <i className="ti ti-lock me-2" />Sign In
-                  </Link>
-                  <Link
-                    className="btn btn-linear-primary w-100"
-                    to="#"
-                    onClick={e => {
-                      e.preventDefault();
-                      const registerModal = document.getElementById('register-modal');
-                      if (registerModal) {
-                        const bsModal = new bootstrap.Modal(registerModal);
-                        bsModal.show();
-                      }
-                    }}
-                  >
-                    {/* Use react-feather UserPlus icon for Join Us */}
-                    <Icon.UserPlus size={15} className="me-1" />Join Us
-                  </Link>
-                </div>
-              )}
+              {/* Mobile sidebar user/account section */}
+              <div className="d-lg-none px-3 pb-4" style={{ position: 'absolute', bottom: 0, left: 0, width: '100%' }}>
+                {user && user.email ? (
+                  <div className="w-100" style={{ position: 'relative' }}>
+                    {/* Remove data-bs-toggle and aria-expanded to avoid Bootstrap JS conflict */}
+                    <button
+                      className="btn btn-light w-100 d-flex align-items-center justify-content-between"
+                      type="button"
+                      id="mobileUserDropdown"
+                      style={{
+                        borderRadius: 12,
+                        padding: '10px 16px',
+                        fontWeight: 500,
+                        fontSize: 16
+                      }}
+                      onClick={() => setShowMobileDropdown(prev => !prev)}
+                    >
+                      <span className="d-flex align-items-center">
+                        <img
+                          src={imagePreview || 'assets/img/user.jpg'}
+                          alt="User"
+                          className="rounded-circle me-2"
+                          width={36}
+                          height={36}
+                          style={{ objectFit: 'cover' }}
+                          onError={e => (e.currentTarget.src = 'assets/img/user.jpg')}
+                        />
+                        <span style={{ fontSize: 15 }}>{user.email}</span>
+                      </span>
+                      <Icon.ChevronDown size={18} />
+                    </button>
+                    {showMobileDropdown && (
+                      <ul
+                        className="dropdown-menu dropdown-menu-end p-3 shadow show"
+                        aria-labelledby="mobileUserDropdown"
+                        style={{
+                          minWidth: 250,
+                          right: 0,
+                          left: 'auto',
+                          position: 'absolute',
+                          top: 'auto',
+                          bottom: '100%', // Drop up (above the button)
+                          marginBottom: 8,
+                          transform: 'translateY(-8px)',
+                          zIndex: 1050,
+                          display: 'block'
+                        }}
+                      >
+                        <li className="text-center mb-3">
+                          <img
+                            src={imagePreview || 'assets/img/user.jpg'}
+                            alt="User"
+                            className="rounded-circle mb-2"
+                            style={{ width: 80, height: 80, objectFit: 'cover' }}
+                            onError={e => (e.currentTarget.src = 'assets/img/user.jpg')}
+                          />
+                          <h6 className="mb-0">{user.firstname || 'Guest'} {user.lastname || ''}</h6>
+                          <small className="text-muted">{user.role || 'User'}</small>
+                        </li>
+                        <li>
+                          <Link
+                            className="dropdown-item"
+                            to={user.role === 'admin' ? routes.dashboard : '/providers/dashboard'}
+                          >
+                            <i className="ti ti-dashboard me-2"></i> Dashboard
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="dropdown-item text-danger" to="#" onClick={handleLogout}>
+                            <i className="fas fa-sign-out-alt me-2"></i> Log Out
+                          </Link>
+                        </li>
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <Link
+                      className="btn btn-light w-100 mb-2"
+                      to="#"
+                      onClick={e => {
+                        e.preventDefault();
+                        const loginModal = document.getElementById('login-modal');
+                        if (loginModal) {
+                          const bsModal = new bootstrap.Modal(loginModal);
+                          bsModal.show();
+                        }
+                      }}
+                    >
+                      <i className="ti ti-lock me-2" />Sign In
+                    </Link>
+                    <Link
+                      className="btn btn-linear-primary w-100"
+                      to="#"
+                      onClick={e => {
+                        e.preventDefault();
+                        const registerModal = document.getElementById('register-modal');
+                        if (registerModal) {
+                          const bsModal = new bootstrap.Modal(registerModal);
+                          bsModal.show();
+                        }
+                      }}
+                    >
+                      <Icon.UserPlus size={15} className="me-1" />Join Us
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
             {renderButtons(type)}
           </nav>
