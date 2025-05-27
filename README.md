@@ -61,3 +61,24 @@ LPR Service: http://localhost:5000
 
 - For ESP32 firmware and wiring instructions, refer to the embedded/ directory.
 
+## 🖥 Screenshots & Prototype
+### Web real time detection (admin)
+![Web real time detection (admin)](docs/Real-time-detection.jpg)
+
+### Real-Time Plate Detection
+![LPR Detection](images/lpr-detection.png)
+
+### Physical Prototype (ESP32 + Barrier System)
+![Prototype](images/prototype-setup.jpg)
+
+### Automatic Barrier Control Simulation
+![Barrier Simulation](images/barrier.gif)
+
+---
+
+## 🎥 Demo Video
+[![Watch Demo](images/demo-thumbnail.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_LINK)
+
+---
+
+
