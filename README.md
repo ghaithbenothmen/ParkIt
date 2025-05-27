@@ -77,7 +77,7 @@ LPR Service: http://localhost:5000
 ---
 
 ## 🎥 Demo Video
-[![Watch Demo](docs/Parkit.jpg](https://youtu.be/vEh0LydJgZI?feature=shared)
+[![Watch Demo](docs/Parkit.jpg)](https://youtu.be/vEh0LydJgZI?feature=shared)
 
 ---
 
