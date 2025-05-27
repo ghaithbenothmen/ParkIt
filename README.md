@@ -66,7 +66,7 @@ LPR Service: http://localhost:5000
 ![Web real time detection (admin)](docs/Real-time-detection.jpg)
 
 ### Tunisian-Licence-Plate-Number-Recognition
-![LPR Detection](docs/Entry-system2.png)
+![LPR Detection](docs/Entry-system2.jpg)
 
 ### Physical Prototype (ESP32-CAM + Barrier System)
 ![Prototype](docs/Prototype.jpg)
@@ -77,7 +77,7 @@ LPR Service: http://localhost:5000
 ---
 
 ## 🎥 Demo Video
-[![Watch Demo](docs/demo-thumbnail.jpg)](https://youtu.be/vEh0LydJgZI?feature=shared)
+[![Watch Demo](docs/Parkit.jpg](https://youtu.be/vEh0LydJgZI?feature=shared)
 
 ---
 
