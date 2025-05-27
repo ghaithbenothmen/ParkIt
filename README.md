@@ -65,19 +65,19 @@ LPR Service: http://localhost:5000
 ### Web real time detection (admin)
 ![Web real time detection (admin)](docs/Real-time-detection.jpg)
 
-### Real-Time Plate Detection
-![LPR Detection](images/lpr-detection.png)
+### Tunisian-Licence-Plate-Number-Recognition
+![LPR Detection](docs/Entry-system2.png)
 
-### Physical Prototype (ESP32 + Barrier System)
-![Prototype](images/prototype-setup.jpg)
+### Physical Prototype (ESP32-CAM + Barrier System)
+![Prototype](docs/Prototype.jpg)
 
-### Automatic Barrier Control Simulation
-![Barrier Simulation](images/barrier.gif)
+### Automatic Barrier Control
+![Barrier Control + ESP32-CAM](docs/Entry-system.jpg)
 
 ---
 
 ## 🎥 Demo Video
-[![Watch Demo](images/demo-thumbnail.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_LINK)
+[![Watch Demo](docs/demo-thumbnail.jpg)](https://youtu.be/vEh0LydJgZI?feature=shared)
 
 ---
 
